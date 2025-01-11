@@ -1,0 +1,32 @@
+# Bun cli
+FROM oven/bun:1.1.43-alpine AS base
+
+# Build App
+FROM base AS builder
+
+# Next.js collects completely anonymous telemetry data about general usage.
+# Learn more here: https://nextjs.org/telemetry
+# Disable telemetry during the build
+ENV NEXT_TELEMETRY_DISABLED 1
+WORKDIR /app
+COPY package.json bun.lockb ./
+RUN bun install --frozen-lockfile
+COPY . .
+RUN bun run build
+
+# Production image, copy all the files and run next
+FROM base AS runner
+ENV NEXT_TELEMETRY_DISABLED 1
+ENV NODE_ENV production
+WORKDIR /app
+RUN adduser --system --uid 1001 nextjs
+RUN mkdir .next
+RUN chown nextjs:bun .next
+COPY --from=builder --chown=nextjs:bun /app/.next/standalone ./
+COPY --from=builder --chown=nextjs:bun /app/.next/static ./.next/static
+COPY --from=builder --chown=nextjs:bun /app/public ./public
+USER nextjs
+EXPOSE 3000
+ENV PORT 3000
+ENV HOSTNAME "0.0.0.0"
+CMD ["bun", "server.js"]
