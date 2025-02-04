@@ -12,7 +12,7 @@ export interface ProductOption {
 export interface Product {
     id: string,
     name: string,
-    category: Category[],
+    category: Category,
     price: number,
     image: string,
     options?: Array<ProductOption>

@@ -19,13 +19,13 @@ export default function SidebarLayout({ menus = SidebarMenu}: ISidebarLayout) {
         <div className="flex flex-col h-full px-[18px] py-[16px] justify-between ">
             <div className="flex flex-col gap-[12px]">
                 {_.filter(menus, {positon: "top"}).map((item, i) => {
-                    return <ButtonLayout key={i} title={item.title} isActive={isActive(item.route)} size='lg' onclick={() => { router.push(item.route) }} />
+                    return <ButtonLayout key={i} title={item.title} isActive={isActive(item.route)} size='lg' onclick={() => { router.push(item.route) }} buttonStyleType={'secondary'} />
                 }
                 )}
             </div>
             <div className="flex flex-col gap-[12px]">
                 {_.filter(menus, {positon: "bottom"}).map((item, i) => {
-                    return <ButtonLayout key={i} title={item.title} isActive={isActive(item.route)} size='lg' onclick={() => { router.push(item.route) }} />
+                    return <ButtonLayout key={i} title={item.title} isActive={isActive(item.route)} size='lg' onclick={() => { router.push(item.route) }} buttonStyleType={'secondary'} />
                 }
                 )}
             </div>

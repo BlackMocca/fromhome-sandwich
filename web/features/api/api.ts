@@ -1,10 +1,12 @@
 import { Category, Product } from "../domain/product.type";
 
+export const ProductCategoryData: Category[] = Object.values(Category);
+
 export const ProductData: Product[] = [
     {
         id: "1",
         name: "cocoa",
-        category: [Category.Beverage],
+        category: Category.Beverage,
         price: 60,
         image: "/images/products/cocoa.jpg",
         options: [
@@ -25,8 +27,8 @@ export const ProductData: Product[] = [
 
     {
         id: "2",
-        name: "cocoa",
-        category: [Category.Beverage],
+        name: "sandwich",
+        category: Category.Sandwich,
         price: 60,
         image: "/images/products/cocoa.jpg",
         options: [
@@ -45,9 +47,9 @@ export const ProductData: Product[] = [
         ]
     },
     {
-        id: "2",
+        id: "3",
         name: "cocoa",
-        category: [Category.Beverage],
+        category: Category.Beverage,
         price: 60,
         image: "/images/products/cocoa.jpg",
         options: [
@@ -66,9 +68,9 @@ export const ProductData: Product[] = [
         ]
     },
     {
-        id: "2",
+        id: "4",
         name: "cocoa",
-        category: [Category.Beverage],
+        category: Category.Beverage,
         price: 60,
         image: "/images/products/cocoa.jpg",
         options: [
@@ -87,9 +89,9 @@ export const ProductData: Product[] = [
         ]
     },
     {
-        id: "2",
+        id: "5",
         name: "cocoa",
-        category: [Category.Beverage],
+        category: Category.Beverage,
         price: 60,
         image: "/images/products/cocoa.jpg",
         options: [
