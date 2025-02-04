@@ -9,6 +9,9 @@
     "lint": "bun next lint"
   },
   "dependencies": {
+    "@types/lodash": "^4.17.15",
+    "classnames": "^2.5.1",
+    "lodash": "^4.17.21",
     "mobx-react": "^9.2.0",
     "next": "15.1.4",
     "react": "^19.0.0",

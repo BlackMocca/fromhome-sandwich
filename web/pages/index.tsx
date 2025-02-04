@@ -1,7 +1,14 @@
 import Image from "next/image";
-import { Fragment } from "react";
-import HomePage from "@/features/presentation/home/home.page";
+import { Fragment, useEffect } from "react";
+import ReceiptPage from "@/features/presentation/transaction/receipt.page";
+import { useRouter } from "next/router";
 
 export default function Home() {
-  return <HomePage />
+  const router = useRouter()
+
+  useEffect(() => {
+    router.push("/receipt");
+  }, [router]);
+
+  return <ReceiptPage />
 }

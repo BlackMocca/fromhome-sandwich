@@ -11,7 +11,7 @@ export default function Navbar() {
     return (
       <div className="w-full">
         <div className="flex flex-row items-center">
-          <div className="flex flex-row items-center cursor-pointer" onClick={handleRedirect}>
+          <div className="flex flex-row items-center cursor-pointer gap-4" onClick={handleRedirect}>
             <div className="relative w-[55px] h-[55px]">
               <Image
                 src="/images/logo.png"
