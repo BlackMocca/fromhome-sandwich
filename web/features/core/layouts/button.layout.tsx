@@ -6,6 +6,7 @@ type IButtonLayout = {
     onclick: () => void
     size: "sm" | "md" | "lg"
     type?: 'button' | 'submit' | 'reset';
+    style?: string
 }
 
 export default function ButtonLayout(props: IButtonLayout) {
@@ -22,12 +23,13 @@ export default function ButtonLayout(props: IButtonLayout) {
     
   return (
     <button 
-        className={classNames("flex w-full justify-center items-center text-xl border-0 rounded-[27px] hover:bg-action hover:color-secondary duration-300",
+        className={classNames("flex justify-center items-center text-xl border-0 rounded-[27px] hover:bg-action hover:color-secondary duration-300 p-4",
             sizing(props.size),
             {
-                "bg-action color-secondary": props.isActive, 
-                "bg-secondary": !props.isActive,
+                "bg-action text-secondary": props.isActive, 
+                "bg-secondary text-primary": !props.isActive,
             },
+            props.style ? props.style : "w-full"
         )}
 
         onClick={props.onclick}

@@ -15,7 +15,7 @@ export default function SidebarLayout({ menus = SidebarMenu}: ISidebarLayout) {
     var isActive = (menuPath: string) => {return router.pathname === menuPath}
 
     return (
-    <div className="min-w-[227px] h-full border rounded-[27px] bg-primary">
+    <div className="min-w-[227px] border rounded-[27px] bg-primary">
         <div className="flex flex-col h-full px-[18px] py-[16px] justify-between ">
             <div className="flex flex-col gap-[12px]">
                 {_.filter(menus, {positon: "top"}).map((item, i) => {

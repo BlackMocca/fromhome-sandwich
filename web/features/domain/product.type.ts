@@ -1,3 +1,8 @@
+export enum Category {
+    Beverage = "Beverage",
+    Sandwich = "Sandwich"
+}
+
 export interface ProductOption {
     id: string,
     name: string,
@@ -7,7 +12,8 @@ export interface ProductOption {
 export interface Product {
     id: string,
     name: string,
-    category: string[],
+    category: Category[],
     price: number,
+    image: string,
     options?: Array<ProductOption>
 }
