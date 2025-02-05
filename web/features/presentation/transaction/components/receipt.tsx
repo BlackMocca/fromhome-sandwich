@@ -1,14 +1,29 @@
+import _ from "lodash"
 import React from "react";
-import { Recepit, RecepitPreview } from '@/features/domain/receipt.type'
+import { Recepit, RecepitPreview, RecepitProduct } from '@/features/domain/receipt.type'
 import Image from "next/image";
 import ButtonLayout from "@/features/core/layouts/button.layout";
+import { ProductOption } from "@/features/domain/product.type";
 
 interface IReceiptPreview {
-  mode: "preview" | "printing"
   receipt: Recepit | RecepitPreview
 }
 
 export default function ReceiptPreview(props: IReceiptPreview) {
+    let grandTotal: number = 0, 
+        avg: number = 0
+    let date: string = "", 
+        receip_no: string = ""
+        
+    switch (props.receipt.kind) {
+      case "printing":
+        grandTotal = (props.receipt as Recepit).grand_total
+        avg = (props.receipt as Recepit).avg
+        break
+      case "preview":
+        grandTotal = (props.receipt as RecepitPreview).calculateGrandTotal()
+        break
+    }
 
     // -----------------------------------------------
     // RENDER
@@ -22,43 +37,40 @@ export default function ReceiptPreview(props: IReceiptPreview) {
               <Image 
                 src={"/images/plus.png"}
                 alt="plus"
-                layout="fill"
-                objectFit="cover"
+                fill={true}
+                priority={true}
+                className="object-cover"
+                sizes="(max-width: 2400px) 100vw"
               />
             </div>
           </div>
 
           {/* head bill */}
           <div className="flex flex-1 justify-between py-[16px]">
-            <p>Date: 28/01/68</p>
-            <p>Receipt No: 1-01-68</p>
+            <p>Date: 28/01/68 {date}</p>
+            <p>Receipt No: 1-01-68 {receip_no}</p>
           </div>
 
           <div className="w-full border-b border-black border-dashed"></div>
 
           {/* body bill */}
           <div className="flex flex-col py-[16px]">
-            <div className="flex flex-row justify-between pb-[16px]">
-              <div className="text-left">
-                <p className="text-sm font-semibold">Matcha Latte</p>
-                <p>1 x ฿70.00</p>
-                <p className="pl-4">- หวานน้อยมาก</p>
-              </div>
-              <div className="text-right">
-                <p className="text-sm font-semibold">140.00</p>
-              </div>
-            </div>
+            {_.map(props.receipt.products, (product: RecepitProduct, i: number) => (
+              <div className="flex flex-row justify-between py-1" key={i}>
+                <div className="text-left">
+                  <p className="text-sm font-semibold">{product.name}</p>
+                  <p>{product.amount} x ฿{product.price.toFixed(2)}</p>
 
-            <div className="flex flex-row justify-between">
-              <div className="text-left">
-                <p className="text-sm font-semibold">Matcha Latte</p>
-                <p>1 x ฿70.00</p>
-                <p className="pl-4">- หวานน้อยมาก</p>
+                  {_.map(product.options, (option: ProductOption, j: number) => (
+                    <p className="pl-4" key={j}>- {option.name}</p>
+                  ))}
+
+                </div>
+                <div className="text-right">
+                  <p className="text-sm font-semibold">{product.calculatePrice()}</p>
+                </div>
               </div>
-              <div className="text-right">
-                <p className="text-sm font-semibold">140.00</p>
-              </div>
-            </div>
+            ))}
 
             
           </div>
@@ -69,11 +81,9 @@ export default function ReceiptPreview(props: IReceiptPreview) {
           <div className="flex justify-between py-[16px] text-base leading-8">
             <div className="text-left">
               <p className="font-semibold">ราคารวม</p>
-              <p className="text-xs">เฉลี่ยต่อคน</p>
             </div>
             <div className="text-right">
-              <p className="font-semibold">140.00</p>
-              <p className="text-xs">70.00</p>
+              <p className="font-semibold">{grandTotal}</p>
             </div>
           </div>
         </div>

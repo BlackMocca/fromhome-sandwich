@@ -26,7 +26,7 @@ export default function ProductCard(props: IProductCard) {
 
     // @count canbe -1 or 1
     const onClickCountAmount = (count: -1 | 1): void => {
-        setAmount(prevState => (prevState + count > 0) ? prevState + count: 0 )
+        setAmount(prevState => (prevState + count > 0) ? prevState + count: 1 )
     }
 
     const resetState = (): void => {
@@ -41,9 +41,10 @@ export default function ProductCard(props: IProductCard) {
                     <Image 
                         src={props.product.image}
                         alt={props.product.name}
-                        layout="fill" 
-                        objectFit="cover"
+                        fill={true}
                         priority={true}
+                        sizes="(max-width: 2400px) 100vw"
+                        className="object-cover"
                     />
                 </div>
                 <div className="flex flex-col flex-1 gap-[16px] text-secondary text-2xl">
@@ -70,7 +71,7 @@ export default function ProductCard(props: IProductCard) {
                         <ButtonLayout title="-" isActive={false} onclick={() => {onClickCountAmount(-1)}} size="sm" buttonStyleType={'secondary'} />
                             <input 
                                 type="text" 
-                                min="0" 
+                                min="1" 
                                 max="100" 
                                 step={1} 
                                 autoComplete="off" 

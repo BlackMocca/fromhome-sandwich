@@ -8,17 +8,17 @@ import { ProductData, ProductCategoryData } from '@/features/api/api';
 import { Category, Product, ProductOption } from '@/features/domain/product.type';
 import ButtonLayout from '@/features/core/layouts/button.layout';
 import classNames from 'classnames';
-import { newRecepitPreview, RecepitPreview, RecepitProduct } from '@/features/domain/receipt.type';
+import { newRecepitPreview, newRecepitProduct, RecepitPreview, RecepitProduct } from '@/features/domain/receipt.type';
 
 export default function ReceiptPage() {
   const masterProducts = useMemo(() => ProductData, [])
   const masterProductCategories: string[] = ['', ..._.map(ProductCategoryData, (category) => category.toString())]
-  const [products, setProducts] = useState<Product[]>([])
+  const [products, setProducts] = useState<RecepitProduct[]>([])
   const [filterCategory, setfilterCategory] = useState<string>('')
   const [recepitPreview, setRecepitPreview] = useState<RecepitPreview>(newRecepitPreview())
 
   useEffect(() => {
-    setRecepitPreview(prevState => prevState.setProducts(products))
+    setRecepitPreview(recepitPreview.setProducts(products))
   }, [products])
 
   // -----------------------------------------------
@@ -28,13 +28,12 @@ export default function ReceiptPage() {
     // Does not exists Add them
     let index = _.findIndex(masterProducts, (product: Product) => product.id === productId)
     if (index > -1) {
-      let cpProduct = _.cloneDeep(masterProducts[index])
+      let cpProduct: RecepitProduct = newRecepitProduct(_.cloneDeep<Product>(masterProducts[index]), amount)
       cpProduct.options = _.filter(masterProducts[index].options, (option: ProductOption) => _.indexOf(optionsIds, option.id) !== -1)
-  
+
       setProducts(prevState => ([...prevState, cpProduct]))
     }
   }
-  console.log(products)
 
   const filterProducts = (category: string) => {
     setfilterCategory(category)
@@ -65,7 +64,7 @@ export default function ReceiptPage() {
             <ProductCard key={i} product={item} onAdd={addProduct}  />
         })} 
       </div>
-      <ReceiptPreview mode='preview' receipt={recepitPreview}  />
+      <ReceiptPreview receipt={recepitPreview}  />
     </div>
   </MainLayout>
   );

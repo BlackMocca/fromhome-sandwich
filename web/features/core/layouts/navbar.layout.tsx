@@ -16,16 +16,19 @@ export default function Navbar() {
               <Image
                 src="/images/logo.png"
                 alt="logo"
-                layout="fill" 
-                objectFit="cover"
+                fill={true}
+                sizes="(max-width: 2400px) 100vw"
+                className="object-cover"
               />
             </div>
             <div className="relative w-[155px] h-[26px]">
               <Image
                 src="/images/logo_text.png"
                 alt="logo_text"
-                layout="fill" 
-                objectFit="cover"
+                fill={true}
+                priority={true}
+                sizes="(max-width: 2400px) 100vw"
+                className="object-cover"
               />
             </div>
           </div>
