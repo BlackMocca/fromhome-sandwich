@@ -8,7 +8,6 @@ import classNames from "classnames"
 interface IProductCard {
     product: Product
     onAdd?: (productId: string, amount: number, optionIds?: string[]) => void
-    onDelete?: (productId: string) => void   
 }
 
 export default function ProductCard(props: IProductCard) {
@@ -28,6 +27,11 @@ export default function ProductCard(props: IProductCard) {
     // @count canbe -1 or 1
     const onClickCountAmount = (count: -1 | 1): void => {
         setAmount(prevState => (prevState + count > 0) ? prevState + count: 0 )
+    }
+
+    const resetState = (): void => {
+        setSelectOptions([])
+        setAmount(1)
     }
 
     return (
@@ -78,21 +82,15 @@ export default function ProductCard(props: IProductCard) {
                     </div>
                     <div className="flex gap-4 justify-end">
                         <ButtonLayout 
-                            title="ลบรายการ"
-                            isActive={(false)} 
-                            buttonStyleType={'primary'}
-                            onclick={() => { props.onDelete?.(props.product.id) }} 
-                            size="md" 
-                            style="text-secondary bg-error"
-                        />
-
-                        <ButtonLayout 
                             title="เพิ่มรายการ"
                             isActive={(false)} 
-                            onclick={() => { props.onAdd?.(props.product.id, amount, selectOptions) }} 
+                            onclick={() => { 
+                                props.onAdd?.(props.product.id, amount, selectOptions) 
+                                resetState()
+                            }} 
                             size="md" 
                             style="bg-success text-secondary"
-                            buttonStyleType={'primary'}
+                            buttonStyleType={'success'}
                         />
                     </div>
                 </div>
