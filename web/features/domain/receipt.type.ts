@@ -5,10 +5,8 @@ import dayjs from "dayjs";
 import utc from "dayjs/plugin/utc";
 import timezone from "dayjs/plugin/timezone";
 
-export enum PaymentGatewayType {
-    Cash = "Cash",
-    QRCode = "QRCode"
-}
+dayjs.extend(utc);
+dayjs.extend(timezone);
 
 export interface RecepitProduct extends Product {
     amount: number
@@ -23,18 +21,31 @@ export interface Recepit {
     merchant_logo: string
     merchant_name: string
     receipt_no: string
-    created_at: string                                  // timestamp format YYYY-MM-DD hh:mm:ss
+    created_at: string                                  // timestamp format YYYY-MM-DD HH:mm:ss
     
     // Body
     products: Array<RecepitProduct>
 
     // Tail
-    payment_gateway_type: PaymentGatewayType            // ช่องทางชำระ
     grand_total: number                                 // ราคาทั้งหมด (net)
-    avg: number                                         // เฉลี่ยต่อคน
 
     calculateGrandTotal(): number
     calculateTotalByCategory(): Map<Category, number>
+}
+
+export const newRecepit = (recepit: RecepitPreview): Recepit => {
+    return {
+        kind: "printing",
+        id: uuidv4(),
+        merchant_logo: recepit.merchant_logo,
+        merchant_name: recepit.merchant_name,
+        receipt_no: "",
+        created_at: dayjs().tz("Asia/Bangkok").format("YYYY-MM-DD HH:mm:ss"),
+        products: recepit.products,
+        grand_total: recepit.calculateGrandTotal(),
+        calculateGrandTotal: recepit.calculateGrandTotal,
+        calculateTotalByCategory: recepit.calculateTotalByCategory,
+    }
 }
 
 export interface RecepitPreview extends Omit<Recepit, "id" | "receipt_no" | "created_at" | "payment_gateway_type" | "grand_total" | "avg" > {
