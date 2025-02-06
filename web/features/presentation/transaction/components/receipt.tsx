@@ -88,16 +88,8 @@ export default function ReceiptPreview(props: IReceiptPreview) {
         <div ref={captureRef} className="px-[14px] py-[24px]">
 
           {/* head bill */}
-          <div className="flex py-[16px] justify-center bg-slate-500 relative">
+          <div className="flex py-[16px] justify-center relative">
             <img src={props.receipt.merchant_logo} width={100} height={89} />
-              {/* <Image 
-                src={props.receipt.merchant_logo}
-                alt="merchant logo"
-                priority={true}
-                width={100}
-                height={89}
-                onLoad={() => console.log("Image loaded")}
-              /> */}
           </div>
           { customerName ?? (
             <div className="flex p-[8px] justify-center">
