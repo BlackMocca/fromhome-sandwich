@@ -2,6 +2,11 @@ import { Category, Product } from "../domain/product.type";
 
 export const ProductCategoryData: Category[] = Object.values(Category);
 
+export const MerchantData = {
+    name: "From Home Sandwich & Beverage",
+    logo: "/images/merchant/logo.jpg"
+}
+
 export const ProductData: Product[] = [
     {
         id: "1",
