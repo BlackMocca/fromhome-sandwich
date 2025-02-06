@@ -19,6 +19,7 @@ body {
   color: var(--primary);
   background: var(--background);
   font-family: var(--font-family-sans);
+  height: -webkit-fill-available;
 }
 
 

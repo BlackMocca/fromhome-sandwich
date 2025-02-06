@@ -65,7 +65,6 @@ export default function ReceiptPreview(props: IReceiptPreview) {
                     
           imageTimeout: 300,
         });
-        console.log(canvas)
         
         const image = canvas.toDataURL("image/jpeg", 100);
         const link = document.createElement("a");
