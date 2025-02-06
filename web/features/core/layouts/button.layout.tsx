@@ -5,9 +5,10 @@ type IButtonLayout = {
     onclick: () => void
     size: "sm" | "md" | "lg"
     isActive: boolean
-    buttonStyleType: 'primary' | 'secondary' | 'success' | 'error'
+    buttonStyleType: 'primary' | 'secondary' | 'success' | 'error' | 'disable'
     type?: 'button' | 'submit' | 'reset';
     style?: string
+    disabled?: boolean
 }
 
 export default function ButtonLayout(props: IButtonLayout) {
@@ -30,9 +31,11 @@ export default function ButtonLayout(props: IButtonLayout) {
             { "bg-secondary text-primary": props.buttonStyleType === 'secondary'},
             { "bg-success text-secondary": props.buttonStyleType === 'success'},
             { "bg-error text-secondary": props.buttonStyleType === 'error'},
+            { "bg-slate-300 text-secondary pointer-events-none": props.buttonStyleType === 'disable'},
             {
                 "!bg-action !text-secondary": props.isActive, 
             },
+            { "hidden": props.disabled },
             props.style ? props.style : "w-full"
         )}
 

@@ -1,18 +1,21 @@
 import _ from "lodash"
-import React, { useEffect, useState, useMemo } from "react";
+import React, { useEffect, useState, useMemo, useRef } from "react";
 import { Recepit, RecepitPreview, RecepitProduct, newRecepit } from '@/features/domain/receipt.type'
 import Image from "next/image";
 import ButtonLayout from "@/features/core/layouts/button.layout";
 import { ProductOption } from "@/features/domain/product.type";
 import classNames from "classnames";
 import { formatDate, ParseYear, Format } from "@/features/core/helper";
+import html2canvas from "html2canvas";
 
 interface IReceiptPreview {
   receipt: Recepit | RecepitPreview
+  onClearProduct?(): void
 }
 
 export default function ReceiptPreview(props: IReceiptPreview) {
     const [receipt, setReceipt] = useState<Recepit | undefined >(undefined)
+    const captureRef = useRef<HTMLDivElement>(null);
     const { grandTotal, date, receip_no } = useMemo(() => {
       if (receipt) {
         return {
@@ -47,28 +50,33 @@ export default function ReceiptPreview(props: IReceiptPreview) {
       setReceipt(recepit)
     }
 
+
+    const download = async () => {
+      if (captureRef.current) {
+        const canvas = await html2canvas(captureRef.current);
+        captureRef.current.scrollTop = captureRef.current.scrollHeight
+        const image = canvas.toDataURL("image/jpeg");
+        
+        // Create a link to download the image
+        const link = document.createElement("a");
+        link.href = image;
+        link.download =  `${receipt?.receipt_no !== "" ? receipt?.receipt_no: "screenshot"}.jpg`;
+        link.click();
+      }
+    };
+
     // -----------------------------------------------
     // RENDER
     // -----------------------------------------------
     return (
       <div className={classNames(
-          "flex flex-col flex-between w-[304px] border border-black rounded-[27px] px-[14px] py-[24px] text-black text-xs !overflow-y-auto scrollbar-hide",
+          "flex flex-col flex-between w-[304px] border border-black rounded-[27px] overflow-y-auto text-black text-xs scrollbar-hide",
           {"flip-y": receipt !== undefined},
         )}
       >
-        <div>
+        <div ref={captureRef} className="px-[14px] py-[24px]">
           <div className="flex relative text-2xl justify-center items-center">
             <p>Bill</p>
-            <div className="absolute w-[19px] h-[18px] top-0 right-0">
-              <Image 
-                src={"/images/plus.png"}
-                alt="plus"
-                fill={true}
-                priority={true}
-                className="object-cover"
-                sizes="(max-width: 2400px) 100vw"
-              />
-            </div>
           </div>
 
           {/* head bill */}
@@ -115,14 +123,33 @@ export default function ReceiptPreview(props: IReceiptPreview) {
         </div>
 
         {/* tail bill sohw only preview */}
-        <div className="flex h-full text-2xl justify-center items-end">
+        <div className="flex flex-col gap-2 h-full text-2xl justify-end items-end px-[14px] pb-[24px]">
+        {receipt === undefined ? (
+          <>
+            <ButtonLayout 
+              title="ล้างสินค้า"
+              buttonStyleType="error"
+              size="lg"
+              isActive={false}
+              onclick={() => props.onClearProduct?.()}
+            />
+            <ButtonLayout 
+              title="สร้างบิล"
+              buttonStyleType={_.size(props.receipt.products) === 0 ? "disable":"primary"}
+              size="lg"
+              isActive={false}
+              onclick={() => onSubmit()}
+            />
+          </>
+        ):
           <ButtonLayout 
-            title="ตกลง"
-            buttonStyleType="primary"
+            title="Download"
+            buttonStyleType={_.size(props.receipt.products) === 0 ? "disable":"primary"}
             size="lg"
             isActive={false}
-            onclick={() => onSubmit()}
+            onclick={() => download()}
           />
+        }
         </div>
       </div>
     );

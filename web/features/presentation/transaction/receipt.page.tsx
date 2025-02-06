@@ -37,6 +37,11 @@ export default function ReceiptPage() {
     setfilterCategory(category)
   }
 
+  const onClear = () => {
+    setProducts([])
+    setRecepitPreview(newRecepitPreview())
+  }
+
   // -----------------------------------------------
   // RENDER
   // -----------------------------------------------
@@ -62,7 +67,7 @@ export default function ReceiptPage() {
             <ProductCard key={i} product={item} onAdd={addProduct}  />
         })} 
       </div>
-      <ReceiptPreview receipt={recepitPreview}  />
+      <ReceiptPreview receipt={recepitPreview} onClearProduct={onClear} />
     </div>
   </MainLayout>
   );
