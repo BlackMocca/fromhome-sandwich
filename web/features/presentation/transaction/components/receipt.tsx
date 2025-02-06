@@ -87,14 +87,17 @@ export default function ReceiptPreview(props: IReceiptPreview) {
         <div ref={captureRef} className="px-[14px] py-[24px]">
 
           {/* head bill */}
-          <div className="flex p-[16px] justify-center">
-            <Image 
-              src={props.receipt.merchant_logo}
-              alt="merchant logo"
-              width={100}
-              height={89}
-              priority={true}
-            />
+          <div className="flex py-[16px] justify-center">
+            <div className="relative w-[100px] h-[89px]">
+              <Image 
+                src={props.receipt.merchant_logo}
+                alt="merchant logo"
+                fill={true}
+                className="object-cover"
+                priority={true}
+                sizes="(max-width: 2400px) 100vw"
+              />
+            </div>
           </div>
           { customerName ?? (
             <div className="flex p-[8px] justify-center">
