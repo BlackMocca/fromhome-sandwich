@@ -58,13 +58,15 @@ export default function ReceiptPreview(props: IReceiptPreview) {
         style.sheet?.insertRule('body > div:last-child img { display: inline-block; }');
         captureRef.current.scrollTop = captureRef.current.scrollHeight
         const canvas = await html2canvas(captureRef.current, {
-          scale: 2,
+          scale: window.devicePixelRatio,
+          useCORS: true,
           x:0,
           y:0,
           logging: true, 
                     
-          imageTimeout: 300,
+          imageTimeout: 0,
         });
+        console.log(canvas)
         
         const image = canvas.toDataURL("image/jpeg", 100);
         const link = document.createElement("a");
@@ -86,17 +88,16 @@ export default function ReceiptPreview(props: IReceiptPreview) {
         <div ref={captureRef} className="px-[14px] py-[24px]">
 
           {/* head bill */}
-          <div className="flex py-[16px] justify-center">
-            <div className="relative w-[100px] h-[89px]">
-              <Image 
+          <div className="flex py-[16px] justify-center bg-slate-500 relative">
+            <img src={props.receipt.merchant_logo} width={100} height={89} />
+              {/* <Image 
                 src={props.receipt.merchant_logo}
                 alt="merchant logo"
-                fill={true}
-                className="object-cover"
                 priority={true}
-                sizes="(max-width: 2400px) 100vw"
-              />
-            </div>
+                width={100}
+                height={89}
+                onLoad={() => console.log("Image loaded")}
+              /> */}
           </div>
           { customerName ?? (
             <div className="flex p-[8px] justify-center">
