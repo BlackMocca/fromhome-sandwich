@@ -4,6 +4,7 @@ import Image from "next/image"
 import ButtonLayout from "@/features/core/layouts/button.layout"
 import { useState } from "react"
 import classNames from "classnames"
+import { MerchantData } from "@/features/api/api"
 
 interface IProductCard {
     product: Product
@@ -45,6 +46,7 @@ export default function ProductCard(props: IProductCard) {
                         priority={true}
                         sizes="(max-width: 2400px) 100vw"
                         className="object-cover"
+                        onError={(e) => {(e.target as HTMLImageElement).src = MerchantData.logo}}
                     />
                 </div>
                 <div className="flex flex-col flex-1 gap-[16px] text-secondary text-2xl">

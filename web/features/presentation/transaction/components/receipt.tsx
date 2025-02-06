@@ -15,6 +15,7 @@ interface IReceiptPreview {
 
 export default function ReceiptPreview(props: IReceiptPreview) {
     const [receipt, setReceipt] = useState<Recepit | undefined >(undefined)
+    const [customerName, setCustomerName] = useState<string>("")
     const captureRef = useRef<HTMLDivElement>(null);
     const { grandTotal, date, receip_no } = useMemo(() => {
       if (receipt) {
@@ -84,9 +85,6 @@ export default function ReceiptPreview(props: IReceiptPreview) {
         )}
       >
         <div ref={captureRef} className="px-[14px] py-[24px]">
-          <div className="flex relative text-2xl justify-center items-center">
-            <p>Bill</p>
-          </div>
 
           {/* head bill */}
           <div className="flex p-[16px] justify-center">
@@ -98,9 +96,11 @@ export default function ReceiptPreview(props: IReceiptPreview) {
               priority={true}
             />
           </div>
-          <div className="flex p-[8px] justify-center">
-            <p className="font-semiBold text-4xl">Chakree</p>
-          </div>
+          { customerName ?? (
+            <div className="flex p-[8px] justify-center">
+              <p className="font-semiBold text-4xl">{customerName}</p>
+            </div>
+          )}
           <div className="flex flex-1 flex-col gap-1 py-[16px]">
             <p>Date: {date}</p>
             <p>Receipt No: {receip_no}</p>
