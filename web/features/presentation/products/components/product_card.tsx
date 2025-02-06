@@ -40,13 +40,12 @@ export default function ProductCard(props: IProductCard) {
             <div className="flex flex-1 flex-row gap-[38px]">
                 <div className="relative w-[170px] h-[170px] border-0 rounded-[27px] overflow-hidden">
                     <Image 
-                        src={props.product.image}
+                        src={props.product.image ? props.product.image: MerchantData.logo}
                         alt={props.product.name}
                         fill={true}
                         priority={true}
                         sizes="(max-width: 2400px) 100vw"
                         className="object-cover"
-                        onError={(e) => {(e.target as HTMLImageElement).src = MerchantData.logo}}
                     />
                 </div>
                 <div className="flex flex-col flex-1 gap-[16px] text-secondary text-2xl">
