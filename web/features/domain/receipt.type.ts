@@ -4,6 +4,7 @@ import { v4 as uuidv4 } from 'uuid';
 import dayjs from "dayjs";
 import utc from "dayjs/plugin/utc";
 import timezone from "dayjs/plugin/timezone";
+import { MerchantData } from "@/features/api/api";
 
 dayjs.extend(utc);
 dayjs.extend(timezone);
@@ -20,6 +21,7 @@ export interface Recepit {
     id: string
     merchant_logo: string
     merchant_name: string
+    customer_name?: string
     receipt_no: string
     created_at: string                                  // timestamp format YYYY-MM-DD HH:mm:ss
     
@@ -41,7 +43,7 @@ export const newRecepit = (recepit: RecepitPreview): Recepit => {
         merchant_name: recepit.merchant_name,
         receipt_no: "",
         created_at: dayjs().tz("Asia/Bangkok").format("YYYY-MM-DD HH:mm:ss"),
-        products: recepit.products,
+        products: [...recepit.products],
         grand_total: recepit.calculateGrandTotal(),
         calculateGrandTotal: recepit.calculateGrandTotal,
         calculateTotalByCategory: recepit.calculateTotalByCategory,
@@ -66,8 +68,8 @@ export const newRecepitProduct = (product: Product, amount: number): RecepitProd
 export const newRecepitPreview = (): RecepitPreview => {
     return {
         kind: "preview",
-        merchant_logo: "/images/merchange/logo.jpg",
-        merchant_name: "From Home Sandwich & Beverage",
+        merchant_logo: MerchantData.logo,
+        merchant_name: MerchantData.name,
         products: [],
 
         calculateGrandTotal(): number {

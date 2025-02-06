@@ -15,6 +15,7 @@ interface IReceiptPreview {
 
 export default function ReceiptPreview(props: IReceiptPreview) {
     const [receipt, setReceipt] = useState<Recepit | undefined >(undefined)
+    const [customerName, setCustomerName] = useState<string>("")
     const captureRef = useRef<HTMLDivElement>(null);
     const { grandTotal, date, receip_no } = useMemo(() => {
       if (receipt) {
@@ -50,14 +51,23 @@ export default function ReceiptPreview(props: IReceiptPreview) {
       setReceipt(recepit)
     }
 
-
     const download = async () => {
       if (captureRef.current) {
-        const canvas = await html2canvas(captureRef.current);
+        const style = document.createElement('style');
+        document.head.appendChild(style);
+        style.sheet?.insertRule('body > div:last-child img { display: inline-block; }');
         captureRef.current.scrollTop = captureRef.current.scrollHeight
-        const image = canvas.toDataURL("image/jpeg");
+        const canvas = await html2canvas(captureRef.current, {
+          scale: 2,
+          x:0,
+          y:0,
+          logging: true, 
+                    
+          imageTimeout: 300,
+        });
+        console.log(canvas)
         
-        // Create a link to download the image
+        const image = canvas.toDataURL("image/jpeg", 100);
         const link = document.createElement("a");
         link.href = image;
         link.download =  `${receipt?.receipt_no !== "" ? receipt?.receipt_no: "screenshot"}.jpg`;
@@ -75,12 +85,23 @@ export default function ReceiptPreview(props: IReceiptPreview) {
         )}
       >
         <div ref={captureRef} className="px-[14px] py-[24px]">
-          <div className="flex relative text-2xl justify-center items-center">
-            <p>Bill</p>
-          </div>
 
           {/* head bill */}
-          <div className="flex flex-1 flex-col py-[16px] gap-1">
+          <div className="flex p-[16px] justify-center">
+            <Image 
+              src={props.receipt.merchant_logo}
+              alt="merchant logo"
+              width={100}
+              height={89}
+              priority={true}
+            />
+          </div>
+          { customerName ?? (
+            <div className="flex p-[8px] justify-center">
+              <p className="font-semiBold text-4xl">{customerName}</p>
+            </div>
+          )}
+          <div className="flex flex-1 flex-col gap-1 py-[16px]">
             <p>Date: {date}</p>
             <p>Receipt No: {receip_no}</p>
           </div>
@@ -92,7 +113,7 @@ export default function ReceiptPreview(props: IReceiptPreview) {
             {_.map(props.receipt.products, (product: RecepitProduct, i: number) => (
               <div className="flex flex-row justify-between py-1" key={i}>
                 <div className="text-left">
-                  <p className="text-sm font-semibold">{product.name}</p>
+                  <p className="text-sm">{product.name}</p>
                   <p>{product.amount} x ฿{product.price.toFixed(2)}</p>
 
                   {_.map(product.options, (option: ProductOption, j: number) => (
@@ -101,12 +122,10 @@ export default function ReceiptPreview(props: IReceiptPreview) {
 
                 </div>
                 <div className="text-right">
-                  <p className="text-sm font-semibold">{product.calculatePrice()}</p>
+                  <p className="text-sm">{product.calculatePrice()}</p>
                 </div>
               </div>
             ))}
-
-            
           </div>
             
           <div className="w-full border-b border-black border-dashed"></div>
@@ -114,10 +133,10 @@ export default function ReceiptPreview(props: IReceiptPreview) {
           {/* result bill */}
           <div className="flex justify-between py-[16px] text-base leading-8">
             <div className="text-left">
-              <p className="font-semibold">ราคารวม</p>
+              <p>ราคารวม</p>
             </div>
             <div className="text-right">
-              <p className="font-semibold">{grandTotal}</p>
+              <p>{grandTotal}</p>
             </div>
           </div>
         </div>
@@ -135,7 +154,7 @@ export default function ReceiptPreview(props: IReceiptPreview) {
             />
             <ButtonLayout 
               title="สร้างบิล"
-              buttonStyleType={_.size(props.receipt.products) === 0 ? "disable":"primary"}
+              buttonStyleType={_.size(props.receipt.products) === 0 ? "disable":"success"}
               size="lg"
               isActive={false}
               onclick={() => onSubmit()}
@@ -147,7 +166,7 @@ export default function ReceiptPreview(props: IReceiptPreview) {
             buttonStyleType={_.size(props.receipt.products) === 0 ? "disable":"primary"}
             size="lg"
             isActive={false}
-            onclick={() => download()}
+            onclick={ async () => await download()}
           />
         }
         </div>
