@@ -93,7 +93,8 @@ const ModalInputCustomerInfo = ({
 
 export default function ReceiptPreview(props: IReceiptPreview) {
   const [showModal, setShowModal] = useState(false);
-  const [isFlipped, setIsFlipped] = useState(false);
+  const [isDisableOnCreateButton, setIsDisableOnCreateButton] = useState(false);
+
   const captureRef = useRef<HTMLDivElement>(null);
   const { grandTotal, date, receip_no } = useMemo(() => {
     switch (props.receipt.kind) {
@@ -277,7 +278,10 @@ export default function ReceiptPreview(props: IReceiptPreview) {
               buttonStyleType="error"
               size="lg"
               isActive={false}
-              onclick={() => props.onClear?.()}
+              onclick={() => {
+                setIsDisableOnCreateButton(false);
+                props.onClear?.();
+              }}
             />
             <ButtonLayout
               title="เพิ่ม/แก้ไข ชื่อลูกค้า"
@@ -291,11 +295,16 @@ export default function ReceiptPreview(props: IReceiptPreview) {
             <ButtonLayout
               title="สร้างบิล"
               buttonStyleType={
-                _.size(props.receipt.products) === 0 ? "disable" : "success"
+                _.size(props.receipt.products) === 0 || isDisableOnCreateButton
+                  ? "disable"
+                  : "success"
               }
               size="lg"
               isActive={false}
-              onclick={() => onSubmit()}
+              onclick={(e) => {
+                setIsDisableOnCreateButton(true);
+                onSubmit();
+              }}
             />
           </>
         ) : (
@@ -305,7 +314,10 @@ export default function ReceiptPreview(props: IReceiptPreview) {
               buttonStyleType="error"
               size="lg"
               isActive={false}
-              onclick={() => props.onClear?.()}
+              onclick={() => {
+                setIsDisableOnCreateButton(false);
+                props.onClear?.();
+              }}
             />
 
             <ButtonLayout

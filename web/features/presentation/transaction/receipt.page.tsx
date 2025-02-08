@@ -39,6 +39,12 @@ export default function ReceiptPage(props: ReceiptPageProps) {
   );
 
   useEffect(() => {
+    if (_.size(products) > 0) {
+      setProducts([]);
+    }
+  }, [masterProducts]);
+
+  useEffect(() => {
     if (recepit.kind === "preview") {
       setRecepit((recepit as RecepitPreview).setProducts(products));
     }
