@@ -1,5 +1,5 @@
 import _ from "lodash";
-import React, { useEffect, useState, useMemo, useRef } from "react";
+import React, { useEffect, useState, useMemo, useRef, Fragment } from "react";
 import {
   Recepit,
   RecepitPreview,
@@ -235,6 +235,30 @@ export default function ReceiptPreview(props: IReceiptPreview) {
             <p>{grandTotal}</p>
           </div>
         </div>
+
+        {/* tail bill */}
+        {props.receipt?.socials ? (
+          <Fragment>
+            <div className="w-full border-b border-black border-dashed"></div>
+            <div className="flex flex-col justify-center items-center py-[16px]">
+              <p className="py-2">${props.receipt?.socials.slogan}</p>
+              <div className="flex flex-row justify-center items-center gap-1">
+                {_.map(props.receipt?.socials.icons, (icon, i) => (
+                  <Image
+                    key={i}
+                    src={`/images/icon/${icon}.svg`}
+                    alt={`icon-${icon}`}
+                    width={16}
+                    height={16}
+                  />
+                ))}
+                <p>{props.receipt?.socials.search}</p>
+              </div>
+            </div>
+          </Fragment>
+        ) : (
+          <></>
+        )}
       </div>
 
       {/* tail bill sohw only preview */}

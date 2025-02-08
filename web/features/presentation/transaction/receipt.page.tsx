@@ -3,9 +3,13 @@ import React, { useEffect, useState, useMemo } from "react";
 import MainLayout from "@/features/core/layouts/main.layout";
 import ReceiptPreview from "@/features/presentation/transaction/components/receipt";
 import ProductCard from "../products/components/product_card";
-import { ProductData, ProductCategoryData } from "@/features/api/api";
+import {
+  GetProductBySaleGateway,
+  ProductCategoryData,
+} from "@/features/api/api";
 import { Product, ProductOption } from "@/features/domain/product.type";
 import ButtonLayout from "@/features/core/layouts/button.layout";
+import { SaleGateway } from "../../domain/receipt.type";
 import {
   newRecepitPreview,
   newRecepitProduct,
@@ -14,8 +18,16 @@ import {
   Recepit,
 } from "@/features/domain/receipt.type";
 
-export default function ReceiptPage() {
-  const masterProducts = useMemo(() => ProductData, []);
+interface ReceiptPageProps {
+  sale_gateway: SaleGateway;
+}
+
+const newDefaultReceiptPreview = (props: ReceiptPageProps) => {
+  return newRecepitPreview({ sale_gateway: props.sale_gateway });
+};
+
+export default function ReceiptPage(props: ReceiptPageProps) {
+  const masterProducts = GetProductBySaleGateway(props.sale_gateway);
   const masterProductCategories: string[] = [
     "",
     ..._.map(ProductCategoryData, (category) => category.toString()),
@@ -23,7 +35,7 @@ export default function ReceiptPage() {
   const [products, setProducts] = useState<RecepitProduct[]>([]);
   const [filterCategory, setfilterCategory] = useState<string>("");
   const [recepit, setRecepit] = useState<RecepitPreview | Recepit>(
-    newRecepitPreview()
+    newDefaultReceiptPreview(props)
   );
 
   useEffect(() => {
@@ -71,12 +83,10 @@ export default function ReceiptPage() {
 
   const onClear = () => {
     setProducts([]);
-    setRecepit(newRecepitPreview());
+    setRecepit(newDefaultReceiptPreview(props));
   };
 
   const onCreateBill = async (receipt: Recepit) => {
-    setRecepit(receipt);
-
     const response = await fetch("/api/receipt", {
       method: "POST",
       headers: { "Content-Type": "application/json" },
@@ -85,7 +95,10 @@ export default function ReceiptPage() {
 
     const data = await response.json();
     if (response.ok) {
-      alert("Receipt saved successfully!");
+      receipt.receipt_no = data.receipt_no;
+      setRecepit(receipt);
+
+      console.log("Receipt saved successfully!");
     } else {
       alert("Error: " + data.error);
     }
