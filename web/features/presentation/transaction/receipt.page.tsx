@@ -3,7 +3,10 @@ import React, { useEffect, useState, useMemo } from "react";
 import MainLayout from "@/features/core/layouts/main.layout";
 import ReceiptPreview from "@/features/presentation/transaction/components/receipt";
 import ProductCard from "../products/components/product_card";
-import { ProductData, ProductCategoryData } from "@/features/api/api";
+import {
+  GetProductBySaleGateway,
+  ProductCategoryData,
+} from "@/features/api/api";
 import { Product, ProductOption } from "@/features/domain/product.type";
 import ButtonLayout from "@/features/core/layouts/button.layout";
 import { SaleGateway } from "../../domain/receipt.type";
@@ -24,7 +27,7 @@ const newDefaultReceiptPreview = (props: ReceiptPageProps) => {
 };
 
 export default function ReceiptPage(props: ReceiptPageProps) {
-  const masterProducts = useMemo(() => ProductData, []);
+  const masterProducts = GetProductBySaleGateway(props.sale_gateway);
   const masterProductCategories: string[] = [
     "",
     ..._.map(ProductCategoryData, (category) => category.toString()),
