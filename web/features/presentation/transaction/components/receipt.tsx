@@ -15,8 +15,9 @@ import html2canvas from "html2canvas";
 
 interface IReceiptPreview {
   receipt: Recepit | RecepitPreview;
-  onClearProduct?(): void;
   onUpdateReceiptPreview?(newData: Partial<RecepitPreview>): void;
+  onCreate?(data: Recepit): void;
+  onClear?(): void;
 }
 
 interface ICustomerInfo {
@@ -91,21 +92,10 @@ const ModalInputCustomerInfo = ({
 };
 
 export default function ReceiptPreview(props: IReceiptPreview) {
-  const [receipt, setReceipt] = useState<Recepit | undefined>(undefined);
   const [showModal, setShowModal] = useState(false);
+  const [isFlipped, setIsFlipped] = useState(false);
   const captureRef = useRef<HTMLDivElement>(null);
   const { grandTotal, date, receip_no } = useMemo(() => {
-    if (receipt) {
-      return {
-        grandTotal: receipt.grand_total,
-        date: formatDate(
-          receipt.created_at,
-          ParseYear.THAI,
-          Format.DISPLAY_TIMESTAMP
-        ),
-        receip_no: receipt.receipt_no,
-      };
-    }
     switch (props.receipt.kind) {
       case "printing":
         return {
@@ -126,14 +116,14 @@ export default function ReceiptPreview(props: IReceiptPreview) {
       default:
         return { grandTotal: 0, date: "", receip_no: "" };
     }
-  }, [props.receipt, receipt]);
+  }, [props.receipt]);
 
   // -----------------------------------------------
   // Handle
   // -----------------------------------------------
   const onSubmit = () => {
     let recepit = newRecepit(props.receipt as RecepitPreview);
-    setReceipt(recepit);
+    props.onCreate?.(recepit);
   };
 
   const onCustomerInfoSubmit = (customerInfo: Partial<ICustomerInfo>) => {
@@ -142,7 +132,7 @@ export default function ReceiptPreview(props: IReceiptPreview) {
   };
 
   const download = async () => {
-    if (captureRef.current) {
+    if (captureRef.current && props.receipt.kind === "printing") {
       const style = document.createElement("style");
       document.head.appendChild(style);
       style.sheet?.insertRule(
@@ -164,7 +154,9 @@ export default function ReceiptPreview(props: IReceiptPreview) {
       const link = document.createElement("a");
       link.href = image;
       link.download = `${
-        receipt?.receipt_no !== "" ? receipt?.receipt_no : "screenshot"
+        (props.receipt as Recepit)?.receipt_no !== ""
+          ? (props.receipt as Recepit)?.receipt_no
+          : "screenshot"
       }.jpg`;
       link.click();
     }
@@ -177,7 +169,9 @@ export default function ReceiptPreview(props: IReceiptPreview) {
     <div
       className={classNames(
         "flex flex-col flex-between w-[304px] border border-black rounded-[27px] overflow-y-auto text-black text-xs scrollbar-hide",
-        { "flip-y": receipt !== undefined }
+        {
+          "flip-y": props.receipt.kind === "printing",
+        }
       )}
     >
       <div ref={captureRef} className="px-[14px] py-[24px]">
@@ -245,7 +239,7 @@ export default function ReceiptPreview(props: IReceiptPreview) {
 
       {/* tail bill sohw only preview */}
       <div className="flex flex-col gap-2 h-full text-2xl justify-end items-end px-[14px] pb-[24px]">
-        {receipt === undefined ? (
+        {props.receipt.kind === "preview" ? (
           <>
             <ModalInputCustomerInfo
               isDisplay={showModal}
@@ -255,11 +249,11 @@ export default function ReceiptPreview(props: IReceiptPreview) {
               callbackOnSubmit={onCustomerInfoSubmit}
             />
             <ButtonLayout
-              title="ล้างสินค้า"
+              title="ล้างข้อมูล"
               buttonStyleType="error"
               size="lg"
               isActive={false}
-              onclick={() => props.onClearProduct?.()}
+              onclick={() => props.onClear?.()}
             />
             <ButtonLayout
               title="เพิ่ม/แก้ไข ชื่อลูกค้า"
@@ -281,15 +275,25 @@ export default function ReceiptPreview(props: IReceiptPreview) {
             />
           </>
         ) : (
-          <ButtonLayout
-            title="Download"
-            buttonStyleType={
-              _.size(props.receipt.products) === 0 ? "disable" : "primary"
-            }
-            size="lg"
-            isActive={false}
-            onclick={async () => await download()}
-          />
+          <>
+            <ButtonLayout
+              title="สร้างบิลใหม่"
+              buttonStyleType="error"
+              size="lg"
+              isActive={false}
+              onclick={() => props.onClear?.()}
+            />
+
+            <ButtonLayout
+              title="Download"
+              buttonStyleType={
+                _.size(props.receipt.products) === 0 ? "disable" : "primary"
+              }
+              size="lg"
+              isActive={false}
+              onclick={async () => await download()}
+            />
+          </>
         )}
       </div>
     </div>
