@@ -12,3 +12,8 @@ bun run build
 ```shell
 bun run start
 ```
+
+### ENV
+```
+MONGO_URI="mongodb+srv://user:pass@localhost:27017/fromhome?retryWrites=true&w=majority"
+```
