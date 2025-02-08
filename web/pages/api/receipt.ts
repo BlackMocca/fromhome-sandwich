@@ -1,12 +1,43 @@
 import { NextApiRequest, NextApiResponse } from "next";
 import { Recepit } from "@/features/domain/receipt.type";
 import { saveRecipt, getLastReceiptOfDate } from "@/features/api/repository";
-import { Format, now } from "@/features/core/helper";
+import { Format, formatDate, now, ParseYear } from "@/features/core/helper";
+import { SaleGateway } from "../../features/domain/receipt.type";
 
-const generateReciptNo = async (): Promise<string> => {
-  let lastestReceiptNo = await getLastReceiptOfDate(now().format(Format.DATE));
-  lastestReceiptNo = "2";
-  return lastestReceiptNo;
+/// format ${deliveryCode}{YYYYDDMM}0001
+const formatReceiptNo = (
+  delivery: SaleGateway,
+  date: string,
+  lastestNum?: number
+) => {
+  let no = 1;
+  if (lastestNum) {
+    no = lastestNum;
+  }
+  return `${delivery}${formatDate(
+    date,
+    ParseYear.THAI,
+    Format.RECEPIT_FORMAT
+  )}${no.toString().padStart(4, "0")}`;
+};
+
+const generateReciptNo = async (delivery: SaleGateway): Promise<string> => {
+  let currentDate = now().format(Format.DATE);
+  let lastestReceiptNo: string | undefined = await getLastReceiptOfDate(
+    currentDate
+  );
+
+  if (lastestReceiptNo) {
+    let no =
+      parseInt(
+        lastestReceiptNo.substring(
+          lastestReceiptNo.length - 4,
+          lastestReceiptNo.length
+        )
+      ) + 1;
+    return formatReceiptNo(delivery, currentDate, no);
+  }
+  return formatReceiptNo(delivery, currentDate);
 };
 
 export default async function handler(
@@ -19,8 +50,12 @@ export default async function handler(
 
   try {
     const receipt: Recepit = req.body;
+    if (!receipt?.sale_gateway) {
+      res.status(400).json({ error: "invalid sale_gateway" });
+      return;
+    }
 
-    const receipt_no = await generateReciptNo();
+    const receipt_no = await generateReciptNo(receipt.sale_gateway);
     receipt.receipt_no = receipt_no;
 
     await saveRecipt(receipt);

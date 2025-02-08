@@ -99,8 +99,6 @@ export default function ReceiptPage(props: ReceiptPageProps) {
     } else {
       alert("Error: " + data.error);
     }
-
-    console.log(receipt);
   };
 
   // -----------------------------------------------
