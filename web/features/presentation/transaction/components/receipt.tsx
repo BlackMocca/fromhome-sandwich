@@ -11,11 +11,11 @@ import html2canvas from "html2canvas";
 interface IReceiptPreview {
   receipt: Recepit | RecepitPreview
   onClearProduct?(): void
+  onUpdateReceiptPreview?(newData: Partial<RecepitPreview>): void
 }
 
 export default function ReceiptPreview(props: IReceiptPreview) {
     const [receipt, setReceipt] = useState<Recepit | undefined >(undefined)
-    const [customerName, setCustomerName] = useState<string>("")
     const captureRef = useRef<HTMLDivElement>(null);
     const { grandTotal, date, receip_no } = useMemo(() => {
       if (receipt) {
@@ -91,11 +91,11 @@ export default function ReceiptPreview(props: IReceiptPreview) {
           <div className="flex py-[16px] justify-center relative">
             <img src={props.receipt.merchant_logo} width={100} height={89} />
           </div>
-          { customerName ?? (
-            <div className="flex p-[8px] justify-center">
-              <p className="font-semiBold text-4xl">{customerName}</p>
+          { props.receipt.customer_name ? (
+            <div className="flex w-full py-[8px] justify-center">
+              <p className="font-semiBold text-4xl">{props.receipt.customer_name}</p>
             </div>
-          )}
+          ): <></>}
           <div className="flex flex-1 flex-col gap-1 py-[16px]">
             <p>Date: {date}</p>
             <p>Receipt No: {receip_no}</p>
@@ -146,6 +146,13 @@ export default function ReceiptPreview(props: IReceiptPreview) {
               size="lg"
               isActive={false}
               onclick={() => props.onClearProduct?.()}
+            />
+            <ButtonLayout 
+              title="เพิ่ม/แก้ไข ชื่อลูกค้า"
+              buttonStyleType={_.size(props.receipt.products) === 0 ? "disable":"primary"}
+              size="lg"
+              isActive={false}
+              onclick={() => props.onUpdateReceiptPreview?.({customer_name: "ASDC"})}
             />
             <ButtonLayout 
               title="สร้างบิล"

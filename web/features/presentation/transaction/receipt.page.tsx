@@ -37,6 +37,13 @@ export default function ReceiptPage() {
     setfilterCategory(category)
   }
 
+  const updateReceipt = (newData: Partial<RecepitPreview>) => {
+    setRecepitPreview((prev) => { 
+        return {...prev, ...newData }
+      }
+    );
+  };
+
   const onClear = () => {
     setProducts([])
     setRecepitPreview(newRecepitPreview())
@@ -67,7 +74,7 @@ export default function ReceiptPage() {
             <ProductCard key={i} product={item} onAdd={addProduct}  />
         })} 
       </div>
-      <ReceiptPreview receipt={recepitPreview} onClearProduct={onClear} />
+      <ReceiptPreview receipt={recepitPreview} onClearProduct={onClear} onUpdateReceiptPreview={updateReceipt} />
     </div>
   </MainLayout>
   );
