@@ -1,6 +1,6 @@
 import { MongoClient, Db } from "mongodb";
 
-const mongoURI = process.env.MONGODB_URI || ""
+const mongoURI = process.env.MONGO_URI || ""
 
 const client = new MongoClient(mongoURI, {
     appName: "fromhome-sandwich",
