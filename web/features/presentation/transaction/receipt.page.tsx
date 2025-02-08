@@ -75,8 +75,6 @@ export default function ReceiptPage() {
   };
 
   const onCreateBill = async (receipt: Recepit) => {
-    setRecepit(receipt);
-
     const response = await fetch("/api/receipt", {
       method: "POST",
       headers: { "Content-Type": "application/json" },
@@ -85,7 +83,10 @@ export default function ReceiptPage() {
 
     const data = await response.json();
     if (response.ok) {
-      alert("Receipt saved successfully!");
+      receipt.receipt_no = data.receipt_no
+      setRecepit(receipt);
+
+      console.log("Receipt saved successfully!", );
     } else {
       alert("Error: " + data.error);
     }

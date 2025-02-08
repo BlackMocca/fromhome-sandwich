@@ -8,8 +8,22 @@ const client = new MongoClient(mongoURI, {
     w: "majority",
 });
 
+const isConnect = async (): Promise<Boolean> => {
+  try {
+    const admin = client.db().admin();
+    await admin.ping();
+
+    return true;  
+  } catch (error) {
+    throw error
+  }
+}
+
 export const connect = async (): Promise<Db> => {
     try {
+      if (await isConnect()) {
+        return client.db()
+      }
       await client.connect();
       const db = client.db();
       return db;
