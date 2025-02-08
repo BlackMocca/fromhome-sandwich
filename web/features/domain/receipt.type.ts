@@ -37,6 +37,13 @@ export interface Recepit {
 
   // Tail
   grand_total: number; // ราคาทั้งหมด (net)
+  category_total?: Object | Map<Category, number>;
+
+  socials?: {
+    slogan: string;
+    search: string;
+    icons: string[];
+  };
 
   calculateGrandTotal(): number;
   calculateTotalByCategory(): Map<Category, number>;
@@ -53,6 +60,8 @@ export const newRecepit = (recepit: RecepitPreview): Recepit => {
     created_at: dayjs().tz("Asia/Bangkok").format("YYYY-MM-DD HH:mm:ss"),
     products: [...recepit.products],
     grand_total: recepit.calculateGrandTotal(),
+    socials: recepit.socials,
+    category_total: Object.fromEntries(recepit.calculateTotalByCategory()),
     calculateGrandTotal: recepit.calculateGrandTotal,
     calculateTotalByCategory: recepit.calculateTotalByCategory,
   };
@@ -92,6 +101,7 @@ export const newRecepitPreview = (data?: Partial<Recepit>): RecepitPreview => {
     merchant_logo: MerchantData.logo,
     merchant_name: MerchantData.name,
     products: [],
+    socials: MerchantData.socials,
 
     calculateGrandTotal(): number {
       const total = _.reduce(
@@ -113,7 +123,7 @@ export const newRecepitPreview = (data?: Partial<Recepit>): RecepitPreview => {
             if (product.category === category) {
               return sum + (product.price ?? 0) * (product.amount ?? 0);
             }
-            return 0.0;
+            return sum;
           },
           0.0
         );
