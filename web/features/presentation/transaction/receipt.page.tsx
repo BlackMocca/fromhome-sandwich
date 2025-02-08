@@ -74,8 +74,22 @@ export default function ReceiptPage() {
     setRecepit(newRecepitPreview());
   };
 
-  const onCreateBill = (receipt: Recepit) => {
+  const onCreateBill = async (receipt: Recepit) => {
     setRecepit(receipt);
+
+    const response = await fetch("/api/receipt", {
+      method: "POST",
+      headers: { "Content-Type": "application/json" },
+      body: JSON.stringify(receipt),
+    });
+
+    const data = await response.json();
+    if (response.ok) {
+      alert("Receipt saved successfully!");
+    } else {
+      alert("Error: " + data.error);
+    }
+
     console.log(receipt);
   };
 
