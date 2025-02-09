@@ -1,5 +1,4 @@
 import { SaleGateway } from "./receipt.type";
-import _ from "lodash"
 
 export interface ISidebarMenu {
   title: string;
@@ -9,11 +8,12 @@ export interface ISidebarMenu {
 }
 
 export const GetRootMenuURL = () => {
-  let menu: ISidebarMenu | undefined = _.find(
-    SidebarMenu,
-    (item: ISidebarMenu) => item.category === "receipt"
-  );
-  return menu?.route ? menu.route : "/"
+  for (const item of SidebarMenu) {
+    if (item.category === "receipt") {
+      return item.route
+    }
+  }
+  return "/"
 }
 
 export const SidebarMenu: ISidebarMenu[] = [
