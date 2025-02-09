@@ -11,11 +11,11 @@ export default function AuthLayout({children}: IAuthLayout) {
     const router = useRouter()
     const auth = useContext(authContext)
 
-    useEffect(() => {
-        // if (!auth.isLoggedIn) {
-        //     router.push("/signin")
-        // }
-    }, [router])
+    // useEffect(() => {
+    //     if (!auth.isLoggedIn) {
+    //         router.push("/signin")
+    //     }
+    // }, [router])
 
 
     return (

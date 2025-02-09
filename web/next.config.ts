@@ -9,7 +9,7 @@ const nextConfig: NextConfig = {
   },
   publicRuntimeConfig: {
     NEXT_PUBLIC_APP_DOMAIN: process.env.APP_DOMAIN
-  }
+  },
 };
 
 export default nextConfig;
