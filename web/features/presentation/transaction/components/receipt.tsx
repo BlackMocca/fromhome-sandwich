@@ -244,7 +244,7 @@ export default function ReceiptPreview(props: IReceiptPreview) {
                 {_.map(props.receipt?.socials.icons, (icon, i) => (
                   <img
                     key={i}
-                    src={`/images/icon/${icon}.svg`}
+                    src={`/images/icon/${icon}.png`}
                     alt={`icon-${icon}`}
                     width={16}
                     height={16}
