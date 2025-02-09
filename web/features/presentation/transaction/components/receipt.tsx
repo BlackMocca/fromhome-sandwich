@@ -142,12 +142,9 @@ export default function ReceiptPreview(props: IReceiptPreview) {
       captureRef.current.scrollTop = captureRef.current.scrollHeight;
       const canvas = await html2canvas(captureRef.current, {
         scale: window.devicePixelRatio,
-        useCORS: true,
         x: 0,
         y: 0,
         logging: true,
-
-        imageTimeout: 0,
       });
       console.log(canvas);
 
