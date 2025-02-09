@@ -19,8 +19,8 @@ export default function SigninPage({ master_accounts }: ISigninPageProps) {
     const auth = useContext(authContext)
 
     const handleSubmit = async () => {
-        console.log(master_accounts)
         let isAuthorize = await auth.authorize(master_accounts, username, password)
+        console.log("is Auth | master",isAuthorize, master_accounts)
         if (isAuthorize) {
             // add cookie here
             console.log("add cookie")
