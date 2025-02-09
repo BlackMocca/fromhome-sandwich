@@ -44,7 +44,7 @@ const ModalInputCustomerInfo = ({
   return (
     <div
       className={classNames(
-        "flex justify-center items-center fixed top-0 left-0 w-screen h-screen bg-black bg-opacity-50 backdrop-blur-md",
+        "flex justify-center items-center fixed top-0 left-0 w-screen h-dvh bg-black bg-opacity-50 backdrop-blur-md",
         { hidden: !isDisplay }
       )}
       onClick={(e) => {
