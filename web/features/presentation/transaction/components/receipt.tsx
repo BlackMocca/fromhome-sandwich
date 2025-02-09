@@ -242,7 +242,7 @@ export default function ReceiptPreview(props: IReceiptPreview) {
               <p className="py-2">{props.receipt?.socials.slogan}</p>
               <div className="flex flex-row justify-center items-center gap-1">
                 {_.map(props.receipt?.socials.icons, (icon, i) => (
-                  <Image
+                  <img
                     key={i}
                     src={`/images/icon/${icon}.svg`}
                     alt={`icon-${icon}`}
