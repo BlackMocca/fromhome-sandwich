@@ -6,6 +6,16 @@ export interface ISidebarMenu {
   positon: "top" | "bottom";
   category: string;
 }
+
+export const GetRootMenuURL = () => {
+  for (const item of SidebarMenu) {
+    if (item.category === "receipt") {
+      return item.route
+    }
+  }
+  return "/"
+}
+
 export const SidebarMenu: ISidebarMenu[] = [
   {
     title: "RobinHood",
@@ -33,8 +43,8 @@ export const SidebarMenu: ISidebarMenu[] = [
   },
   {
     title: "ออกจากระบบ",
-    route: "/signout",
+    route: "/",
     positon: "bottom",
-    category: "user",
+    category: "auth",
   },
 ];

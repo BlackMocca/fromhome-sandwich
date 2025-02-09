@@ -1,7 +1,15 @@
-export default function Signin() {
+import SigninPage, { ISigninPageProps } from "@/features/presentation/auth/siginin";
+
+export default function Signin({master_accounts}: ISigninPageProps) {
     return  (
-        <div className="flex fixed w-screen h-dvh justify-center items-center">
-            <p>asdsadsadasdxas</p>
-        </div>
+        <SigninPage master_accounts={master_accounts}/>
     )
+}
+
+export const getServerSideProps = async () => {
+    return {
+        props: {
+            master_accounts: process.env.USER_PWD || "admin:admin"
+        },
+    }
 }
