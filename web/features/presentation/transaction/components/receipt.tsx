@@ -151,7 +151,7 @@ export default function ReceiptPreview(props: IReceiptPreview) {
       });
       console.log(canvas);
 
-      const image = canvas.toDataURL("image/jpeg", 100);
+      const image = canvas.toDataURL("image/jpeg", 1.0);
       const link = document.createElement("a");
       link.href = image;
       link.download = `${
@@ -327,7 +327,7 @@ export default function ReceiptPreview(props: IReceiptPreview) {
               }
               size="lg"
               isActive={false}
-              onclick={async () => await download()}
+              onclick={() => setTimeout(() => download(), 0)}
             />
           </>
         )}

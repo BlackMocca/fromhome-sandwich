@@ -43,7 +43,6 @@ export default function ButtonLayout(props: IButtonLayout) {
         props.style ? props.style : "w-full"
       )}
       onClick={props.onclick}
-      onTouchStart={() => {props.onclick()}}
     >
       {props.title}
     </button>
