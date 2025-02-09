@@ -57,6 +57,7 @@ export const newRecepit = (recepit: RecepitPreview): Recepit => {
     merchant_name: recepit.merchant_name,
     sale_gateway: recepit.sale_gateway,
     receipt_no: "",
+    customer_name: recepit.customer_name,
     created_at: dayjs().tz("Asia/Bangkok").format("YYYY-MM-DD HH:mm:ss"),
     products: [...recepit.products],
     grand_total: recepit.calculateGrandTotal(),

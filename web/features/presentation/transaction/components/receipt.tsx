@@ -44,7 +44,7 @@ const ModalInputCustomerInfo = ({
   return (
     <div
       className={classNames(
-        "flex justify-center items-center fixed top-0 left-0 w-screen h-screen bg-black bg-opacity-50 backdrop-blur-md",
+        "flex justify-center items-center fixed top-0 left-0 w-screen h-dvh bg-black bg-opacity-50 backdrop-blur-md",
         { hidden: !isDisplay }
       )}
       onClick={(e) => {
@@ -151,7 +151,7 @@ export default function ReceiptPreview(props: IReceiptPreview) {
       });
       console.log(canvas);
 
-      const image = canvas.toDataURL("image/jpeg", 100);
+      const image = canvas.toDataURL("image/jpeg", 1.0);
       const link = document.createElement("a");
       link.href = image;
       link.download = `${
@@ -327,7 +327,7 @@ export default function ReceiptPreview(props: IReceiptPreview) {
               }
               size="lg"
               isActive={false}
-              onclick={async () => await download()}
+              onclick={() => setTimeout(() => download(), 0)}
             />
           </>
         )}
