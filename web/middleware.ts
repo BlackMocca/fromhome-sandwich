@@ -1,5 +1,6 @@
 import _ from "lodash";
 import { NextRequest, NextResponse } from "next/server";
+import { GetRootMenuURL } from "./features/domain/config";
 
 interface IMiddleware {
     handle(request: NextRequest): NextResponse | void
@@ -9,9 +10,8 @@ interface IMiddleware {
 }
 
 const authMiddleware = (request: NextRequest) => {
-    const token = request.cookies.get("aasdasdasn")?.value; // Check auth token
+    const token = request.cookies.get("access_token")?.value; // Check auth token
     if (!token) {
-        console.log("redirect", request.url)
         return NextResponse.redirect(new URL("/signin", request.url));
     }
 
@@ -19,11 +19,14 @@ const authMiddleware = (request: NextRequest) => {
 }
 
 const logMiddleware = (req: NextRequest) => {
-    console.log("logger")
     return NextResponse.next();
 }
 
 export function middleware(req: NextRequest) {
+    if ((req.nextUrl.pathname === "/signin" || req.nextUrl.pathname === "/") && req.cookies.get("access_token")?.value) {
+        return NextResponse.redirect(new URL(GetRootMenuURL(), req.url))
+    }
+
     const middlewares: IMiddleware[] = [
         {
             handle: authMiddleware,
@@ -69,6 +72,6 @@ export const config = {
             * - _next/image (image optimization files)
             * - favicon.ico, sitemap.xml, robots.txt (metadata files)
         */
-        '/((?!api|_next/static|_next/image|favicon.ico|sitemap.xml|robots.txt|public).*)',
+        '/((?!api|_next/static|_next/image|favicon.ico|sitemap.xml|robots.txt|public|images).*)',
     ],
 };

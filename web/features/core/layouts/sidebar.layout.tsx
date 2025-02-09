@@ -4,17 +4,25 @@ import Navbar from "./navbar.layout";
 import { ISidebarMenu, SidebarMenu } from "@/features/domain/config";
 import ButtonLayout from "./button.layout";
 import { useRouter } from "next/router";
+import { useContext } from "react";
+import { authContext } from "../context/auth.context";
 
 type ISidebarLayout = {
   menus: ISidebarMenu[];
 };
 
 export default function SidebarLayout({ menus = SidebarMenu }: ISidebarLayout) {
-  var router = useRouter();
+  const router = useRouter();
+  const auth = useContext(authContext)
 
-  var isActive = (menuPath: string) => {
+  const isActive = (menuPath: string) => {
     return router.asPath === menuPath;
   };
+
+  const onSignout = () => {
+    auth.removeDomainToken()
+    router.push("/");
+  }
 
   return (
     <div className="min-w-[227px] border rounded-[27px] bg-primary">
@@ -44,6 +52,10 @@ export default function SidebarLayout({ menus = SidebarMenu }: ISidebarLayout) {
                 isActive={isActive(item.route)}
                 size="lg"
                 onclick={() => {
+                  if (item.category === "auth") {
+                    onSignout()
+                    return
+                  }
                   router.push(item.route);
                 }}
                 buttonStyleType={"secondary"}
