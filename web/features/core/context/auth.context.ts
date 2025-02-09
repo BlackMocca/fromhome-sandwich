@@ -55,6 +55,8 @@ export class AuthContext {
       accounts.push(new Account(accStrs[0], accStrs[1]))
     })
 
+    console.log("gen1", bcrypt.hashSync("0544", 10))
+    console.log("gen2", bcrypt.hashSync("huag028932671", 10))
     console.log(accounts, await bcrypt.compare(password, "$2a$10$9qljIQunWKrEwxMj1m7XKuKtpluBMfqwWOcHZKT7PUEQMBNxlpyRW"))
     for (const acc of accounts) {
       if (await acc.authen(username, password)) {
