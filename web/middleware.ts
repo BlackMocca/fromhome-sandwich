@@ -1,6 +1,5 @@
 import _ from "lodash";
 import { NextRequest, NextResponse } from "next/server";
-import { GetRootMenuURL } from "./features/domain/config";
 
 interface IMiddleware {
     handle(request: NextRequest): NextResponse | void
@@ -24,7 +23,7 @@ const logMiddleware = (req: NextRequest) => {
 
 export function middleware(req: NextRequest) {
     if ((req.nextUrl.pathname === "/signin" || req.nextUrl.pathname === "/") && req.cookies.get("access_token")?.value) {
-        return NextResponse.redirect(new URL(GetRootMenuURL(), req.url))
+        return NextResponse.redirect(new URL("/receipt/RH", req.url))
     }
 
     const middlewares: IMiddleware[] = [
