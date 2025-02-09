@@ -49,13 +49,13 @@ export class AuthContext {
   }
     
   async authorize(accountList: string, username: string, password: string): Promise<boolean>  {
-    
     let accounts: Account[] = [];
     _.map(accountList.trim().split(","), (user_pwd: string) => {
       let accStrs = user_pwd.trim().split(":")
       accounts.push(new Account(accStrs[0], accStrs[1]))
     })
 
+    console.log(accounts)
     for (const acc of accounts) {
       if (await acc.authen(username, password)) {
         return true
