@@ -4,6 +4,7 @@ import getConfig from 'next/config'
 import { createContext } from "react"
 import _ from 'lodash'
 import bcrypt from 'bcryptjs';
+import dayjs from 'dayjs'
 
 const { publicRuntimeConfig } = getConfig()
 
@@ -38,7 +39,7 @@ export class AuthContext {
 
   setDomainToken(token: string) {
     let domain = publicRuntimeConfig.APP_DOMAIN
-    const option: Cookies.CookieAttributes = { domain: domain }
+    const option: Cookies.CookieAttributes = { domain: domain, expires: dayjs().endOf('year').millisecond() }
     Cookies.set("access_token", token, option)
   }
   
