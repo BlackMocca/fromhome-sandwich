@@ -2,6 +2,7 @@ export enum Category {
   Beverage = "Beverage",
   Sandwich = "Sandwich",
   Package = "Package",
+  Promotion = "Promotion",
 }
 
 export interface ProductOption {

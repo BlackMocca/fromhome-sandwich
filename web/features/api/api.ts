@@ -131,7 +131,7 @@ export const ProductData: Product[] = [
   },
   {
     id: "5",
-    name: "แซนด์วิสโบโลน่าไข่ข้น",
+    name: "แซนด์วิชโบโลน่าไข่ข้น",
     category: Category.Sandwich,
     price: 70,
     image: "/images/products/sw_bolona_egg.jpg",
@@ -139,7 +139,7 @@ export const ProductData: Product[] = [
   },
   {
     id: "6",
-    name: "แซนด์วิสปูอัดไข่ข้น",
+    name: "แซนด์วิชปูอัดไข่ข้น",
     category: Category.Sandwich,
     price: 70,
     image: "/images/products/sw_crabstick_egg.jpg",
@@ -147,7 +147,7 @@ export const ProductData: Product[] = [
   },
   {
     id: "7",
-    name: "แซนด์วิสโบโลน่าปูอัด",
+    name: "แซนด์วิชโบโลน่าปูอัด",
     category: Category.Sandwich,
     price: 70,
     image: "/images/products/sw_bolona_crabstick.jpg",
@@ -155,7 +155,7 @@ export const ProductData: Product[] = [
   },
   {
     id: "8",
-    name: "แซนด์วิสปูอัดทูน่า",
+    name: "แซนด์วิชปูอัดทูน่า",
     category: Category.Sandwich,
     price: 70,
     image: "/images/products/sw_crabstick_tuna.jpg",
@@ -163,7 +163,7 @@ export const ProductData: Product[] = [
   },
   {
     id: "9",
-    name: "แซนด์วิสโบโลน่าทูน่า",
+    name: "แซนด์วิชโบโลน่าทูน่า",
     category: Category.Sandwich,
     price: 70,
     image: "",
@@ -171,11 +171,40 @@ export const ProductData: Product[] = [
   },
   {
     id: "10",
-    name: "แซนด์วิสทูน่าไข่ข้น",
+    name: "แซนด์วิชทูน่าไข่ข้น",
     category: Category.Sandwich,
     price: 70,
     image: "",
     options: [],
+  },
+  {
+    id: "17",
+    name: "คู่หูคู่ซี้ แซนด์วิช + เครื่องดื่ม",
+    category: Category.Promotion,
+    price: 125,
+    image: "",
+    options: [
+      {
+        "id": "17",
+        "name": "โกโก้ 1 ขวด"
+      },
+      {
+        "id": "18",
+        "name": "มัทฉะลาเต้ 1 ขวด"
+      },
+      {
+        "id": "14",
+        "name": "แซนด์วิช ปูอัด-โบโลน่า"
+      }, 
+      {
+        "id": "15",
+        "name": "แซนด์วิช ทูน่า-ปูอัด"
+      },
+      {
+        "id": "16",
+        "name": "แซนด์วิช ทูน่า-โบโบโลน่า"
+      },
+    ],
   },
   {
     id: "11",
