@@ -23,7 +23,7 @@ const logMiddleware = (req: NextRequest) => {
 
 export function middleware(req: NextRequest) {
     if ((req.nextUrl.pathname === "/signin" || req.nextUrl.pathname === "/") && req.cookies.get("access_token")?.value) {
-        return NextResponse.redirect(new URL("/receipt/RH", req.url))
+        return NextResponse.redirect(new URL("/receipt/CND", req.url))
     }
 
     const middlewares: IMiddleware[] = [

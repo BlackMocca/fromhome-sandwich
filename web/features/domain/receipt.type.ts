@@ -10,6 +10,7 @@ dayjs.extend(utc);
 dayjs.extend(timezone);
 
 export enum SaleGateway {
+  CONDO = "CND",
   LINEMAN = "LM",
   ROBINHOOD = "RH",
   GRABFOOD = "GRAB",

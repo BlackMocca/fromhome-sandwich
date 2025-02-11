@@ -18,6 +18,12 @@ export const GetRootMenuURL = () => {
 
 export const SidebarMenu: ISidebarMenu[] = [
   {
+    title: "Condo",
+    route: `/receipt/${SaleGateway.CONDO}`,
+    positon: "top",
+    category: "receipt",
+  },
+  {
     title: "RobinHood",
     route: `/receipt/${SaleGateway.ROBINHOOD}`,
     positon: "top",
