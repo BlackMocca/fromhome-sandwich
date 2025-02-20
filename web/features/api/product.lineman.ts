@@ -1,6 +1,6 @@
 import { Category, Product } from "../domain/product.type";
 
-export const ProductRobinHoodData: Product[] = [
+export const ProductLinemanData: Product[] = [
   {
     id: "1",
     name: "โกโก้ (Cocoa)",
