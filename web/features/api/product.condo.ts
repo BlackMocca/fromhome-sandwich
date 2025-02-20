@@ -265,4 +265,21 @@ export const ProductCondoData: Product[] = [
       },
     ],
   },
+  {
+    id: "18",
+    name: "เซตแบ่งปัน โกโก้ 2 มัทฉะ 1",
+    category: Category.Promotion,
+    price: 159,
+    image: "/images/products/promotion_duo.jpg",
+    options: [
+      {
+        "id": "5",
+        "name": "โกโก้ 2 ขวด"
+      },
+      {
+        "id": "16",
+        "name": "มัทฉะลาเต้ 1 ขวด"
+      }
+    ],
+  },
 ];

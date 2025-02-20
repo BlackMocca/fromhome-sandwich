@@ -2,6 +2,7 @@ import { Category, Product } from "../domain/product.type";
 import { SaleGateway } from "../domain/receipt.type";
 import { ProductCondoData } from "./product.condo";
 import { ProductRobinHoodData } from "./product.robinhood"
+import { ProductLinemanData } from "./product.lineman"
 
 export const ProductCategoryData: Category[] = Object.values(Category);
 
@@ -22,7 +23,7 @@ export const GetProductBySaleGateway = (
     case SaleGateway.ROBINHOOD:
       return ProductRobinHoodData;
     case SaleGateway.LINEMAN:
-      return [];
+      return ProductLinemanData;
     case SaleGateway.GRABFOOD:
       return [];
     case SaleGateway.CONDO:
