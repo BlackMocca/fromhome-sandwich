@@ -160,12 +160,6 @@ export default function ReceiptPreview(props: IReceiptPreview) {
     }
   };
 
-  const displayTitleOption = (option: ProductOption) => {
-    if (option.price) {
-        return "฿"+option.price.toFixed(0) + " " + option.name
-    }
-    return option.name
-}
 
   // -----------------------------------------------
   // RENDER
@@ -209,14 +203,14 @@ export default function ReceiptPreview(props: IReceiptPreview) {
                 <div className="text-left">
                   <p className="text-sm">{product.name}</p>
                   <p>
-                    {product.amount} x ฿{product.price.toFixed(2)}
+                    {product.amount} x ฿{product.calculatePrice().toFixed(2)}
                   </p>
 
                   {_.map(
                     product.options,
                     (option: ProductOption, j: number) => (
                       <p className="pl-4" key={j}>
-                        - {displayTitleOption(option)}
+                        - {option.name}
                       </p>
                     )
                   )}
