@@ -160,6 +160,13 @@ export default function ReceiptPreview(props: IReceiptPreview) {
     }
   };
 
+  const displayTitleOption = (option: ProductOption) => {
+    if (option.price) {
+        return "฿"+option.price.toFixed(0) + " " + option.name
+    }
+    return option.name
+}
+
   // -----------------------------------------------
   // RENDER
   // -----------------------------------------------
@@ -209,7 +216,7 @@ export default function ReceiptPreview(props: IReceiptPreview) {
                     product.options,
                     (option: ProductOption, j: number) => (
                       <p className="pl-4" key={j}>
-                        - {option.name}
+                        - {displayTitleOption(option)}
                       </p>
                     )
                   )}

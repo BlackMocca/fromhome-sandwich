@@ -107,7 +107,13 @@ export const ProductCondoData: Product[] = [
     category: Category.Sandwich,
     price: 59,
     image: "/images/products/sw_bolona_egg.jpg",
-    options: [],
+    options: [
+      {
+        id: "20",
+        name: "ขนมปังโฮลวีท",
+        price: 5
+      },
+    ],
   },
   {
     id: "6",
@@ -115,7 +121,13 @@ export const ProductCondoData: Product[] = [
     category: Category.Sandwich,
     price: 59,
     image: "/images/products/sw_crabstick_egg.jpg",
-    options: [],
+    options: [
+      {
+        id: "20",
+        name: "ขนมปังโฮลวีท",
+        price: 5
+      },
+    ],
   },
   {
     id: "7",
@@ -123,7 +135,13 @@ export const ProductCondoData: Product[] = [
     category: Category.Sandwich,
     price: 59,
     image: "/images/products/sw_bolona_crabstick.jpg",
-    options: [],
+    options: [
+      {
+        id: "20",
+        name: "ขนมปังโฮลวีท",
+        price: 5
+      },
+    ],
   },
   {
     id: "8",
@@ -131,7 +149,13 @@ export const ProductCondoData: Product[] = [
     category: Category.Sandwich,
     price: 59,
     image: "/images/products/sw_crabstick_tuna.jpg",
-    options: [],
+    options: [
+      {
+        id: "20",
+        name: "ขนมปังโฮลวีท",
+        price: 5
+      },
+    ],
   },
   {
     id: "9",
@@ -139,7 +163,13 @@ export const ProductCondoData: Product[] = [
     category: Category.Sandwich,
     price: 59,
     image: "",
-    options: [],
+    options: [
+      {
+        id: "20",
+        name: "ขนมปังโฮลวีท",
+        price: 5
+      },
+    ],
   },
   {
     id: "10",
@@ -147,7 +177,13 @@ export const ProductCondoData: Product[] = [
     category: Category.Sandwich,
     price: 59,
     image: "",
-    options: [],
+    options: [
+      {
+        id: "20",
+        name: "ขนมปังโฮลวีท",
+        price: 5
+      },
+    ],
   },
   {
     id: "11",
