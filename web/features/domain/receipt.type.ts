@@ -1,5 +1,5 @@
 import _ from "lodash";
-import { Product, Category } from "@/features/domain/product.type";
+import { Product, Category, ProductOption } from "@/features/domain/product.type";
 import { v4 as uuidv4 } from "uuid";
 import dayjs from "dayjs";
 import utc from "dayjs/plugin/utc";
@@ -91,7 +91,15 @@ export const newRecepitProduct = (
     amount: amount,
 
     calculatePrice(): number {
-      return (this.price ?? 0) * (this.amount ?? 0);
+      const sumOption = _.reduce(
+        this.options,
+        (sum: number, option: ProductOption) => {
+          return sum + (option.price ?? 0);
+        },
+        0.0
+      );
+
+      return ((this.price ?? 0) * (this.amount ?? 0)) + ((this.amount ?? 0) * sumOption);
     },
   };
 };
@@ -109,7 +117,7 @@ export const newRecepitPreview = (data?: Partial<Recepit>): RecepitPreview => {
       const total = _.reduce(
         this.products,
         (sum: number, product: RecepitProduct) => {
-          return sum + (product.price ?? 0) * (product.amount ?? 0);
+          return sum + product.calculatePrice()
         },
         0.0
       );

@@ -160,6 +160,7 @@ export default function ReceiptPreview(props: IReceiptPreview) {
     }
   };
 
+
   // -----------------------------------------------
   // RENDER
   // -----------------------------------------------
@@ -202,7 +203,7 @@ export default function ReceiptPreview(props: IReceiptPreview) {
                 <div className="text-left">
                   <p className="text-sm">{product.name}</p>
                   <p>
-                    {product.amount} x ฿{product.price.toFixed(2)}
+                    {product.amount} x ฿{product.calculatePrice().toFixed(2)}
                   </p>
 
                   {_.map(

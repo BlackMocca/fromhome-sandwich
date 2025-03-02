@@ -1,5 +1,5 @@
 import _ from "lodash"
-import { Product } from "@/features/domain/product.type"
+import { Product, ProductOption } from "@/features/domain/product.type"
 import Image from "next/image"
 import ButtonLayout from "@/features/core/layouts/button.layout"
 import { useState } from "react"
@@ -35,6 +35,13 @@ export default function ProductCard(props: IProductCard) {
         setAmount(1)
     }
 
+    const displayTitleOption = (option: ProductOption) => {
+        if (option.price) {
+            return "฿"+option.price.toFixed(0) + " " + option.name
+        }
+        return option.name
+    }
+
     return (
         <div className="flex bg-primary p-[24px] border-0 rounded-[27px]">
             <div className="flex flex-1 flex-row gap-[38px]">
@@ -57,7 +64,7 @@ export default function ProductCard(props: IProductCard) {
                             {_.map(props.product.options, (option, i) => (
                                 <ButtonLayout
                                     key={i}
-                                    title={option.name}
+                                    title={displayTitleOption(option)}
                                     isActive={_.includes(selectOptions, option.id)}
                                     onclick={() => { onClickOptions(option.id) }}
                                     size="sm"
