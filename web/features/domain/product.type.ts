@@ -1,5 +1,6 @@
 export enum Category {
-  Beverage = "Beverage",
+  BeverageBottle = "Beverage (ขวด)",
+  BeverageCup = "Beverage (แก้ว)",
   Sandwich = "Sandwich",
   Package = "Package",
   Promotion = "Promotion",

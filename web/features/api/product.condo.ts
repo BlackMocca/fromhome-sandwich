@@ -2,9 +2,134 @@ import { Category, Product } from "../domain/product.type";
 
 export const ProductCondoData: Product[] = [
   {
+    id: "19",
+    name: "โกโก้เย็น (Iced Cocoa)",
+    category: Category.BeverageCup,
+    price: 55,
+    image: "/images/products/iced_cocoa.jpg",
+    options: [
+      {
+        id: "1",
+        name: "ไม่หวาน",
+      },
+      {
+        id: "2",
+        name: "หวานน้อย",
+      },
+      {
+        id: "3",
+        name: "หวานปกติ",
+      },
+      {
+        id: "4",
+        name: "หวานมาก",
+      },
+    ],
+  },
+  {
+    id: "21",
+    name: "คาเคาเย็น (Iced Cacao)",
+    category: Category.BeverageCup,
+    price: 59,
+    image: "/images/products/iced_cocoa.jpg",
+    options: [
+      {
+        id: "1",
+        name: "ไม่หวาน",
+      },
+      {
+        id: "2",
+        name: "หวานน้อย",
+      },
+      {
+        id: "3",
+        name: "หวานปกติ",
+      },
+      {
+        id: "4",
+        name: "หวานมาก",
+      },
+    ],
+  },
+  {
+    id: "22",
+    name: "มัทฉะลาเต้เย็น (Iced Matcha Latte)",
+    category: Category.BeverageCup,
+    price: 59,
+    image: "/images/products/iced_matcha.jpg",
+    options: [
+      {
+        id: "1",
+        name: "ไม่หวาน",
+      },
+      {
+        id: "2",
+        name: "หวานน้อย",
+      },
+      {
+        id: "3",
+        name: "หวานปกติ",
+      },
+      {
+        id: "4",
+        name: "หวานมาก",
+      },
+    ],
+  },
+  {
+    id: "23",
+    name: "ชาไทยเย็น (Iced Thai Tea)",
+    category: Category.BeverageCup,
+    price: 55,
+    image: "",
+    options: [
+      {
+        id: "1",
+        name: "ไม่หวาน",
+      },
+      {
+        id: "2",
+        name: "หวานน้อย",
+      },
+      {
+        id: "3",
+        name: "หวานปกติ",
+      },
+      {
+        id: "4",
+        name: "หวานมาก",
+      },
+    ],
+  },
+  {
+    id: "24",
+    name: "ชามะลิเย็น (Iced Jasmine Tea)",
+    category: Category.BeverageCup,
+    price: 40,
+    image: "/images/products/iced_mali.jpg",
+    options: [
+      {
+        id: "1",
+        name: "ไม่หวาน",
+      },
+      {
+        id: "2",
+        name: "หวานน้อย",
+      },
+      {
+        id: "3",
+        name: "หวานปกติ",
+      },
+      {
+        id: "4",
+        name: "หวานมาก",
+      },
+    ],
+  },
+  {
     id: "1",
     name: "โกโก้ (Cocoa)",
-    category: Category.Beverage,
+    category: Category.BeverageBottle,
     price: 55,
     image: "/images/products/cocoa.jpg",
     options: [
@@ -27,9 +152,34 @@ export const ProductCondoData: Product[] = [
     ],
   },
   {
+    id: "24",
+    name: "คาเคา (Cacao)",
+    category: Category.BeverageBottle,
+    price: 59,
+    image: "/images/products/cacao.jpg",
+    options: [
+      {
+        id: "1",
+        name: "ไม่หวาน",
+      },
+      {
+        id: "2",
+        name: "หวานน้อย",
+      },
+      {
+        id: "3",
+        name: "หวานปกติ",
+      },
+      {
+        id: "4",
+        name: "หวานมาก",
+      },
+    ],
+  },
+  {
     id: "2",
     name: "มัทฉะลาเต้ (Matcha Latte)",
-    category: Category.Beverage,
+    category: Category.BeverageBottle,
     price: 59,
     image: "/images/products/matcha.jpg",
     options: [
@@ -54,9 +204,9 @@ export const ProductCondoData: Product[] = [
   {
     id: "3",
     name: "ชาไทย (Thai Tea)",
-    category: Category.Beverage,
+    category: Category.BeverageBottle,
     price: 55,
-    image: "",
+    image: "/images/products/chathai.jpg",
     options: [
       {
         id: "1",
@@ -79,9 +229,9 @@ export const ProductCondoData: Product[] = [
   {
     id: "4",
     name: "ชามะลิ (Jasmine Tea)",
-    category: Category.Beverage,
+    category: Category.BeverageBottle,
     price: 40,
-    image: "",
+    image: "/images/products/mali.jpg",
     options: [
       {
         id: "1",
