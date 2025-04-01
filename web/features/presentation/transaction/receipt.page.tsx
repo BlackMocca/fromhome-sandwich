@@ -117,7 +117,7 @@ export default function ReceiptPage(props: ReceiptPageProps) {
   return (
     <MainLayout>
       <div className="flex flex-1 gap-[24px] flex-shink">
-        <div className="lg:max-w-[620px] flex flex-1 flex-col gap-[20px]">
+        <div className="lg:max-w-[620px] xl:max-w-full flex flex-1 flex-col gap-[20px]">
           <div className="flex flex-rows gap-[14px] px-[24px] overflow-x-auto scrollbar-hide">
             {_.map(masterProductCategories, (item: string, index) => (
               <ButtonLayout
