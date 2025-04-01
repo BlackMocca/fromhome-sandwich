@@ -13,7 +13,7 @@ export default function MainLayout(props: IMainLayoutProps) {
       {() => (
         <div className="flex flex-col w-screen h-dvh relative z-[1] py-[16px] px-[16px] gap-2">
           <Navbar />
-          <div className="flex flex-row gap-[19px] py-[8px] overflow-hidden">
+          <div className="flex flex-row gap-[19px] py-[8px] overflow-x-auto scrollbar-hide">
             <SidebarLayout menus={SidebarMenu}/>
             {props.children}
           </div>

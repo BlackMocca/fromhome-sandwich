@@ -116,9 +116,9 @@ export default function ReceiptPage(props: ReceiptPageProps) {
   // -----------------------------------------------
   return (
     <MainLayout>
-      <div className="flex flex-1 gap-[24px]">
-        <div className="flex flex-1 flex-col overflow-y-auto scrollbar-hide gap-[20px]">
-          <div className="flex flex-rows gap-[14px] px-[24px]">
+      <div className="flex flex-1 gap-[24px] flex-shink">
+        <div className="lg:max-w-[620px] flex flex-1 flex-col gap-[20px]">
+          <div className="flex flex-rows gap-[14px] px-[24px] overflow-x-auto scrollbar-hide">
             {_.map(masterProductCategories, (item: string, index) => (
               <ButtonLayout
                 key={index}
@@ -133,13 +133,15 @@ export default function ReceiptPage(props: ReceiptPageProps) {
               />
             ))}
           </div>
-          {_.map(masterProducts, (item, i) => {
-            return (
-              (filterCategory === "" || item.category === filterCategory) && (
-                <ProductCard key={i} product={item} onAdd={addProduct} />
-              )
-            );
-          })}
+          <div className="flex flex-1 flex-col gap-[20px] overflow-y-auto scrollbar-hide">
+            {_.map(masterProducts, (item, i) => {
+              return (
+                (filterCategory === "" || item.category === filterCategory) && (
+                  <ProductCard key={i} product={item} onAdd={addProduct} />
+                )
+              );
+            })}
+          </div>
         </div>
         <ReceiptPreview
           receipt={recepit}
