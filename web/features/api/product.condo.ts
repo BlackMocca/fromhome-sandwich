@@ -80,7 +80,7 @@ export const ProductCondoData: Product[] = [
     id: "23",
     name: "ชาไทยเย็น (Iced Thai Tea)",
     category: Category.BeverageCup,
-    price: 55,
+    price: 50,
     image: "",
     options: [
       {
@@ -205,7 +205,7 @@ export const ProductCondoData: Product[] = [
     id: "3",
     name: "ชาไทย (Thai Tea)",
     category: Category.BeverageBottle,
-    price: 55,
+    price: 50,
     image: "/images/products/chathai.jpg",
     options: [
       {

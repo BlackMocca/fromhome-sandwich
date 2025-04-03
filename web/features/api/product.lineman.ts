@@ -80,7 +80,7 @@ export const ProductLinemanData: Product[] = [
     id: "22",
     name: "ชาไทยเย็น (Iced Thai Tea)",
     category: Category.BeverageCup,
-    price: 65,
+    price: 60,
     image: "",
     options: [
       {
@@ -205,7 +205,7 @@ export const ProductLinemanData: Product[] = [
     id: "3",
     name: "ชาไทย (Thai Tea)",
     category: Category.BeverageBottle,
-    price: 60,
+    price: 55,
     image: "/images/products/chathai.jpg",
     options: [
       {
@@ -255,7 +255,7 @@ export const ProductLinemanData: Product[] = [
     id: "5",
     name: "แซนด์วิชโบโลน่าไข่ข้น",
     category: Category.Sandwich,
-    price: 70,
+    price: 75,
     image: "/images/products/sw_bolona_egg.jpg",
     options: [
       {
@@ -269,7 +269,7 @@ export const ProductLinemanData: Product[] = [
     id: "6",
     name: "แซนด์วิชปูอัดไข่ข้น",
     category: Category.Sandwich,
-    price: 70,
+    price: 75,
     image: "/images/products/sw_crabstick_egg.jpg",
     options: [
       {
@@ -283,7 +283,7 @@ export const ProductLinemanData: Product[] = [
     id: "7",
     name: "แซนด์วิชโบโลน่าปูอัด",
     category: Category.Sandwich,
-    price: 70,
+    price: 75,
     image: "/images/products/sw_bolona_crabstick.jpg",
     options: [
       {
@@ -297,7 +297,7 @@ export const ProductLinemanData: Product[] = [
     id: "8",
     name: "แซนด์วิชปูอัดทูน่า",
     category: Category.Sandwich,
-    price: 70,
+    price: 75,
     image: "/images/products/sw_crabstick_tuna.jpg",
     options: [
       {
@@ -311,7 +311,7 @@ export const ProductLinemanData: Product[] = [
     id: "9",
     name: "แซนด์วิชโบโลน่าทูน่า",
     category: Category.Sandwich,
-    price: 70,
+    price: 75,
     image: "",
     options: [
       {
@@ -325,7 +325,7 @@ export const ProductLinemanData: Product[] = [
     id: "10",
     name: "แซนด์วิชทูน่าไข่ข้น",
     category: Category.Sandwich,
-    price: 70,
+    price: 75,
     image: "",
     options: [
       {
