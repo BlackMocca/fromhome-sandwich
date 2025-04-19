@@ -127,6 +127,31 @@ export const ProductLinemanData: Product[] = [
     ],
   },
   {
+    id: "25",
+    name: "ชาอัญชันมะนาวเย็น (Iced Butterfly Pea with Lime)",
+    category: Category.BeverageCup,
+    price: 50,
+    image: "",
+    options: [
+      {
+        id: "1",
+        name: "ไม่หวาน",
+      },
+      {
+        id: "2",
+        name: "หวานน้อย",
+      },
+      {
+        id: "3",
+        name: "หวานปกติ",
+      },
+      {
+        id: "4",
+        name: "หวานมาก",
+      },
+    ],
+  },
+  {
     id: "1",
     name: "โกโก้ (Cocoa)",
     category: Category.BeverageBottle,
@@ -232,6 +257,31 @@ export const ProductLinemanData: Product[] = [
     category: Category.BeverageBottle,
     price: 45,
     image: "/images/products/mali.jpg",
+    options: [
+      {
+        id: "1",
+        name: "ไม่หวาน",
+      },
+      {
+        id: "2",
+        name: "หวานน้อย",
+      },
+      {
+        id: "3",
+        name: "หวานปกติ",
+      },
+      {
+        id: "4",
+        name: "หวานมาก",
+      },
+    ],
+  },
+  {
+    id: "26",
+    name: "ชาอัญชันมะนาว (Butterfly Pea with Lime)",
+    category: Category.BeverageBottle,
+    price: 45,
+    image: "",
     options: [
       {
         id: "1",
