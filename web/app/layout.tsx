@@ -43,7 +43,7 @@ export default function RootLayout({
         {/* Top Navbar */}
         <Navbar />
 
-        <div className="w-full flex min-h-[calc(100dvh-5rem)] max-w-[1440px] mx-auto bg-white shadow">
+        <div className="mt-4 rounded-xl w-full flex min-h-[calc(100dvh-5rem)] max-w-[1440px] mx-auto bg-white shadow">
           {children}
         </div>
       </body>
