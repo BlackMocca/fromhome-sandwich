@@ -5,6 +5,7 @@ export interface Product {
   name: string;
   base_price: number;   // ราคาขายมาตรฐาน
   cost: number;         // ต้นทุน (ใช้คำนวณกำไร Dashboard โดยตรง)
+  image_url?: string;    // รูปภาพสินค้า
 }
 
 /** ProductOption — Reusable add-ons shared across channels */
