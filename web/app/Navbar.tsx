@@ -4,7 +4,7 @@ import { openMobileSidebar } from './mobile-sidebar';
 
 export default function Navbar() {
   return (
-    <header className="border-b border-border/50 px-4 py-3 bg-white sticky top-0 z-20">
+    <header className="border-b border-border/50 px-4 py-3 bg-white sticky top-0 z-50">
       <div className="flex items-center justify-between w-full max-w-[1440px] mx-auto">
         {/* Left side: Hamburger + Logo */}
         <div className="flex items-center gap-3">
@@ -20,9 +20,10 @@ export default function Navbar() {
           </button>
 
           <a href="/management" className="text-primary font-bold text-base sm:text-lg tracking-tight flex items-center gap-2">
-            <span className="w-6 h-6 rounded bg-action inline-block" />
+            <div className="w-10 h-10 rounded inline-block"> 
+              <img className='w-full h-full' src="/images/logo.png" />
+            </div>
             From Home Sandwich
-            <span className="text-xs text-muted-foreground font-normal hidden sm:inline">| Management</span>
           </a>
         </div>
 

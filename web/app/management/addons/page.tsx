@@ -19,7 +19,7 @@ export default function AddonsPage() {
     <div className='w-full'>
       <div className="flex items-center justify-between mb-6">
         <h1 className="text-2xl font-bold text-primary">ตัวเลือกสินค้า (Product Add-on)</h1>
-        <button type="button" className="btn-action flex items-center gap-2 text-sm">
+        <button type="button" className="bg-primary text-white font-semibold px-4 py-2 rounded-lg hover:bg-primary/90 transition-colors border border-transparent shadow-sm flex items-center gap-2 text-sm">
           <PlusCircle className="w-4 h-4" /> เพิ่มตัวเลือก
         </button>
       </div>

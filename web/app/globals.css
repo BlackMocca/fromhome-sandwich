@@ -52,8 +52,7 @@
     @apply border-border;
   }
   body {
-    @apply bg-background text-foreground font-kanit;
-    background-color: var(--background);
+    @apply bg-gray-100 text-foreground font-kanit;
     color: var(--foreground);
     -webkit-font-smoothing: antialiased;
     -moz-osx-font-smoothing: grayscale;
@@ -78,7 +77,7 @@
   }
 
   .card-panel {
-    @apply bg-surface border border-border rounded-xl p-6 shadow-sm;
+    @apply bg-white border border-border rounded-xl p-6 shadow-sm;
   }
 
   .text-heading {

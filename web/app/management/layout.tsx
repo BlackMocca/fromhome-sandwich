@@ -4,7 +4,7 @@ import { useState, useEffect } from 'react';
 import Link from 'next/link';
 import { usePathname } from 'next/navigation';
 import { cn } from '@/lib/utils';
-import { ChevronLeft } from 'lucide-react';
+import { ChevronLeft, ChevronDown } from 'lucide-react';
 import type { Channel } from '@/types/channel';
 
 // ─── Management Data (mock → PostgREST later) ────────────
@@ -16,6 +16,7 @@ const CHANNELS: Channel[] = [
 ];
 
 const NAV_ITEMS = [
+  { label: 'แดชบอร์ด (Dashboard)', href: '/management', icon: '📊' },
   { label: 'หมวดหมู่ (Category)', href: '/management/categories', icon: '📂' },
   { label: 'สินค้า (Product)', href: '/management/products', icon: '🥪' },
   { label: 'ตัวเลือกสินค้า (Add-on)', href: '/management/addons', icon: '➕' },
@@ -35,6 +36,7 @@ function closeMobileSidebar(): void {
 export default function ManagementLayout({ children }: { children: React.ReactNode }) {
   const pathname = usePathname();
   const [expandedChannel, setExpandedChannel] = useState<Channel | null>(null);
+  const [channelsExpanded, setChannelsExpanded] = useState(true); // state สำหรับ expand/collapse ช่องทางการขาย
   // Responsive sidebar state - mobile only
   const [isMobileOpen, setIsMobileOpen] = useState(_isMobileSidebarOpen);
 
@@ -76,24 +78,14 @@ export default function ManagementLayout({ children }: { children: React.ReactNo
   const currentChannelCode = isChannelCardsView ? pathname.split('/').pop() : null;
 
   return (
-    <div className="flex w-full h-[calc(100vh-4rem)]">
-
+    <div className="flex w-full h-[calc(100dvh-4rem)]">
       {/* ── LEFT NAVBAR (Responsive) ─────────────── */}
       <aside className={cn(
         'fixed md:relative z-30 bg-white border-r border-border/50 transition-all duration-300 ease-in-out flex-shrink-0',
-        'h-[calc(100vh-4rem)] md:h-auto overflow-y-auto',
+        'h-[calc(100dvh-4rem)] md:h-auto overflow-y-auto',
         isMobileOpen ? 'w-72 translate-x-0' : '-translate-x-full md:translate-x-0 md:w-72',
       )}>
-        {/* Mobile close button */}
-        <button
-          type="button"
-          onClick={closeMobileSidebar}
-          className="md:hidden absolute top-3 right-3 p-1.5 rounded-lg hover:bg-surface transition-colors"
-        >
-          <ChevronLeft className="w-5 h-5 text-muted-foreground" />
-        </button>
 
-        {/* Navigation items */}
         <nav className="px-3 space-y-1 py-4">
           {NAV_ITEMS.map(item => (
             <Link
@@ -111,68 +103,69 @@ export default function ManagementLayout({ children }: { children: React.ReactNo
             </Link>
           ))}
 
-          {/* Channel group */}
-          <div className="pt-3 pb-1">
-            <p className="px-3 text-xs font-semibold text-muted-foreground uppercase tracking-wider">
-              ช่องทางการขาย (Channels)
-            </p>
+          {/* Channel group header - เป็นปุ่ม expand/collapse */}
+          <button
+            type="button"
+            onClick={() => setChannelsExpanded(!channelsExpanded)}
+            className={cn(
+              'w-full flex items-center justify-between px-3 py-2 rounded-lg text-sm transition-all cursor-pointer',
+              channelsExpanded ? 'bg-primary/10 text-primary font-semibold' : 'text-primary/70 hover:bg-surface'
+            )}
+          >
+            <span className="flex items-center gap-2">
+              <span>📊</span>
+              <span>ช่องทางการขาย (Channels)</span>
+            </span>
+            <ChevronDown
+              className={cn(
+                'w-4 h-4 transition-transform',
+                channelsExpanded ? 'rotate-180' : ''
+              )}
+            />
+          </button>
+
+          {/* Channel group content - แสดงเมื่อ expand พร้อม slide animation */}
+          <div className={cn('overflow-hidden transition-all duration-300 ease-out', channelsExpanded ? 'max-h-96 opacity-100' : 'max-h-0 opacity-0')}>
+            <div className="pt-2 pb-1 space-y-0.5">
+              {CHANNELS.map(channel => {
+                const isChannelPathname = pathname === `/management/channels/${channel.short_code}`;
+
+                return (
+                  <button
+                    key={channel.id}
+                    type="button"
+                    onClick={() => {
+                      // เมื่อคลิก channel ก็ไป Product Card ทันที
+                      if (typeof window !== 'undefined' && window.innerWidth < 768) {
+                        setIsMobileOpen(false);
+                      }
+                      window.location.href = `/management/channels/${channel.short_code}`;
+                    }}
+                    className={cn(
+                      'w-full flex items-center justify-between px-3 py-2 rounded-lg text-sm transition-all',
+                      isChannelPathname
+                        ? 'bg-primary/90 text-white font-semibold border-l-4 border-action'
+                        : 'text-primary/60 hover:bg-surface hover:text-primary bg-white'
+                    )}
+                  >
+                    <span className="flex items-center gap-2">
+                      <span
+                        className={cn(
+                          'w-2 h-2 rounded-full',
+                          isChannelPathname ? 'bg-action' : 'bg-border'
+                        )}
+                      />
+                      {channel.name}
+                    </span>
+                    <span className="text-xs text-muted-foreground">{channel.short_code}</span>
+                  </button>
+                );
+              })}
+            </div>
           </div>
 
-          {CHANNELS.map(channel => {
-            const isActiveChannel = expandedChannel?.id === channel.id;
-            const isChannelPathname = pathname === `/management/channels/${channel.short_code}`;
-
-            return (
-              <div key={channel.id} className="mb-0.5">
-                <button
-                  onClick={() => setExpandedChannel(isActiveChannel ? null : channel)}
-                  type="button"
-                  className={cn(
-                    'w-full flex items-center justify-between px-3 py-2 rounded-lg text-sm transition-all',
-                    isChannelPathname || isActiveChannel
-                      ? 'bg-action/15 text-primary font-semibold border-l-2 border-action'
-                      : 'text-primary/60 hover:bg-surface hover:text-primary'
-                  )}
-                >
-                  <span className="flex items-center gap-2">
-                    <span className={cn(
-                      'w-2 h-2 rounded-full',
-                      isActiveChannel ? 'bg-action' : 'bg-border'
-                    )} />
-                    {channel.name}
-                  </span>
-                  <span className="text-xs text-muted-foreground">{channel.short_code}</span>
-                </button>
-
-                {/* Channel sub-items */}
-                {(isActiveChannel || isChannelPathname) && (
-                  <div className="ml-5 mt-1 space-y-0.5 border-l border-border/40 pl-2">
-                    <Link
-                      href={`/management/channels/${channel.short_code}`}
-                      onClick={(e) => {
-                        if (typeof window !== 'undefined' && window.innerWidth < 768) {
-                          e.preventDefault();
-                          setIsMobileOpen(false);
-                          setTimeout(() => window.location.href = `/management/channels/${channel.short_code}`, 50);
-                        }
-                      }}
-                      className={cn(
-                        'block px-3 py-1.5 rounded text-xs transition-colors',
-                        isChannelPathname
-                          ? 'bg-action/20 text-primary font-medium'
-                          : 'text-muted-foreground hover:text-primary hover:bg-surface'
-                      )}
-                    >
-                      📋 สินค้าของ {channel.name} — Product Cards
-                    </Link>
-                  </div>
-                )}
-              </div>
-            );
-          })}
-
-          {/* Add Channel button */}
-          <button type="button" className="w-full mt-3 px-3 py-2 rounded-lg border border-dashed border-border/50 text-sm text-muted-foreground hover:border-action hover:text-action transition-colors flex items-center justify-center gap-1">
+          {/* Add Channel button — ปุ่ม primary */}
+          <button type="button" className="w-full mt-3 px-3 py-2 rounded-lg bg-primary text-white border border-transparent text-sm font-semibold hover:bg-primary/90 transition-colors flex items-center justify-center gap-1 shadow-sm">
             <span>+</span> เพิ่มช่องทางใหม่
           </button>
         </nav>

@@ -21,7 +21,7 @@ export default function ProductsPage() {
     <div>
       <div className="flex items-center justify-between mb-6">
         <h1 className="text-2xl font-bold text-primary">สินค้าทั้งหมด (Products)</h1>
-        <button className="btn-action flex items-center gap-2 text-sm">
+        <button className="btn-primary flex items-center gap-2 text-sm">
           <PlusCircle className="w-4 h-4" /> เพิ่มสินค้า
         </button>
       </div>

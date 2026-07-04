@@ -39,11 +39,11 @@ export default function RootLayout({
 }) {
   return (
     <html lang="th" className={kanit.variable}>
-      <body className={`min-h-screen bg-background ${kanit.className}`}>
+      <body className={`min-h-screen bg-grey-100 ${kanit.className}`}>
         {/* Top Navbar */}
         <Navbar />
 
-        <div className="w-full flex min-h-[calc(100vh-5rem)] max-w-[1440px] mx-auto">
+        <div className="w-full flex min-h-[calc(100dvh-5rem)] max-w-[1440px] mx-auto bg-white shadow">
           {children}
         </div>
       </body>
