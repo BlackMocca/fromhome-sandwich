@@ -43,10 +43,9 @@ export default function RootLayout({
         {/* Top Navbar */}
         <Navbar />
 
-        {/* Main layout: Sidebar (left) + Content (right) */}
-        <main className="flex">
+        <div className="w-full flex min-h-[calc(100vh-5rem)] max-w-[1440px] mx-auto">
           {children}
-        </main>
+        </div>
       </body>
     </html>
   );

@@ -16,7 +16,7 @@ export default function AddonsPage() {
   const [addons] = useState(ADDONS);
   
   return (
-    <div>
+    <div className='w-full'>
       <div className="flex items-center justify-between mb-6">
         <h1 className="text-2xl font-bold text-primary">ตัวเลือกสินค้า (Product Add-on)</h1>
         <button type="button" className="btn-action flex items-center gap-2 text-sm">

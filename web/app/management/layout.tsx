@@ -1,6 +1,6 @@
 'use client';
 
-import { useState, useMemo, useEffect } from 'react';
+import { useState, useEffect } from 'react';
 import Link from 'next/link';
 import { usePathname } from 'next/navigation';
 import { cn } from '@/lib/utils';
@@ -35,7 +35,6 @@ function closeMobileSidebar(): void {
 export default function ManagementLayout({ children }: { children: React.ReactNode }) {
   const pathname = usePathname();
   const [expandedChannel, setExpandedChannel] = useState<Channel | null>(null);
-  const [searchQuery, setSearchQuery] = useState('');
   // Responsive sidebar state - mobile only
   const [isMobileOpen, setIsMobileOpen] = useState(_isMobileSidebarOpen);
 
@@ -73,17 +72,11 @@ export default function ManagementLayout({ children }: { children: React.ReactNo
   // Detect if we're viewing a specific channel's product cards
   const isChannelCardsView = pathname.startsWith('/management/channels/');
 
-  const filteredChannels = useMemo(() => {
-    if (!searchQuery) return CHANNELS;
-    return CHANNELS.filter(ch => ch.name.toLowerCase().includes(searchQuery.toLowerCase()));
-  }, [searchQuery]);
-
   // Check if we're currently on a channel detail page
   const currentChannelCode = isChannelCardsView ? pathname.split('/').pop() : null;
-  const hasActiveChannel = expandedChannel || !!currentChannelCode;
 
   return (
-    <div className="flex h-[calc(100vh-4rem)]">
+    <div className="flex w-full h-[calc(100vh-4rem)]">
 
       {/* ── LEFT NAVBAR (Responsive) ─────────────── */}
       <aside className={cn(
@@ -100,19 +93,8 @@ export default function ManagementLayout({ children }: { children: React.ReactNo
           <ChevronLeft className="w-5 h-5 text-muted-foreground" />
         </button>
 
-        <div className="p-4">
-          {/* Search channel */}
-          <input
-            type="text"
-            placeholder="ค้นหาช่องทาง..."
-            value={searchQuery}
-            onChange={e => setSearchQuery(e.target.value)}
-            className="w-full px-3 py-2 rounded-lg border border-border text-sm bg-surface focus:ring-2 focus:ring-action/50 outline-none"
-          />
-        </div>
-
         {/* Navigation items */}
-        <nav className="px-3 space-y-1">
+        <nav className="px-3 space-y-1 py-4">
           {NAV_ITEMS.map(item => (
             <Link
               key={item.href}
@@ -136,7 +118,7 @@ export default function ManagementLayout({ children }: { children: React.ReactNo
             </p>
           </div>
 
-          {filteredChannels.map(channel => {
+          {CHANNELS.map(channel => {
             const isActiveChannel = expandedChannel?.id === channel.id;
             const isChannelPathname = pathname === `/management/channels/${channel.short_code}`;
 
@@ -210,7 +192,7 @@ export default function ManagementLayout({ children }: { children: React.ReactNo
       )}
 
       {/* ── RIGHT CONTENT ───────────────────── */}
-      <main className="flex-1 overflow-y-auto p-6 bg-background">
+      <main className="flex-1 w-full max-w-[1440px] mx-auto overflow-y-auto px-4 py-6 bg-background">
         {children}
       </main>
 

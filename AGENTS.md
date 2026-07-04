@@ -44,6 +44,17 @@ When starting any task, designing UI, or writing code, you must strictly consult
 1. **Load Context**: Read [DESIGN.md](./DESIGN.md) and relevant specs from [specs/](./specs/).
 2. **Design & Code**: Generate code that strictly follows the Design System and Specs (Billing logic, DB schema).
 3. **Verify**: Check against design tokens (`bg-primary`, `text-action`) and technical constraints.
+4. **Check Solutions**: หากเจอ error หรือปัญหาที่ยังไม่เคยแก้ ให้ดูที่ **[Solution.md](./spec/Solution.md)** — มีบันทึกวิธีแก้ที่เคยทำไว้แล้ว สามารถ copy paste หรือปรับใช้ได้เลย
+
+---
+
+## 📋 [Solution.md](./spec/Solution.md)
+บันทึก error + วิธีแก้ที่พบระหว่างการพัฒนา มีทั้ง:
+- **อาการ error** (ข้อความเต็ม + context)
+- **ขั้นตอนแก้ไข** แบบ step-by-step พร้อม code snippet
+- **โครงสร้างไฟล์หลังแก้** เพื่ออ้างอิงโครงสร้าง
+
+*เปิดดูก่อนเสมอเมื่อเจอ error ที่ไม่แน่ใจว่าแก้ยังไง*
 
 ---
 *File auto-generated to ensure AI agents always reference the core specs and design system.*

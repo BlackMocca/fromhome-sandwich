@@ -4,8 +4,8 @@ import { openMobileSidebar } from './mobile-sidebar';
 
 export default function Navbar() {
   return (
-    <header className="border-b border-border/50 px-4 sm:px-6 py-3 bg-white sticky top-0 z-20">
-      <div className="flex items-center justify-between max-w-[1440px] mx-auto">
+    <header className="border-b border-border/50 px-4 py-3 bg-white sticky top-0 z-20">
+      <div className="flex items-center justify-between w-full max-w-[1440px] mx-auto">
         {/* Left side: Hamburger + Logo */}
         <div className="flex items-center gap-3">
           {/* Hamburger button for mobile/tablet */}
