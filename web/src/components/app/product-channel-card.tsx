@@ -54,7 +54,7 @@ export function ProductChannelCard({
       <div className="flex-1 flex flex-col p-5 bg-white -mt-4 rounded-t-3xl shadow-lg relative z-10">
         
         {/* Product Name */}
-        <h3 className="text-xl font-bold text-primary leading-tight flex-1 line-clamp-2 select-text min-h-0 mb-2">
+        <h3 className="text-2xl font-bold text-primary leading-tight flex-1 line-clamp-2 select-text min-h-0 mb-2">
           {product.name}
         </h3>
 

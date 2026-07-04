@@ -1,27 +1,75 @@
 'use client';
 
 import { useState } from 'react';
-import { PlusCircle, Edit2, Trash2 } from 'lucide-react';
+import { PlusCircle, Search } from 'lucide-react';
 import { Input } from '@/components/ui/input';
+import type { Product, ProductOption } from '@/types/product';
+import type { Category } from '@/types/category';
+import { ProductCard } from '@/components/app/product-card';
 
-const PRODUCTS = [
-  { id: 1, name: 'แซนด์วิชมะม่วง', category: 'Sandwich', price: 45, cost: 28 },
-  { id: 2, name: 'แซนด์วิชแฮมชีส', category: 'Sandwich', price: 50, cost: 32 },
-  { id: 3, name: 'แซนด์วิชทูน่า', category: 'Sandwich', price: 45, cost: 27 },
-  { id: 4, name: 'ชาเย็น', category: 'Drink', price: 35, cost: 18 },
-  { id: 5, name: 'กาแฟลาเต้', category: 'Drink', price: 40, cost: 22 },
-  { id: 6, name: 'ส้มตำไทย', category: 'Salad', price: 40, cost: 20 },
+// ─── Mock categories (by name) ─────────────────────────────
+const CATEGORY_NAMES: Record<number, string> = {
+  1: 'Sandwich',
+  2: 'Drink',
+  3: 'Salad',
+  4: 'Fried',
+};
+
+const ALL_CATEGORIES_BY_NAME: Record<string, Category> = {
+  Sandwich: { id: 1, name: 'Sandwich', is_active: true },
+  Drink:    { id: 2, name: 'Drink',    is_active: true },
+  Salad:    { id: 3, name: 'Salad',     is_active: true },
+  Fried:    { id: 4, name: 'Fried',     is_active: true },
+};
+
+// ─── Image file mapping ──────────────────────────────────
+const PRODUCT_IMAGE_MAP: Record<string, string> = {
+  'แซนด์วิชมะม่วง':   'sw_bolona_egg.jpg',
+  'แซนด์วิชแฮมชีส':  'sw_bolona_crabstick.jpg',
+  'แซนด์วิชทูน่า':    'sw_crabstick_tuna.jpg',
+  'ชาเย็น':             'iced_mali.jpg',
+  'กาแฟลาเต้':         'cocoa.jpg',
+  'ส้มตำไทย':           'mali.jpg',
+};
+
+function productImageUrl(name: string): string | undefined {
+  const file = PRODUCT_IMAGE_MAP[name];
+  return file ? `/images/products/${file}` : undefined;
+}
+
+// ─── Mock data with image_url & options ──────────────────
+const ALL_PRODUCTS: Product[] = [
+  { id: 1, category_id: 1, name: 'แซนด์วิชมะม่วง',   base_price: 45, cost: 28, image_url: productImageUrl('แซนด์วิชมะม่วง') },
+  { id: 2, category_id: 1, name: 'แซนด์วิชแฮมชีส',  base_price: 50, cost: 32, image_url: productImageUrl('แซนด์วิชแฮมชีส') },
+  { id: 3, category_id: 1, name: 'แซนด์วิชทูน่า',    base_price: 45, cost: 27, image_url: productImageUrl('แซนด์วิชทูน่า') },
+  { id: 4, category_id: 2, name: 'ชาเย็น',             base_price: 35, cost: 18, image_url: productImageUrl('ชาเย็น') },
+  { id: 5, category_id: 2, name: 'กาแฟลาเต้',         base_price: 40, cost: 22, image_url: productImageUrl('กาแฟลาเต้') },
+  { id: 6, category_id: 3, name: 'ส้มตำไทย',           base_price: 40, cost: 20, image_url: productImageUrl('ส้มตำไทย') },
+];
+
+const MOCK_OPTIONS: ProductOption[] = [
+  { id: 1, name: 'ไม่เพิ่ม',     price: 0 },
+  { id: 2, name: 'เพิ่มชีส',    price: 10 },
+  { id: 3, name: 'ข้าวไรซ์',   price: 5 },
+  { id: 4, name: 'ไข่ดาว',      price: 12 },
+  { id: 5, name: 'ทอดกรอบ',    price: 8 },
 ];
 
 export default function ProductsPage() {
-  const [products] = useState(PRODUCTS);
+  const [products] = useState<Product[]>(ALL_PRODUCTS);
   const [search, setSearch] = useState('');
+  const filteredProducts = products.filter(p => p.name.includes(search));
+
+  const handleAction = (product: Product) => {
+    console.log(`[ProductCard action] ${product.name}`);
+  };
 
   return (
-    <div>
+    <div className="min-h-screen bg-surface">
+      {/* Header */}
       <div className="flex items-center justify-between mb-6">
         <h1 className="text-2xl font-bold text-primary">สินค้าทั้งหมด (Products)</h1>
-        <button className="btn-primary flex items-center gap-2 text-sm">
+        <button className="btn-primary flex items-center gap-2 text-sm px-4 py-2 rounded-xl shadow-md">
           <PlusCircle className="w-4 h-4" /> เพิ่มสินค้า
         </button>
       </div>
@@ -32,48 +80,30 @@ export default function ProductsPage() {
           placeholder="ค้นหาสินค้า..."
           value={search}
           onChange={e => setSearch(e.target.value)}
+          className="h-11"
         />
       </div>
 
-      {/* Data Table */}
-      <table className="w-full text-sm">
-        <thead>
-          <tr className="border-b border-border/50 bg-surface/60">
-            <th className="text-left py-3 px-4 font-semibold text-muted-foreground w-12">#</th>
-            <th className="text-left py-3 px-4 font-semibold text-muted-foreground">สินค้า</th>
-            <th className="text-center py-3 px-4 font-semibold text-muted-foreground w-28">หมวดหมู่</th>
-            <th className="text-right py-3 px-4 font-semibold text-muted-foreground w-28">ราคา</th>
-            <th className="text-right py-3 px-4 font-semibold text-muted-foreground w-28">ต้นทุน</th>
-            <th className="text-center py-3 px-4 font-semibold text-muted-foreground w-24">กำไร/ชิ้น</th>
-            <th className="text-right py-3 px-4 font-semibold text-muted-foreground w-28">จัดการ</th>
-          </tr>
-        </thead>
-        <tbody>
-          {products.map((prod, i) => (
-            <tr key={prod.id} className="border-b border-border/30 hover:bg-surface transition-colors">
-              <td className="py-3 px-4 text-muted-foreground">{i + 1}</td>
-              <td className="py-3 px-4 font-medium text-primary">{prod.name}</td>
-              <td className="py-3 px-4 text-center text-muted-foreground">{prod.category}</td>
-              <td className="py-3 px-4 text-right">฿{prod.price}</td>
-              <td className="py-3 px-4 text-right text-muted-foreground">฿{prod.cost}</td>
-              <td className="py-3 px-4 text-center text-success font-medium">฿{prod.price - prod.cost}</td>
-              <td className="py-3 px-4 text-right">
-                <div className="flex items-center justify-end gap-2">
-                  <button className="p-1.5 rounded hover:bg-primary/10 text-muted-foreground hover:text-primary transition-colors">
-                    <Edit2 className="w-4 h-4" />
-                  </button>
-                  <button className="p-1.5 rounded hover:bg-error/10 text-muted-foreground hover:text-destructive transition-colors">
-                    <Trash2 className="w-4 h-4" />
-                  </button>
-                </div>
-              </td>
-            </tr>
+      {/* Product cards grid */}
+      {filteredProducts.length > 0 ? (
+        <div className="grid grid-cols-1 sm:grid-cols-2 lg:grid-cols-3 xl:grid-cols-4 gap-4">
+          {filteredProducts.map(product => (
+            <ProductCard
+              key={product.id}
+              product={product}
+              category={ALL_CATEGORIES_BY_NAME[CATEGORY_NAMES[product.category_id] ?? '']}
+              options={MOCK_OPTIONS}
+              onAdd={handleAction}
+            />
           ))}
-        </tbody>
-      </table>
+        </div>
+      ) : (
+        <div className="flex items-center justify-center py-20 text-muted-foreground">
+          ไม่พบสินค้าที่ค้นหา
+        </div>
+      )}
     </div>
   );
 }
 
-// Force dynamic rendering
 export const dynamic = 'force-dynamic';
