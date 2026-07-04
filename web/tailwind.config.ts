@@ -1,30 +1,70 @@
-import type { Config } from "tailwindcss";
-import scrollbarHide from 'tailwind-scrollbar-hide'
+import type { Config } from 'tailwindcss';
 
-export default {
+const config: Config = {
+  darkMode: ['class'],
   content: [
-    "./pages/**/*.{js,ts,jsx,tsx,mdx}",
-    "./features/**/*.{js,ts,jsx,tsx,mdx}",
-    "./components/**/*.{js,ts,jsx,tsx,mdx}",
-    "./app/**/*.{js,ts,jsx,tsx,mdx}",
+    './app/**/*.{ts,tsx}',
+    './src/**/*.{ts,tsx}',
+    './components/**/*.{ts,tsx}',
   ],
   theme: {
     extend: {
-      fontFamily: {
-        sans: ['Kanit', 'sans-serif'],
-      },
       colors: {
-        background: "var(--background)",
-        foreground: "var(--foreground)",
-        primary: "var(--primary)",
-        secondary: "var(--secondary)",
-        action: "var(--action)",
-        success: "var(--success)",
-        error: "var(--error)",
+        // Design tokens from DESIGN.md — From Home Sandwich palette
+        background: 'hsl(var(--background))',
+        foreground: 'hsl(var(--foreground))',
+        primary: {
+          DEFAULT: '#695848',
+          light: '#7d6a58',
+          dark: '#574739',
+        },
+        secondary: {
+          DEFAULT: 'hsl(var(--secondary))',
+          foreground: 'hsl(var(--secondary-foreground))',
+        },
+        action: {
+          DEFAULT: '#e0b554',
+          light: '#ebc873',
+          dark: '#d1a23f',
+        },
+        success: {
+          DEFAULT: '#5e845a',
+          light: '#6f966b',
+          dark: '#4e724a',
+        },
+        destructive: {
+          DEFAULT: '#d9827a',
+          foreground: '#ffffff',
+        },
+        surface: '#f9f8f8',
+        border: 'hsl(var(--border))',
+      },
+      fontFamily: {
+        kanit: ['var(--font-kanit)', 'sans-serif'],
+      },
+      borderRadius: {
+        lg: '0.5rem', // 8px — standard shadcn/ui radius
+        md: '0.375rem',
+        sm: '0.25rem',
+      },
+      spacing: {
+        // Tailwind spacing scale (4–24px)
+        '1': '0.25rem',
+        '2': '0.5rem',
+        '3': '0.75rem',
+        '4': '1rem',
+        '5': '1.25rem',
+        '6': '1.5rem',
+        '8': '2rem',
+        '10': '2.5rem',
+        '12': '3rem',
+        '16': '4rem',
+        '20': '5rem',
+        '24': '6rem',
       },
     },
   },
-  plugins: [
-    scrollbarHide
-  ],
-} satisfies Config;
+  plugins: [require('tailwindcss-animate')],
+};
+
+export default config;

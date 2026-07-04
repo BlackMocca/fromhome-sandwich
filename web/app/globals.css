@@ -1,0 +1,99 @@
+@tailwind base;
+@tailwind components;
+@tailwind utilities;
+
+/* From Home Sandwich Design Tokens — DESIGN.md */
+:root {
+  /* Core colors */
+  --background: #ffffff;
+  --foreground: #000000;
+  --surface: #f9f8f8;
+  --border: #000000;
+
+  /* shadcn/ui mapped tokens */
+  --primary: 167.4, 24.5, 19.8;  /* #695848 in RGB for hsl() */
+  --secondary: 255, 255, 255;     /* #ffffff */
+  --action: 224, 181, 84;         /* #e0b554 Soft Gold */
+  --success: 94, 132, 90;         /* #5e845a Sage Green */
+  --destructive: 217, 130, 122;   /* #d9827a Soft Red */
+
+  /* Card & UI surfaces */
+  --card: #ffffff;
+  --card-foreground: #000000;
+  --popover: #ffffff;
+  --popover-foreground: #000000;
+
+  /* Muted elements */
+  --muted: #f9f8f8;
+  --muted-foreground: #6b5e4f;
+
+  /* Accent */
+  --accent: #f9f8f8;
+  --accent-foreground: #000000;
+
+  /* Highlight / focus */
+  --highlight: #e0b554;
+  --highlight-foreground: #000000;
+
+  /* Radius — shadcn/ui standard 8px */
+  --radius: 0.5rem;
+}
+
+/* Dark mode support (optional) */
+.dark {
+  --background: #1a1410;
+  --foreground: #f9f8f8;
+  --surface: #2a2320;
+  --border: #3d352e;
+}
+
+@layer base {
+  * {
+    @apply border-border;
+  }
+  body {
+    @apply bg-background text-foreground font-kanit;
+    background-color: var(--background);
+    color: var(--foreground);
+    -webkit-font-smoothing: antialiased;
+    -moz-osx-font-smoothing: grayscale;
+  }
+}
+
+@layer components {
+  /* Posture rules from DESIGN.md */
+  .btn-primary {
+    @apply bg-primary text-secondary font-medium px-4 py-2 rounded-lg 
+           hover:bg-primary/90 transition-colors border border-transparent;
+  }
+  
+  .btn-action {
+    @apply bg-action text-primary font-semibold px-4 py-2 rounded-lg 
+           hover:bg-action/90 transition-colors border border-transparent shadow-sm;
+  }
+
+  .btn-success {
+    @apply bg-success text-secondary font-medium px-4 py-2 rounded-lg 
+           hover:bg-success/90 transition-colors border border-transparent;
+  }
+
+  .card-panel {
+    @apply bg-surface border border-border rounded-xl p-6 shadow-sm;
+  }
+
+  .text-heading {
+    @apply text-primary font-bold;
+  }
+
+  .text-action {
+    color: var(--action);
+  }
+
+  .text-success {
+    color: var(--success);
+  }
+
+  .text-error {
+    color: var(--destructive);
+  }
+}

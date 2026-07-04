@@ -1,76 +1,31 @@
-import _ from "lodash";
-import { NextRequest, NextResponse } from "next/server";
+/** Auth Middleware — Cookie-based JWT for 1-2 active users (SPEC.md §5) */
+import { NextResponse } from 'next/server';
+import type { NextRequest } from 'next/server';
 
-interface IMiddleware {
-    handle(request: NextRequest): NextResponse | void
-    config?: {
-        matcher?: string | string[] | RegExp
-    }
-}
+const PROTECTED_PATHS = ['/receipt', '/dashboard'];
+const PUBLIC_PATHS = ['/', '/login', '/api/'];
 
-const authMiddleware = (request: NextRequest) => {
-    const token = request.cookies.get("access_token")?.value; // Check auth token
-    if (!token) {
-        return NextResponse.redirect(new URL("/signin", request.url));
-    }
+export function middleware(request: NextRequest) {
+  const { pathname } = request.nextUrl;
 
+  // Skip API routes and static assets
+  if (pathname.startsWith('/api/') || pathname.match(/\.(png|jpg|svg|woff2)$/)) {
     return NextResponse.next();
-}
+  }
 
-const logMiddleware = (req: NextRequest) => {
-    return NextResponse.next();
-}
+  // Check auth token from cookie
+  const token = request.cookies.get('sb-auth-token')?.value;
+  
+  const isProtectedPath = PROTECTED_PATHS.some(path => pathname.startsWith(path));
+  
+  if (isProtectedPath && !token) {
+    return NextResponse.redirect(new URL('/login', request.url));
+  }
 
-export function middleware(req: NextRequest) {
-    if ((req.nextUrl.pathname === "/signin" || req.nextUrl.pathname === "/") && req.cookies.get("access_token")?.value) {
-        return NextResponse.redirect(new URL("/receipt/CND", req.url))
-    }
-
-    const middlewares: IMiddleware[] = [
-        {
-            handle: authMiddleware,
-            config: {
-                matcher: "/((?!signin).*)"
-            }
-        },
-        {
-            handle: logMiddleware,
-        }
-    ]
-
-    for (const mw of middlewares) {
-        // Check matcher and call middleware handler
-        const { matcher } = mw.config || {};
-        let matchRegExp: RegExp | null = null;
-
-        if (matcher) {
-            if (Array.isArray(matcher)) {
-                matchRegExp = new RegExp(matcher.join("|"));
-            } else if (typeof matcher === "string" || matcher instanceof RegExp) {
-                matchRegExp = new RegExp(matcher instanceof RegExp ? matcher.source : matcher);
-            } 
-        }
-
-        if (matchRegExp && req.nextUrl.pathname.match(matchRegExp) || matcher === undefined) {
-            const response = mw.handle(req); // Execute middleware
-            if (response) {
-                return response;
-            }
-        }
-    }
-
-    return NextResponse.next();
+  // Allow public pages even without token
+  return NextResponse.next();
 }
 
 export const config = {
-    matcher: [
-        /*
-            * Match all request paths except for the ones starting with:
-            * - api (API routes)
-            * - _next/static (static files)
-            * - _next/image (image optimization files)
-            * - favicon.ico, sitemap.xml, robots.txt (metadata files)
-        */
-        '/((?!api|_next/static|_next/image|favicon.ico|sitemap.xml|robots.txt|public|images).*)',
-    ],
+  matcher: ['/receipt/:path*', '/dashboard/:path*', '/'],
 };
