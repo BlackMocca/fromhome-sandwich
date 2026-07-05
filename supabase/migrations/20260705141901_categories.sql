@@ -7,12 +7,6 @@ CREATE TABLE IF NOT EXISTS categories (
   updated_at  TIMESTAMPTZ  NOT NULL DEFAULT now()
 );
 
--- Seed data from mock (ON CONFLICT prevents duplicates)
-INSERT INTO categories (name, is_active) VALUES
-  ('Sandwich',    true),
-  ('Drink',       true)
-ON CONFLICT (name) DO NOTHING;
-
 -- Create trigger to auto-update updated_at column
 CREATE OR REPLACE FUNCTION update_updated_at_column()
 RETURNS TRIGGER AS $$
