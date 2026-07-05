@@ -1,7 +1,11 @@
 import type { Metadata, ResolvingMetadata } from 'next';
-import { Kanit } from 'next/font/google';
+import { Kanit, Inter } from 'next/font/google';
 import './globals.css';
 import Navbar from './Navbar';
+import { cn } from "@/lib/utils";
+
+const inter = Inter({subsets:['latin'],variable:'--font-sans'});
+
 
 // Re-export sidebar functions for backward compat
 export {
@@ -38,7 +42,7 @@ export default function RootLayout({
   children: React.ReactNode;
 }) {
   return (
-    <html lang="th" className={kanit.variable}>
+    <html lang="th" className={cn("font-sans", inter.variable)}>
       <body className={`min-h-screen bg-grey-100 ${kanit.className}`}>
         {/* Top Navbar */}
         <Navbar />
