@@ -1,9 +1,10 @@
 'use client';
 
 import Image from 'next/image';
-import { Pencil, ToggleLeft, ToggleRight } from 'lucide-react';
+import { Pencil } from 'lucide-react';
 import type { Product, ProductOption } from '@/types/product';
 import type { Category } from '@/types/category';
+import { ToggleSwitch } from '../ui/toggle-switch';
 import { ProductOptionsPills } from './product-options-pills';
 import { useState } from 'react';
 
@@ -64,20 +65,17 @@ export function ProductCard({ product, category, options, onAdd }: ProductCardPr
           />
         </div>
 
-        {/* ── Action row (Toggle on left, Edit on right) */}
+        {/* ── Action row (iOS ToggleSwitch on left, Edit on right) */}
         <div className="mt-auto flex items-center gap-2">
-          {/* Toggle — aligned to left edge, icon height 38px full size */}
-          <button 
-            type="button" 
-            onClick={() => setActive(!active)}
-            className="flex items-center justify-center gap-1.5 h-[38px] px-4 rounded-xl hover:bg-action/10 transition-all"
+          {/* iOS-style ToggleSwitch — green/gray sliding knob + right label */}
+          <ToggleSwitch
+            on={active}
+            onToggle={(next) => setActive(next)}
+            size="md"
+            className="h-[38px]"
           >
-            {active ? (
-              <ToggleRight className="w-[64px] h-[38px] text-success" />
-            ) : (
-              <ToggleLeft className="w-[64px] h-[38px] text-muted-foreground" />
-            )}
-          </button>
+            เปิดใช้งาน
+          </ToggleSwitch>
 
           {/* Edit — aligned to right edge */}
           <button 

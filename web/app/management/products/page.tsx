@@ -65,7 +65,7 @@ export default function ProductsPage() {
   };
 
   return (
-    <div className="min-h-screen bg-surface">
+    <div className="min-h-screen">
       {/* Header */}
       <div className="flex items-center justify-between mb-6">
         <h1 className="text-2xl font-bold text-primary">สินค้าทั้งหมด (Products)</h1>
