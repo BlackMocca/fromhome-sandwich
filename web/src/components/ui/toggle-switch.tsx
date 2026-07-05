@@ -1,9 +1,7 @@
 'use client';
 
 import * as React from 'react';
-import { cn } from '@/lib/utils';
-
-// ─── Types ───────────────────────────────────────────────
+import { cn } from '@/lib/utils'; 
 export type ToggleSwitchSize = 'sm' | 'md' | 'lg';
 
 export type ToggleSwitchOnChange = (next: boolean) => void;
@@ -13,6 +11,8 @@ interface ToggleSwitchProps extends Omit<React.ButtonHTMLAttributes<HTMLButtonEl
   defaultOn?: boolean;
   size?: ToggleSwitchSize;
   onToggle?: ToggleSwitchOnChange;
+  afterLabel?: React.ReactNode; // ข้อความหลัง toggle (optional)
+  knobContent?: string; // ข้อความภายในวงกลม On/Off (เช่น "เปิด")
 }
 
 // ─── Base classes ────────────────────────────────────────
@@ -20,12 +20,12 @@ const baseClasses =
   'inline-flex items-center justify-center ring-offset-background focus-visible:outline-none focus-visible:ring-2 focus-visible:ring-ring disabled:pointer-events-none disabled:opacity-50 select-none';
 
 // ─── Sizes (track width, knob size) ─────
-const sizes: Record<ToggleSwitchSize, { track: string; knob: number; translateX: number }> = {
+const sizes: Record<ToggleSwitchSize, { track: string; knob: number; translateX: number; fontSize: string }> = {
   // translateX = ระยะที่วงกลมต้องเลื่อนไปทางขวา
   // สูตร: left(3) + translateX + knobWidth = trackWidth
-  sm: { track: 'w-[40px] h-[26px]', knob: 20, translateX: 17 },   // 3 + 17 + 20 = 40
-  md: { track: 'w-[52px] h-[30px]', knob: 24, translateX: 25 },    // 3 + 25 + 24 = 52
-  lg: { track: 'w-[64px] h-[34px]', knob: 28, translateX: 33 },    // 3 + 33 + 28 = 64
+  sm: { track: 'w-[40px] h-[26px]', knob: 20, translateX: 17, fontSize: 'text-[5px]' },   // 3 + 17 + 20 = 40
+  md: { track: 'w-[52px] h-[30px]', knob: 24, translateX: 25, fontSize: 'text-[7px]' },    // 3 + 25 + 24 = 52
+  lg: { track: 'w-[64px] h-[34px]', knob: 28, translateX: 33, fontSize: 'text-[8px]' },    // 3 + 33 + 28 = 64
 };
 
 // ─── Component ───────────────────────────────────────────
@@ -36,6 +36,8 @@ export function ToggleSwitch({
   size = 'md',
   className,
   children,
+  afterLabel,
+  knobContent,
   ...props
 }: ToggleSwitchProps) {
   // Handle controlled vs uncontrolled state
@@ -43,6 +45,9 @@ export function ToggleSwitch({
   const [state, setState] = React.useState(defaultOn);
 
   const isActive = isControlled ? on : state;
+
+  // คำนวณข้อความในวงกลม: ON ใช้ knobContent (เช่น "เปิด") / OFF ใช้ "ปิด"
+  const knobText = typeof knobContent === 'string' ? (isActive ? knobContent : 'ปิด') : knobContent;
 
   return (
     <div className="inline-flex items-center gap-3">
@@ -80,20 +85,30 @@ export function ToggleSwitch({
             top: '50%',
             transform: `translateY(-50%) translateX(${isActive ? (sizes[size].translateX - 3) : 0}px)`,
           } as React.CSSProperties}
-        />
+        >
+          {/* Label inside knob */}
+          {knobContent && (
+            <span
+              className={cn(
+                'absolute inset-0 flex items-center justify-center font-bold text-primary uppercase tracking-tighter',
+                sizes[size].fontSize,
+              )}
+              style={{
+                '--knob-label-x': `${sizes[size].translateX}px`,
+                translateX: isActive ? 'var(--knob-label-x)' : '0px',
+              } as React.CSSProperties}
+            >
+            <span className="text-primary">{knobText}</span>
+            </span>
+          )}
+        </span>
 
-        {/* Label (optional text inside the track) */}
-        {children && (
-          <span className="absolute inset-0 flex items-center justify-center text-[10px] font-semibold uppercase tracking-wider pointer-events-none">
-            {/* Add custom label content if needed */}
-          </span>
-        )}
       </button>
 
-      {/* Right Label (iOS style) */}
-      {children && (
+      {/* Right Label — รับ ReactNode เข้ามาเองทั้งหมด */}
+      {afterLabel && (
         <span className="text-sm font-medium text-zinc-600 select-none pointer-events-none">
-          {isActive ? 'เปิดใช้งาน' : 'ปิดใช้งาน'}
+          {afterLabel}
         </span>
       )}
     </div>

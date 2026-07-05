@@ -1,7 +1,9 @@
 'use client';
 
 import { useState } from 'react';
-import { PlusCircle, Edit2, Trash2 } from 'lucide-react';
+import { PlusCircle, Edit2 } from 'lucide-react';
+import { ToggleSwitch } from '@/components/ui/toggle-switch';
+import { cn } from '@/lib/utils';
 
 // Force dynamic rendering for onClick prop serialization during prerender
 
@@ -14,6 +16,9 @@ const ADDONS = [
 
 export default function AddonsPage() {
   const [addons] = useState(ADDONS);
+  const [activeAddons, setActiveAddons] = useState<Record<number, boolean>>(
+    Object.fromEntries(ADDONS.map(a => [a.id, true])) // default active
+  );
   
   return (
     <div className='w-full'>
@@ -24,44 +29,50 @@ export default function AddonsPage() {
         </button>
       </div>
 
-      {/* Data Table */}
-      <table className="w-full text-sm">
-        <thead>
-          <tr className="border-b border-border/50 bg-surface/60">
-            <th className="text-left py-3 px-4 font-semibold text-muted-foreground w-12">#</th>
-            <th className="text-left py-3 px-4 font-semibold text-muted-foreground">ชื่อตัวเลือก</th>
-            <th className="text-right py-3 px-4 font-semibold text-muted-foreground w-40">ราคาเพิ่มเติม</th>
-            <th className="text-center py-3 px-4 font-semibold text-muted-foreground w-24">สถานะ</th>
-            <th className="text-right py-3 px-4 font-semibold text-muted-foreground w-28">จัดการ</th>
-          </tr>
-        </thead>
-        <tbody>
-          {addons.map((addon, i) => (
-            <tr key={addon.id} className="border-b border-border/30 hover:bg-surface transition-colors">
-              <td className="py-3 px-4 text-muted-foreground">{i + 1}</td>
-              <td className="py-3 px-4 font-medium text-primary">{addon.name}</td>
-              <td className="py-3 px-4 text-right">
-                <span className="font-semibold text-action">+฿{addon.price.toLocaleString()}</span>
-              </td>
-              <td className="py-3 px-4 text-center">
-                <span className="inline-flex px-2 py-0.5 rounded-full text-xs font-medium bg-success/15 text-success">
-                  เปิดใช้งาน
-                </span>
-              </td>
-              <td className="py-3 px-4 text-right">
-                <div className="flex items-center justify-end gap-2">
-                  <button type="button" className="p-1.5 rounded hover:bg-primary/10 text-muted-foreground hover:text-primary transition-colors">
-                    <Edit2 className="w-4 h-4" />
-                  </button>
-                  <button type="button" className="p-1.5 rounded hover:bg-error/10 text-muted-foreground hover:text-destructive transition-colors">
-                    <Trash2 className="w-4 h-4" />
-                  </button>
-                </div>
-              </td>
-            </tr>
-          ))}
-        </tbody>
-      </table>
+      {/* Data Table Layout — ใช้ grid แทน table */}
+      <div className="w-full bg-white rounded-xl border border-border/50 overflow-hidden">
+        {/* Header Row */}
+        <div className="grid grid-cols-12 gap-4 px-4 py-3 bg-surface/60 border-b border-border/50 text-sm font-semibold text-muted-foreground">
+          <div className="col-span-1">#</div>
+          <div className="col-span-3">ชื่อตัวเลือก</div>
+          <div className="col-span-2 text-start">ราคา</div>
+          <div className="col-span-2 text-center">สถานะ</div>
+          <div className="col-span-4 text-right">&nbsp;</div>
+        </div>
+
+        {/* Data Rows */}
+        {addons.map((addon, i) => (
+          <div 
+            key={addon.id} 
+            className={cn(
+              "grid grid-cols-12 gap-4 px-4 py-3 border-b transition-colors text-sm",
+              i === addons.length - 1 && 'border-b-0',
+              "hover:bg-surface",
+            )}
+          >
+            <div className="col-span-1 text-muted-foreground">{i + 1}</div>
+            <div className="col-span-3 font-medium text-primary">{addon.name}</div>
+            <div className="col-span-2 flex items-center justify-start">
+              <span className="text-primary">+฿{addon.price.toLocaleString()}</span>
+            </div>
+            <div className="col-span-2 flex items-center justify-center">
+              <ToggleSwitch
+                on={activeAddons[addon.id]}
+                onToggle={() => {
+                  setActiveAddons(prev => ({ ...prev, [addon.id]: !prev[addon.id] }));
+                }}
+                size="sm"
+              />
+            </div>
+            <div className="col-span-4 flex items-center justify-end">
+              <button type="button" className="btn-primary flex items-center gap-1.5 h-[34px] px-3 rounded-lg text-white">
+                <Edit2 className="w-4 h-4" />
+                แก้ไข
+              </button>
+            </div>
+          </div>
+        ))}
+      </div>
     </div>
   );
 }

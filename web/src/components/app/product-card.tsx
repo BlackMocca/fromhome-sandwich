@@ -4,6 +4,7 @@ import Image from 'next/image';
 import { Pencil } from 'lucide-react';
 import type { Product, ProductOption } from '@/types/product';
 import type { Category } from '@/types/category';
+import { cn } from '@/lib/utils';
 import { ToggleSwitch } from '../ui/toggle-switch';
 import { ProductOptionsPills } from './product-options-pills';
 import { useState } from 'react';
@@ -20,7 +21,10 @@ export function ProductCard({ product, category, options, onAdd }: ProductCardPr
   const [active, setActive] = useState(true);
 
   return (
-    <div className="group relative bg-surface rounded-2xl shadow-xl hover:shadow-2xl transition-all duration-300 h-full flex flex-col">
+    <div className={cn(
+      "group relative bg-surface rounded-2xl shadow-xl transition-all duration-300 h-full flex flex-col",
+      active ? 'opacity-100 hover:shadow-2xl' : 'opacity-50',
+    )}>
       {/* ── Category Badge — frosted glass over image */}
       {category && (
         <span className="absolute top-3 right-3 z-10 px-3 py-1 rounded-xl bg-white/85 backdrop-blur-md shadow-lg border border-white/40 text-primary text-xs font-bold uppercase tracking-wider select-none">
@@ -41,12 +45,15 @@ export function ProductCard({ product, category, options, onAdd }: ProductCardPr
       <div className="flex-1 flex flex-col p-5 bg-white -mt-4 rounded-t-3xl shadow-lg relative z-10">
         
         {/* Product Name */}
-        <h3 className="text-2xl font-bold text-primary leading-tight flex-1 line-clamp-2 select-text min-h-0 mb-2">
+        <h3 className={cn(
+          "text-2xl font-bold text-primary leading-tight flex-1 line-clamp-2 select-text min-h-0 mb-2",
+          !active && 'line-through text-muted-foreground',
+        )}>
           {product.name}
         </h3>
 
         {/* Price + Cost */}
-        <div className="flex items-baseline gap-2 shrink-0 mb-2">
+        <div className={cn("flex items-baseline gap-2 shrink-0 mb-2", !active && 'opacity-60')}>
           <p className="text-3xl font-semibold text-primary tracking-tight select-text">
             ฿{product.base_price.toLocaleString()}
           </p>
@@ -66,13 +73,13 @@ export function ProductCard({ product, category, options, onAdd }: ProductCardPr
         </div>
 
         {/* ── Action row (iOS ToggleSwitch on left, Edit on right) */}
-        <div className="mt-auto flex items-center gap-2">
+        <div className="mt-auto flex items-stretch justify-between gap-2">
           {/* iOS-style ToggleSwitch — green/gray sliding knob + right label */}
           <ToggleSwitch
             on={active}
             onToggle={(next) => setActive(next)}
             size="md"
-            className="h-[38px]"
+            knobContent="เปิด"
           >
             เปิดใช้งาน
           </ToggleSwitch>
@@ -80,8 +87,12 @@ export function ProductCard({ product, category, options, onAdd }: ProductCardPr
           {/* Edit — aligned to right edge */}
           <button 
             type="button" 
+            disabled={!active}
             onClick={() => onAdd(product)}
-            className="flex items-center gap-1.5 flex-1 h-[38px] px-4 rounded-xl bg-primary text-white font-bold hover:bg-primary/90 active:scale-95 transition-all shadow-md"
+            className={cn(
+              "flex items-center gap-1.5 h-[38px] px-4 rounded-xl bg-primary text-white font-bold active:scale-95 transition-all shadow-md",
+              active ? 'hover:bg-primary/90 cursor-pointer' : 'opacity-60 cursor-not-allowed select-none',
+            )}
           >
             <Pencil className="w-4 h-4 mr-1" />
             แก้ไข

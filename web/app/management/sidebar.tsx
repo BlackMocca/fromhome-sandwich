@@ -170,11 +170,6 @@ export default function ManagementSidebar({ children }: { children: React.ReactN
             <span>+</span> เพิ่มช่องทางใหม่
           </button>
         </nav>
-
-        {/* Channel summary footer */}
-        <div className="absolute bottom-0 left-0 right-0 p-4 md:rounded-b-2xl bg-surface/50 text-xs text-muted-foreground md:opacity-100 opacity-0 md:pointer-events-none" style={{ boxShadow: '0 -4px 16px rgba(0,0,0,0.06)' }}>
-          <p>{CHANNELS.length} ช่องทางการขาย</p>
-        </div>
       </aside>
 
       {/* ── MOBILE OVERLAY ─────────────────────── */}

@@ -69,7 +69,7 @@ export default function ProductsPage() {
       {/* Header */}
       <div className="flex items-center justify-between mb-6">
         <h1 className="text-2xl font-bold text-primary">สินค้าทั้งหมด (Products)</h1>
-        <button className="btn-primary flex items-center gap-2 text-sm px-4 py-2 rounded-xl shadow-md">
+        <button className="btn-primary text-white flex items-center gap-2 text-sm px-4 py-2 rounded-xl shadow-md">
           <PlusCircle className="w-4 h-4" /> เพิ่มสินค้า
         </button>
       </div>
