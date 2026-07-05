@@ -2,6 +2,7 @@
 
 import { useState } from 'react';
 import { PlusCircle, Edit2 } from 'lucide-react';
+import { Input } from '@/components/ui/input';
 import { ToggleSwitch } from '@/components/ui/toggle-switch';
 import { cn } from '@/lib/utils';
 
@@ -19,6 +20,7 @@ export default function AddonsPage() {
   const [activeAddons, setActiveAddons] = useState<Record<number, boolean>>(
     Object.fromEntries(ADDONS.map(a => [a.id, true])) // default active
   );
+  const [search, setSearch] = useState('');
   
   return (
     <div className='w-full'>
@@ -27,6 +29,15 @@ export default function AddonsPage() {
         <button type="button" className="bg-primary text-white font-semibold px-4 py-2 rounded-lg hover:bg-primary/90 transition-colors border border-transparent shadow-sm flex items-center gap-2 text-sm">
           <PlusCircle className="w-4 h-4" /> เพิ่มตัวเลือก
         </button>
+      </div>
+
+      {/* Search */}
+      <div className="mb-6 max-w-md">
+        <Input
+          placeholder="ค้นหาตัวเลือก..."
+          value={search}
+          onChange={e => setSearch(e.target.value)}
+        />
       </div>
 
       {/* Data Table Layout — ใช้ grid แทน table */}
@@ -41,7 +52,9 @@ export default function AddonsPage() {
         </div>
 
         {/* Data Rows */}
-        {addons.map((addon, i) => (
+        {addons
+          .filter(addon => addon.name.toLowerCase().includes(search.toLowerCase()))
+          .map((addon, i) => (
           <div 
             key={addon.id} 
             className={cn(

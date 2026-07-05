@@ -142,16 +142,19 @@ export default function ChannelDetailPage() {
   const allCategoryNames = ['ทั้งหมด', ...Array.from(new Set(rawProducts.map(p => p.category)))];
 
   return (
-    <div>
+    <>
+      {/* ซ่อน scrollbar ทั้ง vertical และ horizontal */}
+      <style>{`
+        .scrollbar-hide::-webkit-scrollbar { display: none; }
+        .scrollbar-hide {
+          -ms-overflow-style: none;
+          scrollbar-width: none;
+        }
+      `}</style>
+    <div className="h-full w-full overflow-y-auto scrollbar-hide">
       {/* Header */}
       <div className="flex items-center justify-between mb-6">
         <div className="flex items-center gap-3">
-          <button
-            onClick={() => router.back()}
-            className="text-sm text-muted-foreground hover:text-primary flex items-center gap-1 transition-colors"
-          >
-            <ArrowLeft className="w-4 h-4" /> กลับ
-          </button>
           <div>
             <h1 className="text-2xl font-bold text-primary">{channelName}</h1>
             <p className="text-sm text-muted-foreground">สินค้าทั้งหมดของ {channelName} ({products.length} รายการ)</p>
@@ -159,7 +162,7 @@ export default function ChannelDetailPage() {
         </div>
 
         {/* Actions */}
-        <button className="btn-action flex items-center gap-2 text-sm">
+        <button className="btn-primary text-white flex items-center gap-2 text-sm">
           <PlusCircle className="w-4 h-4" /> เพิ่มสินค้า
         </button>
       </div>
@@ -195,28 +198,9 @@ export default function ChannelDetailPage() {
           />
         ))}
 
-        {/* Add new product card */}
-        <button className="card-panel flex items-center justify-center min-h-[200px] border-dashed border-2 border-border/50 hover:border-action hover:bg-action/5 transition-all group">
-          <div className="text-center">
-            <div className="w-10 h-10 rounded-full bg-surface border border-border/50 mx-auto mb-3 flex items-center justify-center group-hover:bg-action/20 group-hover:border-action/50 transition-colors">
-              <PlusCircle className="w-5 h-5 text-muted-foreground group-hover:text-primary" />
-            </div>
-            <p className="text-sm text-muted-foreground group-hover:text-primary font-medium">เพิ่มสินค้าใหม่</p>
-          </div>
-        </button>
-      </div>
-
-      {/* Footer info */}
-      <div className="mt-8 p-4 bg-surface rounded-xl border border-border/50 flex items-center justify-between">
-        <div className="flex gap-6 text-sm text-muted-foreground">
-          <span><strong className="text-primary">{filteredProducts.length}</strong> รายการ</span>
-          <span><strong className="text-success">฿{filteredProducts.reduce((s, p) => s + p.base_price * 3, 0).toLocaleString()}</strong> ยอดขายโดยประมาณ (x3)</span>
-        </div>
-        <button className="flex items-center gap-1 text-sm text-action hover:text-primary transition-colors">
-          Export ข้อมูล <ChevronDown className="w-4 h-4" />
-        </button>
       </div>
     </div>
+    </>
   );
 }
 
