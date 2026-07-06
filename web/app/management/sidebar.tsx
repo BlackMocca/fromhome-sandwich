@@ -17,6 +17,7 @@ const CHANNELS: Channel[] = [
 
 const NAV_ITEMS = [
   { label: 'แดชบอร์ด (Dashboard)', href: '/management', icon: '📊' },
+  { label: 'ผู้ใช้งาน (User)', href: '/management/user', icon: '👤' },
   { label: 'หมวดหมู่ (Category)', href: '/management/categories', icon: '📂' },
   { label: 'สินค้า (Product)', href: '/management/products', icon: '🥪' },
   { label: 'ตัวเลือกสินค้า (Add-on)', href: '/management/addons', icon: '➕' },

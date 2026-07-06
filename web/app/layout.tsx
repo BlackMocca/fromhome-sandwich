@@ -1,7 +1,9 @@
 import type { Metadata, ResolvingMetadata } from 'next';
 import { Kanit, Inter } from 'next/font/google';
+import { Suspense } from 'react';
 import './globals.css';
 import Navbar from './Navbar';
+import Providers from './providers';
 import { cn } from "@/lib/utils";
 
 const inter = Inter({subsets:['latin'],variable:'--font-sans'});
@@ -48,7 +50,11 @@ export default function RootLayout({
         <Navbar />
 
         <div className="mt-4 rounded-xl w-full flex min-h-[calc(100dvh-5rem)] max-w-[1440px] mx-auto bg-white shadow">
-          {children}
+          <Suspense>
+            <Providers>
+              {children}
+            </Providers>
+          </Suspense>
         </div>
       </body>
     </html>

@@ -1,10 +1,19 @@
-@import "tw-animate-css";
+@import "../node_modules/tw-animate-css/dist/tw-animate.css";
 @import "shadcn/tailwind.css";
 @tailwind base;
 @tailwind components;
 @tailwind utilities;
 
 /* From Home Sandwich Design Tokens — DESIGN.md */
+/* From Home Sandwich Design Tokens — DESIGN.md */
+
+/* Tailwind v3.4+ compatible root variables */
+/* From Home Sandwich Design Tokens — DESIGN.md */
+
+/* Tailwind v3.4+ compatible root variables */
+/* From Home Sandwich Design Tokens — DESIGN.md */
+
+/* Tailwind v3.4+ compatible root variables */
 :root {
   /* Core colors */
   --background: #ffffff;
@@ -51,7 +60,7 @@
 
 @layer base {
   * {
-    @apply border-border outline-ring/50;
+    @apply border-border outline-[hsl(var(--ring))/50];
   }
   body {
     @apply font-kanit bg-background text-foreground;

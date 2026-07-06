@@ -14,10 +14,10 @@ export interface ButtonProps extends React.ButtonHTMLAttributes<HTMLButtonElemen
 const baseClasses = 'inline-flex items-center justify-center font-medium rounded-lg transition-colors focus-visible:outline-none focus-visible:ring-2 focus-visible:ring-action border';
 
 const variantClasses: Record<ButtonVariant, string> = {
-  default: 'bg-primary text-secondary hover:bg-primary/90',
-  primary: 'bg-primary text-secondary hover:bg-primary/90',
+  default: 'bg-primary text-white hover:bg-primary/90',
+  primary: 'bg-primary text-white hover:bg-primary/90',
   action: 'bg-action text-primary hover:bg-action/90 shadow-sm',
-  success: 'bg-success text-secondary hover:bg-success/90',
+  success: 'bg-success text-white hover:bg-success/90',
   destructive: 'bg-destructive text-destructive-foreground hover:bg-destructive/90',
 };
 

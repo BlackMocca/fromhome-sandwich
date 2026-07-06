@@ -59,11 +59,14 @@
 
 ---
 
-## 🔐 Phase 2 — Authentication ⏭️ SKIPPED
+## 🔐 Phase 2 — Authentication 🔄 IN PROGRESS
 
-- *middleware.ts exists but not enforced.* 
-- No login page required. Users access `/`, `/receipt`, `/dashboard` directly.
-- Can be added anytime — all type definitions are ready.
+- [x] **Supabase Auth UI** implemented (Hosted Login).
+- [x] **OAuth Flow**: Redirect to `/auth/callback` with `code`, exchange token, set cookies.
+- [x] **Redirect to Root**: After successful login, navigates back to `/`.
+- [x] **Middleware Enforcement**: Protected routes (`/receipt`, `/dashboard`) require valid auth token.
+- [x] **Direct REST Integration**: Auth tokens are stored in cookies and automatically included in `db.ts` API calls.
+- *Server-side cookie management via `next/headers`. No heavy client SDK forced on the app logic.*
 
 ---
 

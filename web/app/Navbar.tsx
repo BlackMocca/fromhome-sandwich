@@ -1,8 +1,15 @@
-"use client";
+'use client';
 
 import { openMobileSidebar } from './mobile-sidebar';
+import { logoutAction } from '@/lib/auth-actions';
 
 export default function Navbar() {
+  // In a real app, you might use a global context or React Query to fetch user data
+  // For now, we simulate the "logged in" state based on cookie presence.
+  const isLoggedIn = typeof document !== 'undefined' && 
+    document.cookie.includes('sb-') && 
+    document.cookie.includes('auth-token');
+
   return (
     <header className="shadow-md md:shadow-sm px-4 py-3 bg-white sticky top-0 z-50 rounded-b">
       <div className="flex items-center justify-between w-full max-w-[1440px] mx-auto">
@@ -28,10 +35,22 @@ export default function Navbar() {
         </div>
 
         {/* Right side: User menu */}
-        <button className="flex items-center gap-2 px-3 py-1.5 rounded-lg hover:bg-surface transition-colors text-sm">
-          <div className="w-7 h-7 rounded-full bg-primary/90 flex items-center justify-center text-secondary text-xs font-bold">A</div>
-          <span className="text-primary/80 hidden sm:inline">Admin</span>
-        </button>
+        <div className="flex items-center gap-2 px-3 py-1.5 rounded-lg hover:bg-surface transition-colors text-sm">
+          {isLoggedIn ? (
+            <>
+              <button 
+                onClick={logoutAction} 
+                className="text-primary/80 hover:text-action"
+              >
+                ออกจากระบบ
+              </button>
+              <div className="w-7 h-7 rounded-full bg-primary/90 flex items-center justify-center text-secondary text-xs font-bold">A</div>
+              <span className="text-primary/80 hidden sm:inline">Admin</span>
+            </>
+          ) : (
+            <a href="/auth/login" className="text-primary font-medium">เข้าสู่ระบบ</a>
+          )}
+        </div>
       </div>
     </header>
   );

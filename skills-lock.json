@@ -30,6 +30,12 @@
       "sourceType": "github",
       "skillPath": "plugins/tanstack-query/skills/tanstack-query/SKILL.md",
       "computedHash": "b8a0477cd4d7bf8fa54d27f8e64d82388402f0d502591db50a357df5b9995c75"
+    },
+    "formik-patterns": {
+      "source": "chriswiles/claude-code-showcase",
+      "sourceType": "github",
+      "skillPath": ".claude/skills/formik-patterns/SKILL.md",
+      "computedHash": "7682b62bbf5b4859944d352c5d4b81b26473b36adad44677aab211995a7e2279"
     }
   }
 }
