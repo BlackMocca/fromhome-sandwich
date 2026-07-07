@@ -46,16 +46,15 @@ export default function RootLayout({
   return (
     <html lang="th" className={cn("font-sans", inter.variable)}>
       <body className={`min-h-screen bg-grey-100 ${kanit.className}`}>
-        {/* Top Navbar */}
-        <Navbar />
-
-        <div className="mt-4 rounded-xl w-full flex min-h-[calc(100dvh-5rem)] max-w-[1440px] mx-auto bg-white shadow">
-          <Suspense>
-            <Providers>
+        <Suspense>
+          <Providers>
+            {/* Top Navbar inside Providers for AuthContext access */}
+            <Navbar />
+            <div className="mt-4 rounded-xl w-full flex min-h-[calc(100dvh-5rem)] max-w-[1440px] mx-auto bg-white shadow">
               {children}
-            </Providers>
-          </Suspense>
-        </div>
+            </div>
+          </Providers>
+        </Suspense>
       </body>
     </html>
   );

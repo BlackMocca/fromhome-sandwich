@@ -1,14 +1,26 @@
 'use client';
 
+import { useState, useRef, useEffect } from 'react';
 import { openMobileSidebar } from './mobile-sidebar';
 import { logoutAction } from '@/lib/auth-actions';
+import { useAuth } from '@/contexts/AuthContext';
 
 export default function Navbar() {
-  // In a real app, you might use a global context or React Query to fetch user data
-  // For now, we simulate the "logged in" state based on cookie presence.
-  const isLoggedIn = typeof document !== 'undefined' && 
-    document.cookie.includes('sb-') && 
-    document.cookie.includes('auth-token');
+  const { authUser, clearAuthUser } = useAuth();
+  const isLoggedIn = !!authUser;
+  const [showDropdown, setShowDropdown] = useState(false);
+  const dropdownRef = useRef<HTMLDivElement>(null);
+
+  // Close dropdown when clicking outside
+  useEffect(() => {
+    const handleClickOutside = (e: MouseEvent) => {
+      if (dropdownRef.current && !dropdownRef.current.contains(e.target as Node)) {
+        setShowDropdown(false);
+      }
+    };
+    document.addEventListener('mousedown', handleClickOutside);
+    return () => document.removeEventListener('mousedown', handleClickOutside);
+  }, []);
 
   return (
     <header className="shadow-md md:shadow-sm px-4 py-3 bg-white sticky top-0 z-50 rounded-b">
@@ -35,17 +47,40 @@ export default function Navbar() {
         </div>
 
         {/* Right side: User menu */}
-        <div className="flex items-center gap-2 px-3 py-1.5 rounded-lg hover:bg-surface transition-colors text-sm">
+        <div className="relative" ref={dropdownRef}>
           {isLoggedIn ? (
             <>
-              <button 
-                onClick={logoutAction} 
-                className="text-primary/80 hover:text-action"
+              <button
+                onClick={() => setShowDropdown(!showDropdown)}
+                className="flex text-white items-center gap-2 px-3 py-1.5 rounded-lg hover:bg-surface transition-colors text-sm"
               >
-                ออกจากระบบ
+                <div className="w-7 h-7 rounded-full bg-primary/90 flex items-center justify-center text-secondary text-xs font-bold overflow-hidden">
+                  {authUser?.profile?.display_name?.charAt(0)?.toUpperCase() ?? 
+                   authUser?.user?.email?.charAt(0)?.toUpperCase() ?? 'A'}
+                </div>
+                <span className="text-primary/80 hidden sm:inline">
+                  {authUser?.profile?.display_name ?? authUser?.user?.email?.split('@')[0] ?? 'Admin'}
+                </span>
+                <svg className="w-3 h-3 text-primary/60" fill="none" stroke="currentColor" viewBox="0 0 24 24">
+                  <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M19 9l-7 7-7-7" />
+                </svg>
               </button>
-              <div className="w-7 h-7 rounded-full bg-primary/90 flex items-center justify-center text-secondary text-xs font-bold">A</div>
-              <span className="text-primary/80 hidden sm:inline">Admin</span>
+
+              {/* Dropdown card */}
+              {showDropdown && (
+                <div className="absolute right-0 mt-2 w-48 bg-white border border-border rounded-lg shadow-lg py-1 z-50">
+                  <button
+                    onClick={() => {
+                      setShowDropdown(false);
+                      clearAuthUser();
+                      logoutAction();
+                    }}
+                    className="w-full px-4 py-2 text-left text-sm text-primary hover:bg-surface transition-colors"
+                  >
+                    ออกจากระบบ
+                  </button>
+                </div>
+              )}
             </>
           ) : (
             <a href="/auth/login" className="text-primary font-medium">เข้าสู่ระบบ</a>

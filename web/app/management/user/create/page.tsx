@@ -21,9 +21,7 @@ const createUserSchema = yup.object().shape({
   password: yup
     .string()
     .required('กรุณากรอกรหัสผ่าน')
-    .min(8, 'รหัสผ่านต้องมีอย่างน้อย 8 ตัวอักษร')
-    .matches(/[a-z]/, 'ต้องมีตัวพิมพ์เล็กอย่างน้อย 1 ตัว')
-    .matches(/[0-9]/, 'ต้องมีตัวเลขอย่างน้อย 1 ตัว'),
+    .min(6, 'รหัสผ่านต้องมีอย่างน้อย 8 ตัวอักษร'),
   display_name: yup
     .string()
     .trim()
@@ -155,7 +153,7 @@ export default function CreateUserPage() {
                   name="password"
                   type="password"
                   autoComplete="new-password"
-                  placeholder="อย่างน้อย 8 ตัวอักษร (a-z, 0-9)"
+                  placeholder="อย่างน้อย 6 ตัวอักษร (a-z, 0-9)"
                   className="pl-9"
                   value={formik.values.password}
                   onChange={formik.handleChange('password')}

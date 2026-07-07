@@ -92,7 +92,7 @@ export default function LoginPage() {
       }
 
       queryClient.invalidateQueries({ queryKey: ['user'] });
-      window.location.href = '/management'
+      router.push('/management');
     },
   });
 
