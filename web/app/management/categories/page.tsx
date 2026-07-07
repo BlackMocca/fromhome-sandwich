@@ -107,7 +107,8 @@ export default function CategoriesPage() {
               />
             </div>
             <div className="col-span-4 flex items-center justify-end">
-              <button type="button" className="btn-primary flex items-center gap-1.5 h-[34px] px-3 rounded-lg text-white">
+              <button type="button" className="btn-primary flex items-center gap-1.5 h-[34px] px-3 rounded-lg text-white"
+                onClick={() => router.push(`/management/categories/${cat.id}/edit`)}>
                 <Edit2 className="w-4 h-4" />
                 แก้ไข
               </button>
