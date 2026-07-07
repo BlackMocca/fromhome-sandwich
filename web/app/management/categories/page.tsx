@@ -1,31 +1,53 @@
 'use client';
 
-import { useState } from 'react';
+import { useState, useEffect } from 'react';
 import { PlusCircle, Edit2 } from 'lucide-react';
 import { cn } from '@/lib/utils';
 import { Input } from '@/components/ui/input';
 import { ToggleSwitch } from '@/components/ui/toggle-switch';
-
-const CATEGORIES = [
-  { id: 1, name: 'Sandwich', active: true },
-  { id: 2, name: 'Drink', active: true },
-  { id: 3, name: 'Salad', active: true },
-  { id: 4, name: 'Fried Food', active: false },
-  { id: 5, name: 'Rice Dish', active: true },
-];
+import type { Category } from '@/types/category';
+import { getCategories } from '@/lib/db';
+import { useRouter } from 'next/navigation';
 
 export default function CategoriesPage() {
-  const [categories] = useState(CATEGORIES);
+  const [categories, setCategories] = useState<Category[]>([]);
+  const [loading, setLoading] = useState(true);
   const [search, setSearch] = useState('');
-  const [activeCategories, setActiveCategories] = useState<Record<number, boolean>>(
-    Object.fromEntries(CATEGORIES.map(c => [c.id, c.active]))
+  const [activeCategories, setActiveCategories] = useState<Record<number, boolean>>({});
+  const router = useRouter()
+
+  useEffect(() => {
+    getCategories().then(data => {
+      setCategories(data);
+      setActiveCategories(Object.fromEntries(data.map(c => [c.id, c.is_active])));
+      setLoading(false);
+    }).catch(() => {
+      // Fallback to empty on error — keeps UI stable
+      setCategories([]);
+      setLoading(false);
+    });
+  }, []);
+
+  // Filter by search
+  const filteredCategories = categories.filter(cat =>
+    cat.name.toLowerCase().includes(search.toLowerCase()),
   );
+
+  if (loading) {
+    return (
+      <div className="flex items-center justify-center py-20">
+        <p className="text-muted-foreground">กำลังโหลด...</p>
+      </div>
+    );
+  }
 
   return (
     <div>
       <div className="flex items-center justify-between mb-6">
         <h1 className="text-2xl font-bold text-primary">หมวดหมู่สินค้า (Categories)</h1>
-        <button className="btn-primary text-white flex items-center gap-2 text-sm">
+        <button className="btn-primary text-white flex items-center gap-2 text-sm" 
+          onClick={() => router.push('/management/categories/create')}
+        >
           <PlusCircle className="w-4 h-4" /> เพิ่มหมวดหมู่
         </button>
       </div>
@@ -63,7 +85,7 @@ export default function CategoriesPage() {
             <div className="col-span-4 font-medium text-primary">{cat.name}</div>
             <div className="col-span-3 flex items-center justify-center">
               <ToggleSwitch
-                on={activeCategories[cat.id]}
+                on={activeCategories[cat.id] ?? false}
                 onToggle={() => {
                   setActiveCategories(prev => ({ ...prev, [cat.id]: !prev[cat.id] }));
                 }}

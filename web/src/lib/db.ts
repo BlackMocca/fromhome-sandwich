@@ -6,17 +6,52 @@
  */
 
 const SUPABASE_URL = process.env.NEXT_PUBLIC_SUPABASE_URL || '';
-const SUPABASE_ANON_KEY = process.env.NEXT_PUBLIC_SUPABASE_ANON_KEY || '';
-const SUPABASE_SERVICE_KEY = process.env.SUPABASE_SERVICE_KEY || '';
+const SUPABASE_ANON_KEY = process.env.NEXT_PUBLIC_SUPABASE_ANON_KEY
+  || process.env.NEXT_PUBLIC_SUPABASE_PUBLISHABLE_KEY
+  || '';
+const SUPABASE_SERVICE_KEY = process.env.SUPABASE_SECRET_KEY || process.env.SUPABASE_SERVICE_KEY || '';
 
 /** Auth token from cookies or Supabase auth */
 function getAuthToken(): string {
   // In production: use cookie-based JWT from Next.js
   if (typeof window !== 'undefined') {
-    const token = document.cookie
+    const cookie = document.cookie
       .split('; ')
       .find(row => row.startsWith('sb-'));
-    return token?.split('=')[1] || SUPABASE_ANON_KEY;
+    
+    if (!cookie) return SUPABASE_ANON_KEY;
+    
+    let rawValue = cookie.split('=')[1];
+
+    // Handle base64-prefixed cookies: strip "base64-", decode, then parse
+    if (rawValue.startsWith('base64-')) {
+      try {
+        const b64Str = rawValue.slice(7); // strip prefix
+        // URL-safe base64 → standard base64 for atob
+        const decoded = atob(b64Str.replace(/-/g, '+').replace(/_/g, '/'));
+        const parsed = JSON.parse(decoded);
+        if (parsed && typeof parsed === 'object' && parsed.access_token) {
+          return parsed.access_token;
+        }
+      } catch (err) {
+        console.error('[db] Failed to decode base64 cookie:', err);
+      }
+    }
+
+    // Fallback: try parsing raw value as JSON directly
+    try {
+      // Cookie may be a JSON object with an access_token field
+      const parsed = JSON.parse(decodeURIComponent(rawValue));
+      if (parsed && typeof parsed === 'object' && parsed.access_token) {
+        return parsed.access_token;
+      }
+      // Parsed OK but no access_token field — fall back to raw value
+    } catch (err) {
+      // Not valid JSON — raw string token, use as-is
+      console.error('[db] Failed to parse cookie as JSON:', err);
+    }
+    
+    return rawValue || SUPABASE_ANON_KEY;
   }
   // Server-side: use service role key for admin operations
   return SUPABASE_SERVICE_KEY || SUPABASE_ANON_KEY;
@@ -25,6 +60,7 @@ function getAuthToken(): string {
 /** Build request headers for PostgREST */
 function getHeaders(contentType = 'application/json'): Record<string, string> {
   const token = getAuthToken();
+
   return {
     'Authorization': `Bearer ${token}`,
     'apikey': SUPABASE_ANON_KEY,
@@ -33,9 +69,14 @@ function getHeaders(contentType = 'application/json'): Record<string, string> {
   };
 }
 
-/** Build the REST URL for a table */
+/** Build the REST URL for a table — appends apikey as query param fallback */
 function url(path: string): string {
-  return `${SUPABASE_URL}/rest/v1/${path}`;
+  let reqUrl = `${SUPABASE_URL}/rest/v1/${path}`;
+  // if (SUPABASE_ANON_KEY && !reqUrl.includes('apikey=')) {
+  //   const sep = reqUrl.includes('?') ? '&' : '?';
+  //   reqUrl += `${sep}apikey=${SUPABASE_ANON_KEY}`;
+  // }
+  return reqUrl;
 }
 
 // ─── Generic CRUD Operations ──────────────────────────────

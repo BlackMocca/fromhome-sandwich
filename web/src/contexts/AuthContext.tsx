@@ -66,18 +66,18 @@ export function AuthProvider({ initialAuthUser = null, children }: AuthProviderP
     let cancelled = false;
     const supabase = createClient();
 
-    // Subscribe to auth state changes so we stay synced with Supabase (handles token refresh, etc.)
-    const { data: { subscription } } = supabase.auth.onAuthStateChange((_event, session) => {
-      if (!cancelled) {
-        setAuthUserState(session?.user ? { user: session.user, profile: initialAuthUser?.profile ?? null } : null);
-      }
-    });
-
     // Hydrate from cookies on mount
     supabase.auth.getSession().then(({ data: { session } }) => {
       if (!cancelled) {
         setAuthUserState(session?.user ? { user: session.user, profile: initialAuthUser?.profile ?? null } : null);
-        setIsHydrated(true); // mark as hydrated so Navbar shows real state instead of loading
+        setIsHydrated(true); // mark as hydrated so Navbar shows real state
+      }
+    });
+
+    // Also subscribe to auth state changes (e.g. token refresh)
+    const { data: { subscription } } = supabase.auth.onAuthStateChange((_event, session) => {
+      if (!cancelled) {
+        setAuthUserState(session?.user ? { user: session.user, profile: initialAuthUser?.profile ?? null } : null);
       }
     });
 
