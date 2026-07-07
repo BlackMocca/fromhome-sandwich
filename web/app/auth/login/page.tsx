@@ -11,6 +11,9 @@ import { Button } from '@/components/ui/button';
 import { Input } from '@/components/ui/input';
 import { Card, CardContent, CardHeader, CardTitle, CardDescription } from '@/components/ui/card';
 import { signInUser, resetPassword } from '@/lib/auth-mutations';
+import { useAuth } from '@/contexts/AuthContext';
+import { createClient } from '@/lib/supabase/client';
+import type { Profile } from '@/types/profile';
 
 /* ─── Validation Schema (Yup) ───
  *  Login uses email as the identifier (which is also what
@@ -34,6 +37,23 @@ export default function LoginPage() {
   const searchParams = useSearchParams();
   const router = useRouter();
   const queryClient = useQueryClient();
+  const { setAuthUser, isAuthenticated } = useAuth();
+
+  /* ─── Check existing session on mount ─── */
+  useEffect(() => {
+    if (isAuthenticated) {
+      router.replace('/management');
+      return;
+    }
+
+    // Also check Supabase session directly (in case AuthContext wasn't hydrated)
+    const supabase = createClient();
+    supabase.auth.getSession().then(({ data: { session } }) => {
+      if (session?.user) {
+        router.replace('/management');
+      }
+    });
+  }, [isAuthenticated, router]);
 
   /* ─── URL Message Handler ─── */
   const [banner, setBanner] = useState<{ kind: 'success' | 'error'; text: string } | null>(null);
@@ -53,10 +73,26 @@ export default function LoginPage() {
       if (result.error) throw result.error;
       return result;
     },
-    onSuccess: () => {
+    onSuccess: async (result) => {
+      // Fetch matching profile (best effort — may be null if no profile row)
+      let profile: Profile | null = null;
+      if (result.data?.user) {
+        const supabase = createClient();
+        const { data } = await supabase
+          .from('profiles')
+          .select('*')
+          .eq('id', result.data.user.id)
+          .maybeSingle();
+        profile = (data as Profile) ?? null;
+      }
+
+      // Set user into AuthContext
+      if (result.data?.user) {
+        setAuthUser({ user: result.data.user, profile });
+      }
+
       queryClient.invalidateQueries({ queryKey: ['user'] });
-      router.refresh();
-      setBanner({ kind: 'success', text: 'เข้าสู่ระบบสำเร็จ' });
+      window.location.href = '/management'
     },
   });
 
@@ -87,9 +123,9 @@ export default function LoginPage() {
   const submitError = error ? (error as Error).message : null;
 
   return (
-    <main className="flex min-h-screen items-center justify-center bg-surface p-4 font-kanit">
+    <main className="flex flex-1 min-h-screen items-center justify-center bg-surface p-4 font-kanit">
       <Card className="w-full max-w-md border border-primary/20 bg-white shadow-sm">
-        <CardHeader className="space-y-2 pb-2 text-center">
+        <CardHeader className="space-y-2 pb-2 text-center text-white">
           {/* Brand mark */}
           <div className="mx-auto flex h-14 w-14 items-center justify-center rounded-full bg-primary text-secondary shadow-sm">
             <ChefHat className="h-7 w-7" aria-hidden />
@@ -190,6 +226,12 @@ export default function LoginPage() {
                   value={formik.values.password}
                   onChange={formik.handleChange('password')}
                   onBlur={formik.handleBlur('password')}
+                  onKeyDown={(e) => {
+                    if (e.key === 'Enter' && formik.isValid) {
+                      e.preventDefault();
+                      formik.handleSubmit();
+                    }
+                  }}
                   error={formik.touched.password ? (formik.errors.password as string) : undefined}
                   disabled={isPending}
                 />
@@ -201,7 +243,7 @@ export default function LoginPage() {
               type="button"
               variant="primary"
               size="lg"
-              className="w-full"
+              className="w-full cursor-pointer"
               onClick={() => formik.handleSubmit()}
               disabled={!formik.isValid || isPending}
             >
@@ -218,11 +260,9 @@ export default function LoginPage() {
               disabled={resetPending || isPending || !formik.values.email}
               className="inline-flex items-center gap-1.5 text-sm font-medium text-action transition-colors hover:text-action/80 hover:underline disabled:pointer-events-none disabled:opacity-50"
             >
-              <Mail className="h-3.5 w-3.5" aria-hidden />
-              {resetPending ? 'กำลังส่งลิงก์...' : 'ลืมรหัสผ่าน?'}
             </button>
 
-            <p className="text-xs text-muted-foreground">
+            <p className="mx-auto text-xs text-gray-400">
               From Home Sandwich · v1
             </p>
           </div>
