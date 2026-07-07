@@ -6,7 +6,7 @@ import { cn } from '@/lib/utils';
 import { Input } from '@/components/ui/input';
 import { ToggleSwitch } from '@/components/ui/toggle-switch';
 import type { Category } from '@/types/category';
-import { getCategories } from '@/lib/db';
+import { getCategories, update } from '@/lib/db';
 import { useRouter } from 'next/navigation';
 
 export default function CategoriesPage() {
@@ -27,6 +27,22 @@ export default function CategoriesPage() {
       setLoading(false);
     });
   }, []);
+
+  // Toggle is_active via API (ไม่มี spinner)
+  const handleToggle = async (catId: number) => {
+    try {
+      await update('categories', catId, { is_active: !activeCategories[catId] });
+      
+      // Optimistic update — เปลี่ยนทันทีไม่ต้องรอ response กลับ
+      setActiveCategories(prev => ({ ...prev, [catId]: !prev[catId] }));
+
+      // Re-fetch เพื่อ sync กับ server
+      const data = await getCategories();
+      setCategories(data);
+    } catch (err) {
+      console.error('[categories] Toggle failed:', err);
+    }
+  };
 
   // Filter by search
   const filteredCategories = categories.filter(cat =>
@@ -86,9 +102,7 @@ export default function CategoriesPage() {
             <div className="col-span-3 flex items-center justify-center">
               <ToggleSwitch
                 on={activeCategories[cat.id] ?? false}
-                onToggle={() => {
-                  setActiveCategories(prev => ({ ...prev, [cat.id]: !prev[cat.id] }));
-                }}
+                onToggle={() => handleToggle(cat.id)}
                 size="sm"
               />
             </div>

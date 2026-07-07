@@ -1,6 +1,6 @@
 'use client';
 
-import { useState } from 'react';
+import { useState, useEffect } from 'react';
 import { useRouter } from 'next/navigation';
 import { useFormik } from 'formik';
 import * as yup from 'yup';
@@ -10,6 +10,7 @@ import { Card, CardContent, CardHeader, CardTitle, CardDescription } from '@/com
 import { Input } from '@/components/ui/input';
 import { Button } from '@/components/ui/button';
 import { create } from '@/lib/db';
+import { toast, setGlobalToast, useToast } from '@/lib/toast';
 
 /* ─── Validation Schema (Yup) ─── */
 const createCategorySchema = yup.object().shape({
@@ -27,6 +28,10 @@ export default function CreateCategoryPage() {
   const [banner, setBanner] = useState<{ kind: 'success' | 'error'; text: string } | null>(null);
   const [isSubmitting, setIsSubmitting] = useState(false);
 
+  /* Set global toast reference so toast() works from anywhere */
+  const { toast: localToast } = useToast();
+  useEffect(() => setGlobalToast(localToast), [localToast]);
+
   /* ─── Submit handler (calls PostgREST directly) ─── */
   const handleSubmit = async (values: FormValues) => {
     setBanner(null);
@@ -36,8 +41,21 @@ export default function CreateCategoryPage() {
         name: values.name.trim(),
         is_active: true,
       });
+
+      // Show success toast + auto-redirect
+      toast({
+        title: 'สำเร็จ!',
+        description: 'สร้างหมวดหมู่เรียบร้อยแล้ว',
+      });
       setBanner({ kind: 'success', text: 'สร้างหมวดหมู่เรียบร้อยแล้ว' });
+
+      // Navigate after a short delay so user sees the toast
+      setTimeout(() => router.push('/management/categories'), 1500);
     } catch (err) {
+      toast({
+        title: 'เกิดข้อผิดพลาด',
+        description: err instanceof Error ? err.message : 'ไม่สามารถสร้างหมวดหมู่ได้',
+      });
       setBanner({
         kind: 'error',
         text: err instanceof Error ? err.message : 'ไม่สามารถสร้างหมวดหมู่ได้',

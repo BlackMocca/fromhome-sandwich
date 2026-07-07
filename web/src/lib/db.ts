@@ -129,7 +129,20 @@ export async function create<T>(table: string, data: Record<string, unknown>): P
     throw new Error(`POST ${table} failed: ${res.status} ${res.statusText}`);
   }
 
-  return res.json() as Promise<T>;
+  // PostgREST returns 201 with empty body — return data as-is
+  if (res.status === 201 && res.body) {
+    const contentLength = res.headers.get('content-length');
+    if (contentLength === '0' || !contentLength) {
+      return data as unknown as T;
+    }
+  }
+
+  try {
+    return res.json() as Promise<T>;
+  } catch (err) {
+    // JSON parse failed — return data anyway
+    return data as unknown as T;
+  }
 }
 
 /** Update a row by ID */
@@ -144,7 +157,19 @@ export async function update<T>(table: string, id: number | string, data: Record
     throw new Error(`PATCH ${table}/${id} failed: ${res.status} ${res.statusText}`);
   }
 
-  return res.json() as Promise<T>;
+  // Supabase returns 204 with empty body — return data as-is
+  if (res.status === 204 && res.body) {
+    const contentLength = res.headers.get('content-length');
+    if (contentLength === '0' || !contentLength) {
+      return data as unknown as T;
+    }
+  }
+
+  try {
+    return res.json() as Promise<T>;
+  } catch (err) {
+    return data as unknown as T;
+  }
 }
 
 /** Delete a row by ID */
