@@ -68,14 +68,14 @@ export default function Navbar() {
 
               {/* Dropdown card */}
               {showDropdown && (
-                <div className="absolute right-0 mt-2 w-48 bg-white border border-border rounded-lg shadow-lg py-1 z-50">
+                <div className="absolute right-0 mt-2 w-48 bg-white border border-gray-200 rounded-lg shadow-lg z-50">
                   <button
                     onClick={() => {
                       setShowDropdown(false);
                       clearAuthUser();
                       logoutAction();
                     }}
-                    className="w-full px-4 py-2 text-left text-sm text-primary hover:bg-surface transition-colors"
+                    className="w-full px-4 py-3 text-left text-sm text-primary hover:bg-surface transition-colors"
                   >
                     ออกจากระบบ
                   </button>

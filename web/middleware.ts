@@ -2,7 +2,7 @@
 import { NextResponse } from 'next/server';
 import type { NextRequest } from 'next/server';
 
-const PROTECTED_PATHS = ['/receipt', '/dashboard'];
+const PROTECTED_PATHS = ['/receipt', '/dashboard', '/management'];
 const PUBLIC_PATHS = ['/', '/login', '/api/', '/auth/'];
 
 export function middleware(request: NextRequest) {
@@ -22,7 +22,7 @@ export function middleware(request: NextRequest) {
     cookie.name.startsWith('sb-')
   );
   
-  const isProtectedPath = PROTECTED_PATHS.some(path => pathname.startsWith(path));
+  const isProtectedPath = PROTECTED_PATHS.some(path => pathname === path || pathname.startsWith(`${path}/`));
   
   if (isProtectedPath && !hasToken) {
     return NextResponse.redirect(new URL('/auth/login', request.url));
@@ -33,5 +33,5 @@ export function middleware(request: NextRequest) {
 }
 
 export const config = {
-  matcher: ['/receipt/:path*', '/dashboard/:path*', '/', '/auth/callback'],
+  matcher: ['/receipt/:path*', '/dashboard/:path*', '/management/:path*', '/', '/auth/callback'],
 };
