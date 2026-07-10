@@ -65,6 +65,14 @@ function toOptions(channelCode: string): ProductOption[] {
 
 // ─── Mock products per channel (will be PostgREST later) ──
 const CHANNEL_PRODUCTS: Record<string, Array<{ name: string; price: number; cost: number; category: string }>> = {
+  1: [
+    { name: 'แซนด์วิชมะม่วง',   price: 45, cost: 28, category: 'Sandwich' },
+    { name: 'แซนด์วิชแฮมชีส',  price: 50, cost: 32, category: 'Sandwich' },
+    { name: 'แซนด์วิชทูน่า',    price: 45, cost: 27, category: 'Sandwich' },
+    { name: 'ชาเย็น',             price: 35, cost: 18, category: 'Drink'   },
+    { name: 'กาแฟลาเต้',         price: 40, cost: 22, category: 'Drink'   },
+    { name: 'ส้มตำไทย',           price: 40, cost: 20, category: 'Salad'   },
+  ],
   CND: [
     { name: 'แซนด์วิชมะม่วง',   price: 45, cost: 28, category: 'Sandwich' },
     { name: 'แซนด์วิชแฮมชีส',  price: 50, cost: 32, category: 'Sandwich' },
@@ -109,15 +117,15 @@ const CHANNEL_NAMES: Record<string, string> = {
 };
 
 export default function ChannelDetailPage() {
-  const params   = useParams<{ name: string }>();
+  const params   = useParams<{ id: string }>();
   const router   = useRouter();
-  const channelCode = params.name;
-  const channelName     = CHANNEL_NAMES[channelCode] ?? channelCode;
-  const rawProducts     = CHANNEL_PRODUCTS[channelCode] ?? [];
+  const channelId = params.id;
+  const channelName     = CHANNEL_NAMES[channelId] ?? channelId;
+  const rawProducts     = CHANNEL_PRODUCTS[channelId] ?? [];
 
   // Map to typed entities
-  const products: Product[]      = rawProducts.map((p, i) => toProduct(channelCode, p, i));
-  const options:   ProductOption[] = toOptions(channelCode);
+  const products: Product[]      = rawProducts.map((p, i) => toProduct(channelId, p, i));
+  const options:   ProductOption[] = toOptions(channelId);
   const categories    = Array.from(new Set(rawProducts.map(p => p.category))).map(
     name => ALL_CATEGORIES.find(c => c.name === name),
   ).filter(Boolean) as Category[];
@@ -141,6 +149,7 @@ export default function ChannelDetailPage() {
 
   const allCategoryNames = ['ทั้งหมด', ...Array.from(new Set(rawProducts.map(p => p.category)))];
 
+  console.log(products)
   return (
     <>
       {/* ซ่อน scrollbar ทั้ง vertical และ horizontal */}

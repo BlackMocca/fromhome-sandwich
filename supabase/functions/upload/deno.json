@@ -1,0 +1,7 @@
+{
+  "nodeModulesDir": "auto",
+  "imports": {
+    "@supabase/functions-js": "jsr:@supabase/functions-js@^2",
+    "@imagemagick/magick-wasm": "npm:@imagemagick/magick-wasm@0.0.41"
+  }
+}

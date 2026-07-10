@@ -1,0 +1,213 @@
+'use client';
+
+import { useState, useEffect } from 'react';
+import { useRouter, useParams } from 'next/navigation';
+import { useFormik } from 'formik';
+import * as yup from 'yup';
+import { Edit2, AlertCircle, CheckCircle2 } from 'lucide-react';
+import { Channel as ChannelIcon } from 'lucide-react';
+
+import { Card, CardContent, CardHeader, CardTitle, CardDescription } from '@/components/ui/card';
+import { Input } from '@/components/ui/input';
+import { Button } from '@/components/ui/button';
+import { getOne, update } from '@/lib/db';
+import type { Channel } from '@/types/channel';
+import { toast } from '@/lib/toast';
+
+/* ─── Validation Schema (Yup) ─── */
+const editChannelSchema = yup.object().shape({
+  code: yup
+    .string()
+    .trim()
+    .required('กรุณากรอกรหัสช่องทาง')
+    .max(6, 'รหัสช่องทางต้องมีไม่เกิน 6 ตัวอักษร'),
+  name: yup
+    .string()
+    .trim()
+    .required('กรุณากรอกชื่อช่องทาง')
+    .min(2, 'ชื่อต้องมีอย่างน้อย 2 ตัวอักษร'),
+  gp_percentage: yup
+    .string()
+    .trim()
+    .matches(/^[0-9]+(\.[0-9]{1,2})?$/, 'ค่า GP% ต้องเป็นตัวเลข [0-9] และมีความละเอียดสูงสุด 2 ทศนิยม')
+    .required('ค่า GP% ต้องระบุ'),
+});
+
+type FormValues = { code: string; name: string; gp_percentage: string };
+
+export default function EditChannelPage() {
+  const router = useRouter();
+  const params = useParams<{ id: string | undefined }>();
+  const [banner, setBanner] = useState<{ kind: 'success' | 'error'; text: string } | null>(null);
+  const [isSubmitting, setIsSubmitting] = useState(false);
+
+  /* ─── Fetch existing channel ─── */
+  const [channel, setChannel] = useState<Channel | null>(null);
+
+  useEffect(() => {
+    if (params.id) {
+      getOne<Channel>('channels', params.id).then(data => {
+        setChannel(data);
+      });
+    }
+  }, [params.id]);
+
+  /* ─── Submit handler (calls PostgREST PATCH → 204) ─── */
+  const handleSubmit = async (values: FormValues) => {
+    setBanner(null);
+    setIsSubmitting(true);
+    try {
+      await update('channels', channel!.id, {
+        code: values.code.trim().toUpperCase(),
+        name: values.name.trim(),
+        gp_percentage: values.gp_percentage,
+      });
+
+      toast({ title: 'สำเร็จ!', description: 'แก้ไขช่องทางเรียบร้อยแล้ว' });
+      setBanner({ kind: 'success', text: 'แก้ไขช่องทางเรียบร้อยแล้ว' });
+      setTimeout(() => router.push('/management/channels'), 1500);
+    } catch (err) {
+      toast({
+        title: 'เกิดข้อผิดพลาด',
+        description: err instanceof Error ? err.message : 'ไม่สามารถแก้ไขช่องทางได้',
+      });
+      setBanner({
+        kind: 'error',
+        text: err instanceof Error ? err.message : 'ไม่สามารถแก้ไขช่องทางได้',
+      });
+    } finally {
+      setIsSubmitting(false);
+    }
+  };
+
+  /* ─── Formik ─── */
+  const formik = useFormik<FormValues>({
+    initialValues: { 
+      code: channel?.code ?? '', 
+      name: channel?.name ?? '', 
+      gp_percentage: channel?.gp_percentage ?? 10 
+    },
+    validationSchema: editChannelSchema,
+    onSubmit: handleSubmit,
+    enableReinitialize: true, // ← re-init เมื่อ channel เปลี่ยน
+  });
+
+  return (
+    <div className="max-w-xl mx-auto">
+      <Card className="border border-primary/20 bg-white shadow-sm">
+        <CardHeader className="space-y-1.5 pb-2">
+          <div className="mx-auto flex h-12 w-12 items-center justify-center rounded-full bg-primary text-secondary shadow-sm">
+            <Edit2 className="h-6 w-6" aria-hidden />
+          </div>
+          <CardTitle className="text-xl font-bold text-primary text-center">
+            แก้ไขช่องทาง
+          </CardTitle>
+          <CardDescription className="text-center text-muted-foreground">
+            แก้ไขข้อมูลช่องทางการขาย
+          </CardDescription>
+        </CardHeader>
+
+        <CardContent className="space-y-5 pt-2">
+          {/* Banners */}
+          {banner?.kind === 'success' && (
+            <div role="status" className="flex items-start gap-2 rounded-lg border border-success/40 bg-success/10 p-3 text-sm text-success">
+              <CheckCircle2 className="mt-0.5 h-4 w-4 shrink-0" aria-hidden />
+              <div className="flex-1">
+                <span>{banner.text}</span>
+                <button type="button" onClick={() => router.push('/management/channels')} className="ml-2 font-semibold underline underline-offset-2 hover:text-success/80">
+                  กลับไปหน้ารายชื่อ
+                </button>
+              </div>
+            </div>
+          )}
+
+          {banner?.kind === 'error' && (
+            <div role="alert" className="flex items-start gap-2 rounded-lg border border-destructive/40 bg-destructive/10 p-3 text-sm text-destructive">
+              <AlertCircle className="mt-0.5 h-4 w-4 shrink-0" aria-hidden />
+              <span>{banner.text}</span>
+            </div>
+          )}
+
+          {/* Form Container */}
+          <div className="space-y-4">
+            {/* Channel Code */}
+            <div className="space-y-1.5">
+              <label htmlFor="code" className="block text-sm font-medium text-primary">
+                รหัสช่องทาง <span className="text-destructive">*</span>
+              </label>
+              <Input
+                id="code"
+                name="code"
+                type="text"
+                autoComplete="off"
+                placeholder="เช่น CND, GRB, LMN"
+                className="uppercase"
+                value={formik.values.code}
+                onChange={(e) => formik.handleChange('code')(e.target.value.toUpperCase())}
+                onBlur={formik.handleBlur('code')}
+                error={formik.touched.code ? (formik.errors.code as string) : undefined}
+                disabled={isSubmitting}
+              />
+            </div>
+
+            {/* Channel Name */}
+            <div className="space-y-1.5">
+              <label htmlFor="name" className="block text-sm font-medium text-primary">
+                ชื่อช่องทาง <span className="text-destructive">*</span>
+              </label>
+              <Input
+                id="name"
+                name="name"
+                type="text"
+                autoComplete="off"
+                placeholder="เช่น Condo, GrabFood, Lineman"
+                value={formik.values.name}
+                onChange={formik.handleChange('name')}
+                onBlur={formik.handleBlur('name')}
+                error={formik.touched.name ? (formik.errors.name as string) : undefined}
+                disabled={isSubmitting}
+              />
+            </div>
+
+            {/* GP Percentage */}
+            <div className="space-y-1.5">
+              <label htmlFor="gp_percentage" className="block text-sm font-medium text-primary">
+                ค่า GP% <span className="text-destructive">*</span>
+              </label>
+              <Input
+                id="gp_percentage"
+                name="gp_percentage"
+                type="text"
+                placeholder="เช่น 10.56"
+                value={formik.values.gp_percentage}
+                onChange={(e) => {
+                  let val = e.target.value.replace(/[^0-9.]/g, '');
+                  // Max precision 2
+                  const parts = val.split('.');
+                  if (parts[1] && parts[1].length > 2) {
+                    val = parts[0] + '.' + parts[1].slice(0, 2);
+                  }
+                  formik.setFieldValue('gp_percentage', val);
+                }}
+                onBlur={formik.handleBlur('gp_percentage')}
+                error={formik.touched.gp_percentage ? (formik.errors.gp_percentage as string) : undefined}
+                disabled={isSubmitting}
+              />
+            </div>
+
+            {/* Submit Buttons */}
+            <div className="flex items-center justify-end gap-2 pt-2">
+              <Button type="button" variant="primary" onClick={() => router.push('/management/channels')} disabled={isSubmitting}>
+                ยกเลิก
+              </Button>
+              <Button type="button" variant="primary" onClick={() => formik.handleSubmit()} disabled={!formik.isValid || isSubmitting}>
+                <Edit2 className="mr-2 h-4 w-4" aria-hidden />
+                {isSubmitting ? 'กำลังบันทึก...' : 'บันทึก'}
+              </Button>
+            </div>
+          </div>
+        </CardContent>
+      </Card>
+    </div>
+  );
+}

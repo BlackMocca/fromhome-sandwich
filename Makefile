@@ -130,6 +130,12 @@ schema-pull: $(ENV_FILE)
 	@echo "═══════════════════════════════════════════"
 	SUPABASE_ACCESS_TOKEN=$(SUPABASE_ACCESS_TOKEN) supabase db pull
 
+function-deploy:
+	@echo "═══════════════════════════════════════════"
+	@echo "  ⬇️  Deploy Functions from cloud..."
+	@echo "═══════════════════════════════════════════"
+	supabase functions deploy --debug 
+
 # ─── Help ───────────────────────────────────────────────────────────────────
 
 help:

@@ -2,17 +2,17 @@
 
 import { useState, useEffect } from 'react';
 import Link from 'next/link';
-import { usePathname } from 'next/navigation';
+import { usePathname, useRouter } from 'next/navigation';
 import { cn } from '@/lib/utils';
 import { ChevronLeft, ChevronDown } from 'lucide-react';
 import type { Channel } from '@/types/channel';
 
 // ─── Management Data (mock → PostgREST later) ────────────
 const CHANNELS: Channel[] = [
-  { id: 1, short_code: 'CND', name: 'Condo', gp_percentage: 10 },
-  { id: 2, short_code: 'GRB', name: 'GrabFood', gp_percentage: 18 },
-  { id: 3, short_code: 'LMN', name: 'Lineman', gp_percentage: 20 },
-  { id: 4, short_code: 'RBN', name: 'Robinhood', gp_percentage: 15 },
+  { id: 1, code: 'CND', name: 'Condo', gp_percentage: 10 },
+  { id: 2, code: 'GRB', name: 'GrabFood', gp_percentage: 18 },
+  { id: 3, code: 'LMN', name: 'Lineman', gp_percentage: 20 },
+  { id: 4, code: 'RBN', name: 'Robinhood', gp_percentage: 15 },
 ];
 
 const NAV_ITEMS = [
@@ -36,6 +36,7 @@ export function closeMobileSidebar(): void {
 
 export default function ManagementSidebar({ children }: { children: React.ReactNode }) {
   const pathname = usePathname();
+  const router = useRouter();
   const [expandedChannel, setExpandedChannel] = useState<Channel | null>(null);
   const [channelsExpanded, setChannelsExpanded] = useState(true); // state สำหรับ expand/collapse ช่องทางการขาย
   // Responsive sidebar state - mobile only
@@ -130,7 +131,7 @@ export default function ManagementSidebar({ children }: { children: React.ReactN
           <div className={cn('overflow-hidden transition-all duration-300 ease-out', channelsExpanded ? 'max-h-96 opacity-100' : 'max-h-0 opacity-0')}>
             <div className="pt-2 pb-1 space-y-1 px-1">
               {CHANNELS.map(channel => {
-                const isChannelPathname = pathname === `/management/channels/${channel.short_code}`;
+                const isChannelPathname = pathname === `/management/channels/${channel.id}`;
 
                 return (
                   <button
@@ -141,7 +142,7 @@ export default function ManagementSidebar({ children }: { children: React.ReactN
                       if (typeof window !== 'undefined' && window.innerWidth < 768) {
                         setIsMobileOpen(false);
                       }
-                      window.location.href = `/management/channels/${channel.short_code}`;
+                      window.location.href = `/management/channels/${channel.id}`;
                     }}
                     className={cn(
                       'w-full flex items-center justify-between px-4 py-2.5 rounded-xl text-sm transition-all',
@@ -159,7 +160,7 @@ export default function ManagementSidebar({ children }: { children: React.ReactN
                       />
                       {channel.name}
                     </span>
-                    <span className="text-xs text-muted-foreground">{channel.short_code}</span>
+                    <span className="text-xs text-muted-foreground">{channel.code}</span>
                   </button>
                 );
               })}
@@ -167,7 +168,11 @@ export default function ManagementSidebar({ children }: { children: React.ReactN
           </div>
 
           {/* Add Channel button — ปุ่ม primary */}
-          <button type="button" className="w-full mt-3 px-4 py-2.5 rounded-xl bg-primary text-white border border-transparent text-sm font-medium hover:bg-primary/90 transition-all flex items-center justify-center gap-1 shadow-md hover:shadow-lg">
+          <button
+            type="button"
+            onClick={() => router.push('/management/channels/create')}
+            className="w-full mt-3 px-4 py-2.5 rounded-xl bg-primary text-white border border-transparent text-sm font-medium hover:bg-primary/90 transition-all flex items-center justify-center gap-1 shadow-md hover:shadow-lg"
+          >
             <span>+</span> เพิ่มช่องทางใหม่
           </button>
         </nav>
