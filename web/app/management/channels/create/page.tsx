@@ -3,13 +3,14 @@
 import { useState, useEffect } from 'react';
 import { useRouter } from 'next/navigation';
 import { useFormik } from 'formik';
+import { useQueryClient } from '@tanstack/react-query';
 import * as yup from 'yup';
 import { PlusCircle, AlertCircle, CheckCircle2 } from 'lucide-react';
-// import type { Channel as ChannelIcon } from 'lucide-react';
 
 import { Card, CardContent, CardHeader, CardTitle, CardDescription } from '@/components/ui/card';
 import { Input } from '@/components/ui/input';
 import { Button } from '@/components/ui/button';
+import ImageUpload from '@/components/ui/image-upload';
 import { create } from '@/lib/db';
 import { toast, setGlobalToast, useToast } from '@/lib/toast';
 
@@ -29,13 +30,16 @@ const createChannelSchema = yup.object().shape({
     .number()
     .min(0, 'ค่า GP% ต้องไม่น้อยกว่า 0')
     .max(100, 'ค่า GP% ต้องไม่เกิน 100')
+    .test('precision', 'ค่า GP% ทศนิยมได้สูงสุด 2 ตำแหน่ง', (v) => v === undefined || /^\d+(\.\d{1,2})?$/.test(String(v)))
     .required('ค่า GP% ต้องระบุ'),
+  cover_url: yup.string().notRequired(),
 });
 
-type FormValues = { code: string; name: string; gp_percentage: number };
+type FormValues = { code: string; name: string; gp_percentage: number; cover_url: string };
 
 export default function CreateChannelPage() {
   const router = useRouter();
+  const queryClient = useQueryClient();
   const [banner, setBanner] = useState<{ kind: 'success' | 'error'; text: string } | null>(null);
   const [isSubmitting, setIsSubmitting] = useState(false);
 
@@ -52,7 +56,10 @@ export default function CreateChannelPage() {
         code: values.code.trim().toUpperCase(),
         name: values.name.trim(),
         gp_percentage: values.gp_percentage,
+        cover_url: values.cover_url || null,
       });
+
+      queryClient.invalidateQueries({ queryKey: ['channels'] });
 
       // Show success toast + auto-redirect
       toast({
@@ -79,7 +86,7 @@ export default function CreateChannelPage() {
 
   /* ─── Formik ─── */
   const formik = useFormik<FormValues>({
-    initialValues: { code: '', name: '', gp_percentage: 0 },
+    initialValues: { code: '', name: '', gp_percentage: 0, cover_url: '' },
     validationSchema: createChannelSchema,
     onSubmit: handleSubmit,
   });
@@ -88,15 +95,20 @@ export default function CreateChannelPage() {
     <div className="max-w-xl mx-auto">
       <Card className="border border-primary/20 bg-white shadow-sm">
         <CardHeader className="space-y-1.5 pb-2">
-          <div className="mx-auto flex h-12 w-12 items-center justify-center rounded-full bg-primary text-secondary shadow-sm">
-            {/* <ChannelIcon className="h-6 w-6" aria-hidden /> */}
-          </div>
-          <CardTitle className="text-xl font-bold text-primary text-center">
+          <CardTitle className="text-xl  font-bold text-primary text-center">
             เพิ่มช่องทางใหม่
           </CardTitle>
           <CardDescription className="text-center text-muted-foreground">
             สร้างช่องทางการขายสำหรับจัดกลุ่มสินค้า
           </CardDescription>
+          <div className='flex justify-center items-center py-4'>
+            <ImageUpload
+              variant="avatar"
+              label="รูปปกช่องทาง"
+              value={formik.values.cover_url}
+              onChange={(url) => formik.setFieldValue('cover_url', url)}
+            />
+          </div>
         </CardHeader>
 
         <CardContent className="space-y-5 pt-2">
@@ -198,10 +210,10 @@ export default function CreateChannelPage() {
             </div>
 
             {/* Submit Buttons */}
-            <div className="flex items-center justify-end gap-2 pt-2">
+            <div className="flex text-white items-center justify-end gap-2 pt-2">
               <Button
                 type="button"
-                variant="primary"
+                variant="destructive"
                 onClick={() => router.push('/management/channels')}
                 disabled={isSubmitting}
               >

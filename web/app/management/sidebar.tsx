@@ -3,17 +3,11 @@
 import { useState, useEffect } from 'react';
 import Link from 'next/link';
 import { usePathname, useRouter } from 'next/navigation';
+import { useQuery } from '@tanstack/react-query';
 import { cn } from '@/lib/utils';
 import { ChevronLeft, ChevronDown } from 'lucide-react';
 import type { Channel } from '@/types/channel';
-
-// ─── Management Data (mock → PostgREST later) ────────────
-const CHANNELS: Channel[] = [
-  { id: 1, code: 'CND', name: 'Condo', gp_percentage: 10 },
-  { id: 2, code: 'GRB', name: 'GrabFood', gp_percentage: 18 },
-  { id: 3, code: 'LMN', name: 'Lineman', gp_percentage: 20 },
-  { id: 4, code: 'RBN', name: 'Robinhood', gp_percentage: 15 },
-];
+import { getChannels } from '@/lib/db';
 
 const NAV_ITEMS = [
   { label: 'แดชบอร์ด (Dashboard)', href: '/management', icon: '📊' },
@@ -37,8 +31,14 @@ export function closeMobileSidebar(): void {
 export default function ManagementSidebar({ children }: { children: React.ReactNode }) {
   const pathname = usePathname();
   const router = useRouter();
-  const [expandedChannel, setExpandedChannel] = useState<Channel | null>(null);
-  const [channelsExpanded, setChannelsExpanded] = useState(true); // state สำหรับ expand/collapse ช่องทางการขาย
+  const [channelsExpanded, setChannelsExpanded] = useState(true);
+
+  const { data: channels = [] } = useQuery({
+    queryKey: ['channels'],
+    queryFn: getChannels,
+    staleTime: 5 * 60 * 1000,
+    gcTime: 30 * 60 * 1000,
+  });
   // Responsive sidebar state - mobile only
   const [isMobileOpen, setIsMobileOpen] = useState(_isMobileSidebarOpen);
 
@@ -130,7 +130,7 @@ export default function ManagementSidebar({ children }: { children: React.ReactN
           {/* Channel group content - แสดงเมื่อ expand พร้อม slide animation */}
           <div className={cn('overflow-hidden transition-all duration-300 ease-out', channelsExpanded ? 'max-h-96 opacity-100' : 'max-h-0 opacity-0')}>
             <div className="pt-2 pb-1 space-y-1 px-1">
-              {CHANNELS.map(channel => {
+              {channels.map(channel => {
                 const isChannelPathname = pathname === `/management/channels/${channel.id}`;
 
                 return (
@@ -151,16 +151,21 @@ export default function ManagementSidebar({ children }: { children: React.ReactN
                         : 'text-primary/60 hover:bg-surface hover:text-primary hover:shadow-sm bg-white'
                     )}
                   >
-                    <span className="flex items-center gap-2">
-                      <span
-                        className={cn(
-                          'w-2 h-2 rounded-full',
-                          isChannelPathname ? 'bg-action' : 'bg-border'
+                    <span className="flex items-center gap-2 min-w-0">
+                      <span className="relative inline-flex h-6 w-6 flex-shrink-0 items-center justify-center rounded-full bg-primary/10 text-xs text-primary/50">
+                        {channel.cover_url && (
+                          <img
+                            src={channel.cover_url}
+                            alt=""
+                            className="absolute inset-0 h-full w-full rounded-full object-cover"
+                            onError={e => { (e.currentTarget as HTMLElement).style.display = 'none'; }}
+                          />
                         )}
-                      />
-                      {channel.name}
+                        <span>📊</span>
+                      </span>
+                      <span className="text-md font-mono text-muted-foreground/70 flex-shrink-0">[{channel.code}]</span>
+                      <span className="truncate">{channel.name}</span>
                     </span>
-                    <span className="text-xs text-muted-foreground">{channel.code}</span>
                   </button>
                 );
               })}

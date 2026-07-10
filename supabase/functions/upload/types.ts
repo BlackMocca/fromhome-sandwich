@@ -54,7 +54,8 @@ export interface ImageTransformOptions {
   transparent?: boolean;
   /** Output format */
   format?: ImageExtension;
-
+  /** Output quality (1-100, default 80 for WebP) */
+  quality?: number;
 }
 
 /**

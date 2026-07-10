@@ -3,16 +3,17 @@
 import { useState, useEffect } from 'react';
 import { useRouter, useParams } from 'next/navigation';
 import { useFormik } from 'formik';
+import { useQueryClient } from '@tanstack/react-query';
 import * as yup from 'yup';
 import { Edit2, AlertCircle, CheckCircle2 } from 'lucide-react';
-import { Channel as ChannelIcon } from 'lucide-react';
 
 import { Card, CardContent, CardHeader, CardTitle, CardDescription } from '@/components/ui/card';
 import { Input } from '@/components/ui/input';
 import { Button } from '@/components/ui/button';
+import ImageUpload from '@/components/ui/image-upload';
 import { getOne, update } from '@/lib/db';
 import type { Channel } from '@/types/channel';
-import { toast } from '@/lib/toast';
+import { toast, setGlobalToast, useToast } from '@/lib/toast';
 
 /* ─── Validation Schema (Yup) ─── */
 const editChannelSchema = yup.object().shape({
@@ -27,19 +28,26 @@ const editChannelSchema = yup.object().shape({
     .required('กรุณากรอกชื่อช่องทาง')
     .min(2, 'ชื่อต้องมีอย่างน้อย 2 ตัวอักษร'),
   gp_percentage: yup
-    .string()
-    .trim()
-    .matches(/^[0-9]+(\.[0-9]{1,2})?$/, 'ค่า GP% ต้องเป็นตัวเลข [0-9] และมีความละเอียดสูงสุด 2 ทศนิยม')
+    .number()
+    .min(0, 'ค่า GP% ต้องไม่น้อยกว่า 0')
+    .max(100, 'ค่า GP% ต้องไม่เกิน 100')
+    .test('precision', 'ค่า GP% ทศนิยมได้สูงสุด 2 ตำแหน่ง', (v) => v === undefined || /^\d+(\.\d{1,2})?$/.test(String(v)))
     .required('ค่า GP% ต้องระบุ'),
+  cover_url: yup.string().notRequired(),
 });
 
-type FormValues = { code: string; name: string; gp_percentage: string };
+type FormValues = { code: string; name: string; gp_percentage: number; cover_url: string };
 
 export default function EditChannelPage() {
   const router = useRouter();
   const params = useParams<{ id: string | undefined }>();
+  const queryClient = useQueryClient();
   const [banner, setBanner] = useState<{ kind: 'success' | 'error'; text: string } | null>(null);
   const [isSubmitting, setIsSubmitting] = useState(false);
+
+  /* Set global toast reference so toast() works from anywhere */
+  const { toast: localToast } = useToast();
+  useEffect(() => setGlobalToast(localToast), [localToast]);
 
   /* ─── Fetch existing channel ─── */
   const [channel, setChannel] = useState<Channel | null>(null);
@@ -61,7 +69,10 @@ export default function EditChannelPage() {
         code: values.code.trim().toUpperCase(),
         name: values.name.trim(),
         gp_percentage: values.gp_percentage,
+        cover_url: values.cover_url || null,
       });
+
+      queryClient.invalidateQueries({ queryKey: ['channels'] });
 
       toast({ title: 'สำเร็จ!', description: 'แก้ไขช่องทางเรียบร้อยแล้ว' });
       setBanner({ kind: 'success', text: 'แก้ไขช่องทางเรียบร้อยแล้ว' });
@@ -82,29 +93,35 @@ export default function EditChannelPage() {
 
   /* ─── Formik ─── */
   const formik = useFormik<FormValues>({
-    initialValues: { 
-      code: channel?.code ?? '', 
-      name: channel?.name ?? '', 
-      gp_percentage: channel?.gp_percentage ?? 10 
+    initialValues: {
+      code: channel?.code ?? '',
+      name: channel?.name ?? '',
+      gp_percentage: channel?.gp_percentage ?? 0,
+      cover_url: channel?.cover_url ?? '',
     },
     validationSchema: editChannelSchema,
     onSubmit: handleSubmit,
-    enableReinitialize: true, // ← re-init เมื่อ channel เปลี่ยน
+    enableReinitialize: true,
   });
 
   return (
     <div className="max-w-xl mx-auto">
       <Card className="border border-primary/20 bg-white shadow-sm">
         <CardHeader className="space-y-1.5 pb-2">
-          <div className="mx-auto flex h-12 w-12 items-center justify-center rounded-full bg-primary text-secondary shadow-sm">
-            <Edit2 className="h-6 w-6" aria-hidden />
-          </div>
           <CardTitle className="text-xl font-bold text-primary text-center">
             แก้ไขช่องทาง
           </CardTitle>
           <CardDescription className="text-center text-muted-foreground">
             แก้ไขข้อมูลช่องทางการขาย
           </CardDescription>
+          <div className='flex justify-center items-center py-4'>
+            <ImageUpload
+              variant="avatar"
+              label="รูปปกช่องทาง"
+              value={formik.values.cover_url}
+              onChange={(url) => formik.setFieldValue('cover_url', url)}
+            />
+          </div>
         </CardHeader>
 
         <CardContent className="space-y-5 pt-2">
@@ -177,17 +194,17 @@ export default function EditChannelPage() {
               <Input
                 id="gp_percentage"
                 name="gp_percentage"
-                type="text"
-                placeholder="เช่น 10.56"
+                type="number"
+                min={0}
+                max={100}
+                step="0.01"
+                placeholder="เช่น 10"
                 value={formik.values.gp_percentage}
                 onChange={(e) => {
-                  let val = e.target.value.replace(/[^0-9.]/g, '');
-                  // Max precision 2
-                  const parts = val.split('.');
-                  if (parts[1] && parts[1].length > 2) {
-                    val = parts[0] + '.' + parts[1].slice(0, 2);
-                  }
-                  formik.setFieldValue('gp_percentage', val);
+                  const val = e.target.value;
+                  const numVal = val === '' ? 0 : Number(val);
+                  const parsed = Math.round(numVal * 100) / 100;
+                  formik.setFieldValue('gp_percentage', parsed);
                 }}
                 onBlur={formik.handleBlur('gp_percentage')}
                 error={formik.touched.gp_percentage ? (formik.errors.gp_percentage as string) : undefined}
@@ -196,8 +213,8 @@ export default function EditChannelPage() {
             </div>
 
             {/* Submit Buttons */}
-            <div className="flex items-center justify-end gap-2 pt-2">
-              <Button type="button" variant="primary" onClick={() => router.push('/management/channels')} disabled={isSubmitting}>
+            <div className="flex text-white items-center justify-end gap-2 pt-2">
+              <Button type="button" variant="destructive" onClick={() => router.push('/management/channels')} disabled={isSubmitting}>
                 ยกเลิก
               </Button>
               <Button type="button" variant="primary" onClick={() => formik.handleSubmit()} disabled={!formik.isValid || isSubmitting}>

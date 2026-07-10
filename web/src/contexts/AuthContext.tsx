@@ -67,11 +67,26 @@ export function AuthProvider({ initialAuthUser = null, children }: AuthProviderP
     const supabase = createClient();
 
     // Hydrate from cookies on mount
-    supabase.auth.getSession().then(({ data: { session } }) => {
-      if (!cancelled) {
-        setAuthUserState(session?.user ? { user: session.user, profile: initialAuthUser?.profile ?? null } : null);
-        setIsHydrated(true); // mark as hydrated so Navbar shows real state
+    supabase.auth.getSession().then(async ({ data: { session } }) => {
+      if (cancelled) return;
+
+      if (session?.user) {
+        setAuthUserState({ user: session.user, profile: initialAuthUser?.profile ?? null });
+      } else {
+        // No session from cookie — try refreshing with the stored
+        // refresh token before giving up.
+        const { data: refreshed, error: refreshError } = await supabase.auth.refreshSession();
+        if (!cancelled) {
+          if (refreshed.session?.user) {
+            setAuthUserState({ user: refreshed.session.user, profile: initialAuthUser?.profile ?? null });
+          } else {
+            // Refresh failed (token expired) — clear stale cookies.
+            if (refreshError) console.warn('[Auth] Session refresh failed:', refreshError.message);
+            await supabase.auth.signOut({ scope: 'local' });
+          }
+        }
       }
+      setIsHydrated(true);
     });
 
     // Also subscribe to auth state changes (e.g. token refresh)

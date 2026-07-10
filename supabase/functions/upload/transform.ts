@@ -38,6 +38,7 @@ export function normalizeTransformOptions(
       : undefined,
     transparent: options.transparent ?? false,
     format: options.format,
+    quality: options.quality,
   };
 }
 
@@ -98,8 +99,8 @@ export async function createMagickTransformer(): Promise<ImageTransformer> {
         };
         const outFormat = normalized.format ? formatMap[normalized.format] : undefined;
 
-        if (outFormat === MagickFormat.WebP) {
-          img.settings.setDefine(MagickFormat.WebP, "lossless", true);
+        if (normalized.quality) {
+          img.settings.quality = normalized.quality;
         }
 
         // Encode bytes back
