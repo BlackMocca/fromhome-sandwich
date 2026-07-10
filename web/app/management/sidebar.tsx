@@ -42,13 +42,8 @@ export default function ManagementSidebar({ children }: { children: React.ReactN
   // Responsive sidebar state - mobile only
   const [isMobileOpen, setIsMobileOpen] = useState(_isMobileSidebarOpen);
 
-  // Auto-open on small screens during mount
+  // Listen for toggle events from top navbar only
   useEffect(() => {
-    if (typeof window !== 'undefined' && window.innerWidth < 768) {
-      setIsMobileOpen(true);
-    }
-
-    // Listen for toggle events from top navbar
     const handleToggle = () => {
       setIsMobileOpen(prev => !prev);
     };
@@ -57,15 +52,13 @@ export default function ManagementSidebar({ children }: { children: React.ReactN
     return () => document.removeEventListener('mobile-sidebar:toggle', handleToggle);
   }, []);
 
-  // Detect viewport size changes
+  // Auto-close sidebar when resizing to desktop
   useEffect(() => {
     if (typeof window === 'undefined') return;
 
     const handleResize = () => {
       if (window.innerWidth >= 768 && isMobileOpen) {
         setIsMobileOpen(false);
-      } else if (window.innerWidth < 400 && !isMobileOpen) {
-        setIsMobileOpen(true);
       }
     };
 
