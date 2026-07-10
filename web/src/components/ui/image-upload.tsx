@@ -38,6 +38,12 @@ export default function ImageUpload({
     };
   }, []);
 
+  useEffect(() => {
+    if (value) {
+      setPreviewUrl(value)
+    }
+  }, [value])
+
   const transformOptions = rawTransformOptions ?? (variant === 'avatar'
     ? { resize: { width: 128, height: 0 }, transparent: true, format: 'png', quality: 80 }
     : { resize: { width: 640, height: 0 }, format: 'webp', quality: 80 });

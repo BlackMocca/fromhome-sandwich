@@ -191,7 +191,7 @@ export default function CreateUserPage() {
             <div className="flex items-center justify-end gap-2 pt-2">
               <Button
                 type="button"
-                variant="primary"
+                variant="destructive"
                 onClick={() => router.push('/management/user')}
                 disabled={isSubmitting}
               >

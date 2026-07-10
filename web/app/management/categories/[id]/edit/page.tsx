@@ -134,7 +134,7 @@ export default function EditCategoryPage() {
 
             {/* Submit Buttons */}
             <div className="flex items-center justify-end gap-2 pt-2">
-              <Button type="button" variant="primary" onClick={() => router.push('/management/categories')} disabled={isSubmitting}>
+              <Button type="button" variant="destructive" onClick={() => router.push('/management/categories')} disabled={isSubmitting}>
                 ยกเลิก
               </Button>
               <Button type="button" variant="primary" onClick={() => formik.handleSubmit()} disabled={!formik.isValid || isSubmitting}>

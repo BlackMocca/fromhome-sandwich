@@ -144,7 +144,7 @@ export default function CreateCategoryPage() {
             <div className="flex items-center justify-end gap-2 pt-2">
               <Button
                 type="button"
-                variant="primary"
+                variant="destructive"
                 onClick={() => router.push('/management/categories')}
                 disabled={isSubmitting}
               >
