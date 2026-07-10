@@ -145,18 +145,18 @@ export async function maybeTransformImage(
   contentType: string,
   options: ImageTransformOptions | null,
   transformer: ImageTransformer,
-): Promise<{ file: File | Blob; contentType: string; transformed: boolean }> {
+): Promise<{ file: File | Blob; contentType: string; transformed: boolean; size?: number }> {
   if (!options) {
-    return { file, contentType, transformed: false };
+    return { file, contentType, transformed: false, size: file.size };
   }
   if (!isImageContentType(contentType)) {
-    return { file, contentType, transformed: false };
+    return { file, contentType, transformed: false, size: file.size };
   }
 
   const buffer = await file.arrayBuffer();
   const bytes = new Uint8Array(buffer);
 
-  const { contentType: outType, bytes: outBytes } = await transformer.transform(
+  const { contentType: outType, bytes: outBytes, size } = await transformer.transform(
     bytes,
     options,
     contentType,
@@ -168,7 +168,7 @@ export async function maybeTransformImage(
     { type: outType },
   );
 
-  return { file: outFile, contentType: outType, transformed: true };
+  return { file: outFile, contentType: outType, transformed: true, size };
 }
 
 /**
@@ -186,6 +186,7 @@ export async function uploadFile(
 ): Promise<Response> {
   const parsed = await parseFormData(req);
   let { bucket, path, file, contentType } = parsed;
+  let fileSize: number = file.size;
 
   // Image transformation
   if (parsed.transformOptions) {
@@ -204,6 +205,7 @@ export async function uploadFile(
     );
     file = result.file;
     contentType = result.contentType;
+    fileSize = result.size || 0;
   }
 
   const filename = generateFilename(file, contentType);
@@ -233,6 +235,7 @@ export async function uploadFile(
       bucket,
       path: fullPath,
       contentType,
+      size: fileSize,
       data,
       url: publicUrlData.publicUrl,
       transformed: parsed.transformOptions != null &&

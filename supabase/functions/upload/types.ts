@@ -68,7 +68,7 @@ export interface ImageTransformer {
     bytes: Uint8Array,
     options: ImageTransformOptions,
     sourceType: string,
-  ): Promise<{ contentType: string; bytes: Uint8Array }>;
+  ): Promise<{ contentType: string; bytes: Uint8Array; size: number }>;
 }
 
 /**

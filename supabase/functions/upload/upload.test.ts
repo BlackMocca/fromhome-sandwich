@@ -39,9 +39,11 @@ function makeMockTransformer(opts?: {
     calls,
     async transform(bytes, options, sourceType) {
       calls.push({ bytes, options, sourceType });
+      const outBytes = opts?.outBytes ?? bytes;
       return {
         contentType: opts?.outContentType ?? sourceType,
-        bytes: opts?.outBytes ?? bytes,
+        bytes: outBytes,
+        size: outBytes.length,
       };
     },
   };

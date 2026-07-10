@@ -6,7 +6,7 @@ import {
   ImageTransformOptions,
   ImageTransformer,
 } from "./types.ts";
-import { ImageMagick, initializeImageMagick, MagickFormat } from "@imagemagick/magick-wasm"
+import { ImageMagick, initializeImageMagick, MagickFormat, Percentage, MagickColor } from "@imagemagick/magick-wasm"
 
 const wasmBytes = await Deno.readFile(
   new URL("magick.wasm", import.meta.resolve("npm:@imagemagick/magick-wasm@0.0.41")),
@@ -69,7 +69,7 @@ export async function createMagickTransformer(): Promise<ImageTransformer> {
       bytes: Uint8Array,
       options: ImageTransformOptions,
       sourceType: string,
-    ): Promise<{ contentType: string; bytes: Uint8Array }> {
+    ): Promise<{ contentType: string; bytes: Uint8Array; size: number }> {
       const normalized = normalizeTransformOptions(options);
 
       const outBytes = await ImageMagick.read(bytes, async (img: any) => {
@@ -88,7 +88,8 @@ export async function createMagickTransformer(): Promise<ImageTransformer> {
 
         // Transparent
         if (normalized.transparent) {
-          img.hasAlpha = true;
+          img.colorFuzz = new Percentage(10);
+          img.transparent(new MagickColor("white"));
         }
 
         // Select output format
@@ -108,7 +109,7 @@ export async function createMagickTransformer(): Promise<ImageTransformer> {
       });
 
       const contentType = resolveContentType(sourceType, options);
-      return { contentType, bytes: outBytes };
+      return { contentType, bytes: outBytes, size: outBytes.length };
     },
   };
 }
