@@ -2,7 +2,7 @@ import * as React from 'react';
 import { cn } from '@/lib/utils';
 
 // Button variants matching DESIGN.md posture rules
-export type ButtonVariant = 'default' | 'primary' | 'action' | 'success' | 'destructive';
+export type ButtonVariant = 'default' | 'primary' | 'action' | 'success' | 'destructive' | 'ghost';
 export type ButtonSize = 'default' | 'sm' | 'lg';
 
 export interface ButtonProps extends React.ButtonHTMLAttributes<HTMLButtonElement> {
@@ -19,6 +19,7 @@ const variantClasses: Record<ButtonVariant, string> = {
   action: 'bg-action text-primary hover:bg-action/90 shadow-sm',
   success: 'bg-success text-white hover:bg-success/90',
   destructive: 'bg-destructive text-destructive-foreground hover:bg-destructive/90',
+  ghost: 'bg-white text-black/50 hover:bg-black/5 border-transparent',
 };
 
 const sizeClasses: Record<ButtonSize, string> = {
