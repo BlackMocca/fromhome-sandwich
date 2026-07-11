@@ -3,9 +3,10 @@
 import { useState } from 'react';
 import { PlusCircle, Search } from 'lucide-react';
 import { Input } from '@/components/ui/input';
-import type { Product, ProductOption } from '@/types/product';
+import type { Product } from '@/types/product';
 import type { Category } from '@/types/category';
 import { ProductCard } from '@/components/app/product-card';
+import { ProductAddon } from '@/types/product_addon';
 
 // ─── Mock categories (by name) ─────────────────────────────
 const CATEGORY_NAMES: Record<number, string> = {
@@ -47,12 +48,12 @@ const ALL_PRODUCTS: Product[] = [
   { id: 6, category_id: 3, name: 'ส้มตำไทย',           base_price: 40, cost: 20, image_url: productImageUrl('ส้มตำไทย') },
 ];
 
-const MOCK_OPTIONS: ProductOption[] = [
-  { id: 1, name: 'ไม่เพิ่ม',     price: 0 },
-  { id: 2, name: 'เพิ่มชีส',    price: 10 },
-  { id: 3, name: 'ข้าวไรซ์',   price: 5 },
-  { id: 4, name: 'ไข่ดาว',      price: 12 },
-  { id: 5, name: 'ทอดกรอบ',    price: 8 },
+const MOCK_OPTIONS: ProductAddon[] = [
+  { id: 1, name: 'ไม่เพิ่ม',     base_price: 0, is_active: true },
+  { id: 2, name: 'เพิ่มชีส',    base_price: 10, is_active: true },
+  { id: 3, name: 'ข้าวไรซ์',   base_price: 5, is_active: true },
+  { id: 4, name: 'ไข่ดาว',      base_price: 12, is_active: true },
+  { id: 5, name: 'ทอดกรอบ',    base_price: 8, is_active: true },
 ];
 
 export default function ProductsPage() {

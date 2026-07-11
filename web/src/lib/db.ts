@@ -196,8 +196,28 @@ export async function getProducts(params?: Record<string, string>) {
   return get<import('@/types/product').Product[]>('products', params);
 }
 
-export async function getProductOptions() {
-  return get<import('@/types/product').ProductOption[]>('product_options');
+export async function getProductAddons(search?: string) {
+  const params: Record<string, string> = { order: 'name.asc' };
+  if (search?.trim()) {
+    params.name = `ilike.*${search.trim()}*`;
+  }
+  return get<import('@/types/product_addon').ProductAddon[]>('product_addons', { params });
+}
+
+export async function getProductAddon(id: number) {
+  return getOne<import('@/types/product_addon').ProductAddon>('product_addons', id);
+}
+
+export async function createProductAddon(data: { name: string; base_price: number; is_active?: boolean }) {
+  return create<import('@/types/product_addon').ProductAddon>('product_addons', data);
+}
+
+export async function updateProductAddon(id: number, data: { name?: string; base_price?: number; is_active?: boolean }) {
+  return update<import('@/types/product_addon').ProductAddon>('product_addons', id, data);
+}
+
+export async function deleteProductAddon(id: number) {
+  return remove('product_addons', id);
 }
 
 export async function getChannels() {

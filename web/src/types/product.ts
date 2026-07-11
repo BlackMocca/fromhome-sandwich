@@ -8,9 +8,3 @@ export interface Product {
   image_url?: string;    // รูปภาพสินค้า
 }
 
-/** ProductOption — Reusable add-ons shared across channels */
-export interface ProductOption {
-  id: number;
-  name: string;
-  price: number;        // Add-on cost (มูลค่าเพิ่มเติม)
-}
