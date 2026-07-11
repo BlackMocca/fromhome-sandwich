@@ -47,12 +47,6 @@ export default function ChannelDetailPage() {
     ? products
     : products.filter(p => p.products?.categories?.name === activeFilter);
 
-  // Build options from all channel products' addon mappings
-  const allOptions: ProductAddon[] = products
-    .flatMap(p => p.channel_product_addons ?? [])
-    .map(m => m.product_addons)
-    .filter((a): a is ProductAddon => a !== undefined)
-    .filter((a, i, arr) => arr.findIndex(x => x.id === a.id) === i);
 
   if (loading) {
     return (
@@ -76,8 +70,9 @@ export default function ChannelDetailPage() {
       <div className="flex items-center justify-between mb-6">
         <div className="flex items-center gap-3">
           <div>
-            <h1 className="text-2xl font-bold text-primary">{channel?.name ?? channelId}</h1>
-            <p className="text-sm text-muted-foreground">สินค้าทั้งหมดของ {channel?.name ?? channelId} ({products.length} รายการ)</p>
+            <h1 className="text-2xl font-bold text-primary">
+                สินค้าทั้งหมดของ {channel?.name ?? channelId} ({products.length} รายการ)
+            </h1>
           </div>
         </div>
 
@@ -117,7 +112,6 @@ export default function ChannelDetailPage() {
               key={cp.id}
               product={cp}
               category={cp.products?.categories ?? null}
-              options={allOptions}
               onAdd={() => {}}
             />
           );

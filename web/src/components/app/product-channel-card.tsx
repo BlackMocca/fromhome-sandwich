@@ -10,7 +10,6 @@ import { ChannelProduct } from '@/types/channel_product';
 interface ProductChannelCardProps {
   product: ChannelProduct;
   category?: Category | null;
-  options: ProductAddon[];
   onAdd: (product: ChannelProduct, option?: ProductAddon) => void;
 }
 
@@ -18,10 +17,15 @@ interface ProductChannelCardProps {
 export function ProductChannelCard({
   product,
   category,
-  options,
 }: ProductChannelCardProps) {
   const [quantity, setQuantity] = useState(1);
   const [selectedOptionIds, setSelectedOptionIds] = useState<number[]>([]);
+  const channelProductAddOn: ProductAddon[] = (product?.channel_product_addons ?? [])
+    .map(data => {
+      if (!data?.product_addons) return undefined;
+      return { ...data.product_addons, base_price: data.price };
+    })
+    .filter((a): a is ProductAddon => a !== undefined);
 
   const handleSelect = (option: ProductAddon) => {
     setSelectedOptionIds(prev =>
@@ -67,7 +71,7 @@ export function ProductChannelCard({
         {/* Options — inside rounded border box */}
         <div className="shrink-0">
           <ProductOptionsPills
-            options={options}
+            options={channelProductAddOn}
             selectedOptionIds={selectedOptionIds}
             onSelect={handleSelect}
           />

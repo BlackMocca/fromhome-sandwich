@@ -46,7 +46,7 @@ export default function AddChannelProductPage() {
     load();
   }, [channelId]);
 
-  async function handleSubmit(values: { price: number; cost: number }, addonIds: number[]) {
+  async function handleSubmit(values: { price: number; cost: number }, addons: { addon_id: number; price: number }[]) {
     if (!selectedTemplate) return;
     setBanner(null);
     try {
@@ -57,16 +57,7 @@ export default function AddChannelProductPage() {
         cost: values.cost,
       });
 
-      // Build addon payload with prices from template
-      const addons = (selectedTemplate.product_mapping_addons ?? [])
-        .map(m => m.product_addons)
-        .filter((a): a is import('@/types/product_addon').ProductAddon => a !== undefined);
-
-      const addonPayload = addonIds.map(addonId => {
-        const addon = addons.find(a => a.id === addonId);
-        return { addon_id: addonId, price: addon?.base_price ?? 0 };
-      });
-      await saveChannelProductAddonMappings(result.id, addonPayload);
+      await saveChannelProductAddonMappings(result.id, addons);
 
       toast({ title: 'สำเร็จ!', description: 'เพิ่มสินค้าเข้าช่องทางเรียบร้อยแล้ว' });
       setBanner({ kind: 'success', text: 'เพิ่มสินค้าเรียบร้อยแล้ว' });

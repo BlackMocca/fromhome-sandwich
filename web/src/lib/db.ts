@@ -129,14 +129,6 @@ export async function create<T>(table: string, data: Record<string, unknown>): P
     throw new Error(`POST ${table} failed: ${res.status} ${res.statusText}`);
   }
 
-  // PostgREST returns 201 with empty body — return data as-is
-  if (res.status === 201 && res.body) {
-    const contentLength = res.headers.get('content-length');
-    if (contentLength === '0' || !contentLength) {
-      return data as unknown as T;
-    }
-  }
-
   let json: any;
   try {
     const text = await res.text();
@@ -145,14 +137,13 @@ export async function create<T>(table: string, data: Record<string, unknown>): P
     }
     json = JSON.parse(text);
   } catch (err) {
-    // JSON parse failed — fallback to input
     return data as unknown as T;
   }
 
-  // PostgREST returns representations for insert/update/delete as a **JSON array** of objects: [ {...} ]
+  // PostgREST returns representations as a JSON array: [ {...} ]
   if (Array.isArray(json)) {
     if (json.length > 0) {
-      return json[0] as T; // Return first element from the representation array
+      return json[0] as T;
     }
     return data as unknown as T;
   }
@@ -396,7 +387,7 @@ export async function getChannelProducts(channelId: number) {
   return get<import('@/types/channel_product').ChannelProduct[]>('channel_products', {
     params: {
       channel_id: `eq.${channelId}`,
-      select: '*,products(*,categories(*),product_mapping_addons(addon_id,product_addons(*))),channel_product_addons(addon_id,price,product_addons(*))',
+      select: '*,products(*,categories(*)),channel_product_addons(addon_id,price,product_addons(*))',
       order: 'created_at.desc'
     }
   });
