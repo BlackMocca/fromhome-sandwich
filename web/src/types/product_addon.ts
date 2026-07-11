@@ -4,4 +4,6 @@ export interface ProductAddon {
   name: string;
   base_price: number;
   is_active: boolean;
+  created_at?: string
+  updated_at?: string
 }

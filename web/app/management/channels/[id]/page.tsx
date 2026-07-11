@@ -6,8 +6,9 @@ import { ArrowLeft, PlusCircle, ChevronDown } from 'lucide-react';
 import Link from 'next/link';
 import { cn } from '@/lib/utils';
 import { ProductChannelCard } from '@/components/app/product-channel-card';
-import type { Product, ProductOption } from '@/types/product';
+import type { Product } from '@/types/product';
 import type { Category } from '@/types/category';
+import type { ProductAddon } from '@/types/product_addon';
 
 // ─── Mock categories (shared across channels) ─────────────
 const ALL_CATEGORIES: Category[] = [
@@ -48,18 +49,19 @@ function toProduct(
     name: item.name,
     base_price: item.price,
     cost: item.cost,
-    image_url: productImageUrl(item.name),
+    is_active: true,
+    cover_url: productImageUrl(item.name),
   };
 }
 
 /** Build a set of shared options for every product in the channel */
-function toOptions(channelCode: string): ProductOption[] {
+function toOptions(channelCode: string): ProductAddon[] {
   return [
-    { id: parseInt(`${channelCode}10`, 36), name: 'ไม่เพิ่ม',          price: 0 },
-    { id: parseInt(`${channelCode}20`, 36), name: 'เพิ่มชีส',         price: 10 },
-    { id: parseInt(`${channelCode}30`, 36), name: 'เปลี่ยนเป็นข้าวไรซ์', price: 5 },
-    { id: parseInt(`${channelCode}40`, 36), name: 'ไข่ดาว +12',       price: 12 },
-    { id: parseInt(`${channelCode}50`, 36), name: 'ทอดกรอบ extra',   price: 8 },
+    { id: parseInt(`${channelCode}10`, 36), name: 'ไม่เพิ่ม',          base_price: 0, is_active: true },
+    { id: parseInt(`${channelCode}20`, 36), name: 'เพิ่มชีส',         base_price: 10, is_active: true },
+    { id: parseInt(`${channelCode}30`, 36), name: 'เปลี่ยนเป็นข้าวไรซ์', base_price: 5, is_active: true },
+    { id: parseInt(`${channelCode}40`, 36), name: 'ไข่ดาว +12',       base_price: 12, is_active: true },
+    { id: parseInt(`${channelCode}50`, 36), name: 'ทอดกรอบ extra',   base_price: 8, is_active: true },
   ];
 }
 
@@ -125,14 +127,14 @@ export default function ChannelDetailPage() {
 
   // Map to typed entities
   const products: Product[]      = rawProducts.map((p, i) => toProduct(channelId, p, i));
-  const options:   ProductOption[] = toOptions(channelId);
+  const options:   ProductAddon[] = toOptions(channelId);
   const categories    = Array.from(new Set(rawProducts.map(p => p.category))).map(
     name => ALL_CATEGORIES.find(c => c.name === name),
   ).filter(Boolean) as Category[];
 
   // ── Add-to-bill callback (from ProductChannelCard) ──
-  const handleAdd = (product: Product, option?: ProductOption) => {
-    const total = product.base_price + (option?.price ?? 0);
+  const handleAdd = (product: Product, option?: ProductAddon) => {
+    const total = product.base_price + (option?.base_price ?? 0);
     console.log(`[Add to bill] ${product.name}${option ? ` +${option.name}` : ''} → ฿${total.toLocaleString()}`);
     // TODO: dispatch to order / bill context later
   };

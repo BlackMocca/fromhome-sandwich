@@ -121,7 +121,7 @@ export async function getMany<T>(table: string, options?: {
 export async function create<T>(table: string, data: Record<string, unknown>): Promise<T> {
   const res = await fetch(url(table), {
     method: 'POST',
-    headers: { ...getHeaders(), 'Content-Type': 'application/json' },
+    headers: { ...getHeaders(), 'Content-Type': 'application/json', 'Prefer': 'return=representation' },
     body: JSON.stringify(data),
   });
 
@@ -149,7 +149,7 @@ export async function create<T>(table: string, data: Record<string, unknown>): P
 export async function update<T>(table: string, id: number | string, data: Record<string, unknown>): Promise<T> {
   const res = await fetch(`${url(table)}?id=eq.${id}`, {
     method: 'PATCH',
-    headers: { ...getHeaders(), 'Content-Type': 'application/json' },
+    headers: { ...getHeaders(), 'Content-Type': 'application/json', 'Prefer': 'return=representation' },
     body: JSON.stringify(data),
   });
 
@@ -188,7 +188,18 @@ export async function remove(table: string, id: number | string): Promise<void> 
 
 export async function getCategories() {
   return get<import('@/types/category').Category[]>('categories', {
-    params: { order: 'name.asc' },
+    params: { 
+      order: 'name.asc'
+    },
+  });
+}
+
+export async function getActiveCategories() {
+  return get<import('@/types/category').Category[]>('categories', {
+    params: { 
+      is_active: 'eq.true',
+      order: 'name.asc'
+    },
   });
 }
 
@@ -196,8 +207,62 @@ export async function getProducts(params?: Record<string, string>) {
   return get<import('@/types/product').Product[]>('products', params);
 }
 
+export async function getProductById(id: number | string) {
+  return getOne<import('@/types/product').Product>('products', id);
+}
+
+/** Get products with optional search and category filters */
+export async function getProductsFiltered(search?: string, categoryIds?: number[]) {
+  const params: Record<string, string> = {};
+  
+  if (search?.trim()) {
+    params['name'] = `ilike.*${search.trim()}*`;
+  }
+  
+  if (categoryIds && categoryIds.length > 0) {
+    // PostgREST 'in' filter: column.in.(val1,val2,...)
+    const idsStr = categoryIds.map(id => String(id)).join(',');
+    params['category_id'] = `in.(${idsStr})`;
+  }
+
+  return get<import('@/types/product').Product[]>('products', { params });
+}
+
+export async function createProduct(data: {
+  name: string;
+  category_id: number;
+  cover_url?: string | null;
+  base_price: number;
+  cost: number;
+  is_active: boolean;
+}) {
+  return create<import('@/types/product').Product>('products', data);
+}
+
+export async function updateProduct(id: number, data: {
+  name?: string;
+  category_id?: number;
+  cover_url?: string | null;
+  base_price?: number;
+  cost?: number;
+  is_active?: boolean;
+}) {
+  return update<import('@/types/product').Product>('products', id, data);
+}
+
 export async function getProductAddons(search?: string) {
   const params: Record<string, string> = { order: 'name.asc' };
+  if (search?.trim()) {
+    params.name = `ilike.*${search.trim()}*`;
+  }
+  return get<import('@/types/product_addon').ProductAddon[]>('product_addons', { params });
+}
+
+export async function getActiveProductAddons(search?: string) {
+  const params: Record<string, string> = { 
+    is_active: 'eq.true',
+    order: 'name.asc' 
+  };
   if (search?.trim()) {
     params.name = `ilike.*${search.trim()}*`;
   }
@@ -218,6 +283,42 @@ export async function updateProductAddon(id: number, data: { name?: string; base
 
 export async function deleteProductAddon(id: number) {
   return remove('product_addons', id);
+}
+
+/** Get product-addon mappings for a specific product */
+export async function getProductAddonMappings(productId: number) {
+  const rows = await get<Record<string, unknown>[]>('product_mapping_addons', {
+    params: { product_id: `eq.${productId}` },
+  });
+  return (rows || []).map((row: any) => ({
+    product_id: Number(row.product_id),
+    addon_id: Number(row.addon_id),
+  }));
+}
+
+/** Save/update product-addon mappings for a specific product */
+export async function saveProductAddonMappings(productId: number, addonIds: number[]) {
+  // First, delete existing mappings for this product
+  const deleteUrl = `${SUPABASE_URL}/rest/v1/product_mapping_addons?product_id=eq.${productId}`;
+  const delRes = await fetch(deleteUrl, {
+    method: 'DELETE',
+    headers: getHeaders('application/json'),
+  });
+  if (!delRes.ok) {
+    throw new Error(`DELETE product_mapping_addons failed: ${delRes.status} ${delRes.statusText}`);
+  }
+  
+  // Then insert new mappings
+  if (addonIds.length > 0) {
+    const mappings = addonIds.map(addonId => ({
+      product_id: productId,
+      addon_id: addonId,
+    }));
+    
+    for (const mapping of mappings) {
+      await create('product_mapping_addons', mapping);
+    }
+  }
 }
 
 export async function getChannels() {

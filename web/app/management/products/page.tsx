@@ -1,65 +1,54 @@
 'use client';
 
-import { useState } from 'react';
+import { useState, useEffect } from 'react';
 import { PlusCircle, Search } from 'lucide-react';
+import { useRouter } from 'next/navigation';
 import { Input } from '@/components/ui/input';
 import type { Product } from '@/types/product';
 import type { Category } from '@/types/category';
+import type { ProductAddon } from '@/types/product_addon';
 import { ProductCard } from '@/components/app/product-card';
-import { ProductAddon } from '@/types/product_addon';
+import { BadgeCategoryCarousel } from '@/components/ui/badge-category-carousel';
+import { getActiveCategories, getProductsFiltered, getActiveProductAddons } from '@/lib/db';
 
-// ─── Mock categories (by name) ─────────────────────────────
-const CATEGORY_NAMES: Record<number, string> = {
-  1: 'Sandwich',
-  2: 'Drink',
-  3: 'Salad',
-  4: 'Fried',
-};
-
-const ALL_CATEGORIES_BY_NAME: Record<string, Category> = {
-  Sandwich: { id: 1, name: 'Sandwich', is_active: true },
-  Drink:    { id: 2, name: 'Drink',    is_active: true },
-  Salad:    { id: 3, name: 'Salad',     is_active: true },
-  Fried:    { id: 4, name: 'Fried',     is_active: true },
-};
-
-// ─── Image file mapping ──────────────────────────────────
-const PRODUCT_IMAGE_MAP: Record<string, string> = {
-  'แซนด์วิชมะม่วง':   'sw_bolona_egg.jpg',
-  'แซนด์วิชแฮมชีส':  'sw_bolona_crabstick.jpg',
-  'แซนด์วิชทูน่า':    'sw_crabstick_tuna.jpg',
-  'ชาเย็น':             'iced_mali.jpg',
-  'กาแฟลาเต้':         'cocoa.jpg',
-  'ส้มตำไทย':           'mali.jpg',
-};
-
-function productImageUrl(name: string): string | undefined {
-  const file = PRODUCT_IMAGE_MAP[name];
-  return file ? `/images/products/${file}` : undefined;
-}
-
-// ─── Mock data with image_url & options ──────────────────
-const ALL_PRODUCTS: Product[] = [
-  { id: 1, category_id: 1, name: 'แซนด์วิชมะม่วง',   base_price: 45, cost: 28, image_url: productImageUrl('แซนด์วิชมะม่วง') },
-  { id: 2, category_id: 1, name: 'แซนด์วิชแฮมชีส',  base_price: 50, cost: 32, image_url: productImageUrl('แซนด์วิชแฮมชีส') },
-  { id: 3, category_id: 1, name: 'แซนด์วิชทูน่า',    base_price: 45, cost: 27, image_url: productImageUrl('แซนด์วิชทูน่า') },
-  { id: 4, category_id: 2, name: 'ชาเย็น',             base_price: 35, cost: 18, image_url: productImageUrl('ชาเย็น') },
-  { id: 5, category_id: 2, name: 'กาแฟลาเต้',         base_price: 40, cost: 22, image_url: productImageUrl('กาแฟลาเต้') },
-  { id: 6, category_id: 3, name: 'ส้มตำไทย',           base_price: 40, cost: 20, image_url: productImageUrl('ส้มตำไทย') },
-];
-
-const MOCK_OPTIONS: ProductAddon[] = [
-  { id: 1, name: 'ไม่เพิ่ม',     base_price: 0, is_active: true },
-  { id: 2, name: 'เพิ่มชีส',    base_price: 10, is_active: true },
-  { id: 3, name: 'ข้าวไรซ์',   base_price: 5, is_active: true },
-  { id: 4, name: 'ไข่ดาว',      base_price: 12, is_active: true },
-  { id: 5, name: 'ทอดกรอบ',    base_price: 8, is_active: true },
-];
-
+// ─── Component ──────────────────────────────────────
 export default function ProductsPage() {
-  const [products] = useState<Product[]>(ALL_PRODUCTS);
+  const router = useRouter();
+  const [categories, setCategories] = useState<Category[]>([]);
+  const [selectedCategories, setSelectedCategories] = useState<number[]>([]);
   const [search, setSearch] = useState('');
-  const filteredProducts = products.filter(p => p.name.includes(search));
+  const [products, setProducts] = useState<Product[]>([]);
+  const [options, setOptions] = useState<ProductAddon[]>([]);
+
+  // Fetch active categories and product addons on mount
+  useEffect(() => {
+    getActiveCategories().then(setCategories).catch(console.error);
+    getActiveProductAddons().then(setOptions).catch(console.error);
+  }, []);
+
+  // Fetch products when search or selectedCategories change (with debounce)
+  useEffect(() => {
+    const fetchProducts = async () => {
+      try {
+        const data = await getProductsFiltered(search, selectedCategories.length > 0 ? selectedCategories : undefined);
+        setProducts(data || []);
+      } catch (err) {
+        console.error('Failed to fetch products:', err);
+        setProducts([]);
+      }
+    };
+
+    const delayDebounce = setTimeout(fetchProducts, 300);
+    return () => clearTimeout(delayDebounce);
+  }, [search, selectedCategories]);
+
+  const toggleCategory = (categoryId: number) => {
+    setSelectedCategories(prev => 
+      prev.includes(categoryId)
+        ? prev.filter(id => id !== categoryId)
+        : [...prev, categoryId]
+    );
+  };
 
   const handleAction = (product: Product) => {
     console.log(`[ProductCard action] ${product.name}`);
@@ -70,7 +59,10 @@ export default function ProductsPage() {
       {/* Header */}
       <div className="flex items-center justify-between mb-6">
         <h1 className="text-2xl font-bold text-primary">สินค้าทั้งหมด (Products)</h1>
-        <button className="btn-primary text-white flex items-center gap-2 text-sm px-4 py-2 rounded-xl shadow-md">
+        <button 
+          onClick={() => router.push('/management/products/create')}
+          className="btn-primary text-white flex items-center gap-2 text-sm px-4 py-2 rounded-xl shadow-md cursor-pointer"
+        >
           <PlusCircle className="w-4 h-4" /> เพิ่มสินค้า
         </button>
       </div>
@@ -85,18 +77,30 @@ export default function ProductsPage() {
         />
       </div>
 
-      {/* Product cards grid */}
-      {filteredProducts.length > 0 ? (
+      {/* Category Filter Carousel */}
+      <div className="mb-6">
+        <BadgeCategoryCarousel
+          categories={categories}
+          selectedCategories={selectedCategories}
+          onToggleCategory={toggleCategory}
+        />
+      </div>
+
+      {/* Search & Product cards grid */}
+      {products.length > 0 ? (
         <div className="grid grid-cols-1 sm:grid-cols-2 lg:grid-cols-3 xl:grid-cols-4 gap-4">
-          {filteredProducts.map(product => (
-            <ProductCard
-              key={product.id}
-              product={product}
-              category={ALL_CATEGORIES_BY_NAME[CATEGORY_NAMES[product.category_id] ?? '']}
-              options={MOCK_OPTIONS}
-              onAdd={handleAction}
-            />
-          ))}
+          {products.map(product => {
+            const category = categories.find(c => c.id === product.category_id);
+            return (
+              <ProductCard
+                key={product.id}
+                product={{ ...product }}
+                category={category}
+                options={options.filter(o => o.is_active)}
+                onAdd={handleAction}
+              />
+            );
+          })}
         </div>
       ) : (
         <div className="flex items-center justify-center py-20 text-muted-foreground">

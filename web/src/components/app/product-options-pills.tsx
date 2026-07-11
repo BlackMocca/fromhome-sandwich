@@ -1,12 +1,11 @@
 'use client';
 
-import type { Product, ProductOption } from '@/types/product';
+import type { ProductAddon } from '@/types/product_addon';
 
 interface ProductOptionsPillsProps {
-  options: ProductOption[];
+  options: ProductAddon[];
   selectedOptionIds: number[];
-  onSelect: (option: ProductOption) => void;
-  product: Product;
+  onSelect: (option: ProductAddon) => void;
 }
 
 /** Vertical list of option rows — each row is fully clickable */
@@ -57,12 +56,12 @@ export function ProductOptionsPills({
 
             {/* Price */}
             <span className={['text-sm font-semibold',
-              typeof opt.price === 'number' && opt.price > 0
+              typeof opt.base_price === 'number' && opt.base_price > 0
                 ? 'text-primary'
                 : 'text-muted-foreground',
             ].join(' ')}>
-              {typeof opt.price === 'number' && opt.price > 0
-                ? `+฿${opt.price}`
+              {typeof opt.base_price === 'number' && opt.base_price > 0
+                ? `+฿${opt.base_price}`
                 : ''}
             </span>
           </button>

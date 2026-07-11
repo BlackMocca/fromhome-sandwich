@@ -3,8 +3,9 @@ export interface Product {
   id: number;
   category_id: number;
   name: string;
+  cover_url?: string;    // รูปภาพปกสินค้า
   base_price: number;   // ราคาขายมาตรฐาน
   cost: number;         // ต้นทุน (ใช้คำนวณกำไร Dashboard โดยตรง)
-  image_url?: string;    // รูปภาพสินค้า
+  is_active: boolean;
 }
 

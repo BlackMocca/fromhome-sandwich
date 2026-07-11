@@ -1,9 +1,9 @@
 'use client';
 
-import Image from 'next/image';
 import { Pencil } from 'lucide-react';
-import type { Product, ProductOption } from '@/types/product';
+import type { Product } from '@/types/product';
 import type { Category } from '@/types/category';
+import type { ProductAddon } from '@/types/product_addon';
 import { cn } from '@/lib/utils';
 import { ToggleSwitch } from '../ui/toggle-switch';
 import { ProductOptionsPills } from './product-options-pills';
@@ -12,19 +12,20 @@ import { useState } from 'react';
 interface ProductCardProps {
   product: Product;
   category?: Category | null;
-  options: ProductOption[];
-  onAdd: (product: Product, option?: ProductOption) => void;
+  options: ProductAddon[];
+  onAdd: (product: Product) => void;
+  hideActions?: boolean;
 }
 
 /** Management Product Card — same layout as ProductChannelCard but no quantity + edit button */
-export function ProductCard({ product, category, options, onAdd }: ProductCardProps) {
+export function ProductCard({ product, category, options, onAdd, hideActions = false }: ProductCardProps) {
   const [active, setActive] = useState(true);
 
   return (
-    <div className={cn(
-      "group relative bg-surface rounded-2xl shadow-xl transition-all duration-300 h-full flex flex-col",
-      active ? 'opacity-100 hover:shadow-2xl' : 'opacity-50',
-    )}>
+      <div className={cn(
+        "group relative bg-surface rounded-2xl shadow-xl transition-all duration-300 h-full flex flex-col",
+        hideActions || active ? 'opacity-100 hover:shadow-2xl' : 'opacity-50',
+      )}>
       {/* ── Category Badge — frosted glass over image */}
       {category && (
         <span className="absolute top-3 right-3 z-10 px-3 py-1 rounded-xl bg-white/85 backdrop-blur-md shadow-lg border border-white/40 text-primary text-xs font-bold uppercase tracking-wider select-none">
@@ -34,8 +35,12 @@ export function ProductCard({ product, category, options, onAdd }: ProductCardPr
 
       {/* ── 1. Image Section (fixed aspect ratio) */}
       <div className="relative w-full aspect-[4/3] bg-surface overflow-hidden rounded-t-2xl">
-        {product.image_url ? (
-          <Image src={product.image_url} alt={product.name} fill className="object-cover transition-transform duration-500 group-hover:scale-105" />
+        {product.cover_url ? (
+          <img
+            src={product.cover_url}
+            alt={product.name}
+            className="w-full h-full object-cover transition-transform duration-500 group-hover:scale-105"
+          />
         ) : (
           <div className="w-full h-full flex items-center justify-center text-5xl select-none">🥪</div>
         )}
@@ -65,7 +70,6 @@ export function ProductCard({ product, category, options, onAdd }: ProductCardPr
         {/* Options */}
         <div className="shrink-0 mb-4">
           <ProductOptionsPills
-            product={product}
             options={options}
             selectedOptionIds={[]}
             onSelect={() => {}}
@@ -73,31 +77,33 @@ export function ProductCard({ product, category, options, onAdd }: ProductCardPr
         </div>
 
         {/* ── Action row (iOS ToggleSwitch on left, Edit on right) */}
-        <div className="mt-auto flex items-stretch justify-between gap-2">
-          {/* iOS-style ToggleSwitch — green/gray sliding knob + right label */}
-          <ToggleSwitch
-            on={active}
-            onToggle={(next) => setActive(next)}
-            size="md"
-            knobContent="เปิด"
-          >
-            เปิดใช้งาน
-          </ToggleSwitch>
+        {!hideActions && (
+          <div className="mt-auto flex items-stretch justify-between gap-2">
+            {/* iOS-style ToggleSwitch — green/gray sliding knob + right label */}
+            <ToggleSwitch
+              on={active}
+              onToggle={(next) => setActive(next)}
+              size="md"
+              knobContent="เปิด"
+            >
+              เปิดใช้งาน
+            </ToggleSwitch>
 
-          {/* Edit — aligned to right edge */}
-          <button 
-            type="button" 
-            disabled={!active}
-            onClick={() => onAdd(product)}
-            className={cn(
-              "flex items-center gap-1.5 h-[38px] px-4 rounded-xl bg-primary text-white font-bold active:scale-95 transition-all shadow-md",
-              active ? 'hover:bg-primary/90 cursor-pointer' : 'opacity-60 cursor-not-allowed select-none',
-            )}
-          >
-            <Pencil className="w-4 h-4 mr-1" />
-            แก้ไข
-          </button>
-        </div>
+            {/* Edit — aligned to right edge */}
+            <button 
+              type="button" 
+              disabled={!active}
+              onClick={() => onAdd(product)}
+              className={cn(
+                "flex items-center gap-1.5 h-[38px] px-4 rounded-xl bg-primary text-white font-bold active:scale-95 transition-all shadow-md",
+                active ? 'hover:bg-primary/90 cursor-pointer' : 'opacity-60 cursor-not-allowed select-none',
+              )}
+            >
+              <Pencil className="w-4 h-4 mr-1" />
+              แก้ไข
+            </button>
+          </div>
+        )}
 
       </div>
     </div>

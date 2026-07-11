@@ -3,15 +3,16 @@
 import Image from 'next/image';
 import { Plus } from 'lucide-react';
 import { useState } from 'react';
-import type { Product, ProductOption } from '@/types/product';
+import type { Product } from '@/types/product';
 import type { Category } from '@/types/category';
+import type { ProductAddon } from '@/types/product_addon';
 import { ProductOptionsPills } from './product-options-pills';
 
 interface ProductChannelCardProps {
   product: Product;
   category?: Category | null;
-  options: ProductOption[];
-  onAdd: (product: Product, option?: ProductOption) => void;
+  options: ProductAddon[];
+  onAdd: (product: Product) => void;
 }
 
 /** iPad-Optimized Product Card with Pill Options */
@@ -19,12 +20,11 @@ export function ProductChannelCard({
   product,
   category,
   options,
-  onAdd,
 }: ProductChannelCardProps) {
   const [quantity, setQuantity] = useState(1);
   const [selectedOptionIds, setSelectedOptionIds] = useState<number[]>([]);
 
-  const handleSelect = (option: ProductOption) => {
+  const handleSelect = (option: ProductAddon) => {
     setSelectedOptionIds(prev =>
       prev.includes(option.id)
         ? prev.filter(id => id !== option.id)
@@ -43,8 +43,8 @@ export function ProductChannelCard({
 
       {/* ── 1. Image Section (fixed aspect ratio) ───────── */}
       <div className="relative w-full aspect-[4/3] bg-surface overflow-hidden rounded-t-2xl">
-        {product.image_url ? (
-          <Image src={product.image_url} alt={product.name} fill className="object-cover transition-transform duration-500 group-hover:scale-105" />
+        {product.cover_url ? (
+          <Image src={product.cover_url} alt={product.name} fill className="object-cover transition-transform duration-500 group-hover:scale-105" />
         ) : (
           <div className="w-full h-full flex items-center justify-center text-5xl select-none">🥪</div>
         )}
@@ -66,7 +66,6 @@ export function ProductChannelCard({
         {/* Options — inside rounded border box */}
         <div className="shrink-0">
           <ProductOptionsPills
-            product={product}
             options={options}
             selectedOptionIds={selectedOptionIds}
             onSelect={handleSelect}
@@ -93,7 +92,10 @@ export function ProductChannelCard({
           {/* Add-to-bill button — always at bottom of card */}
           <button 
             type="button" 
-            onClick={() => onAdd(product)}
+            onClick={() => {
+              const total = product.base_price;
+              console.log(`[Add to bill] ${product.name} → ฿${total.toLocaleString()}`);
+            }}
             className="w-full px-4 py-2 rounded-xl bg-primary text-white flex items-center justify-center gap-1.5 hover:bg-primary/90 active:scale-95 transition-all shadow-md"
           >
             <Plus className="w-5 h-5" />

@@ -46,7 +46,7 @@ export default function ImageUpload({
 
   const transformOptions = rawTransformOptions ?? (variant === 'avatar'
     ? { resize: { width: 128, height: 0 }, transparent: true, format: 'png', quality: 80 }
-    : { resize: { width: 640, height: 0 }, format: 'webp', quality: 80 });
+    : { resize: { width: 480, height: 0 }, format: 'webp', quality: 80 });
 
   const handleFileSelect = async (e: React.ChangeEvent<HTMLInputElement>) => {
     const file = e.target.files?.[0];
