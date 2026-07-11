@@ -6,18 +6,21 @@ import type { ProductAddon } from '@/types/product_addon';
 import type { Category } from '@/types/category';
 import { ProductOptionsPills } from './product-options-pills';
 import { ChannelProduct } from '@/types/channel_product';
+import { useOrder } from '@/contexts/OrderContext';
 
 interface ProductChannelCardProps {
   product: ChannelProduct;
   category?: Category | null;
-  onAdd: (product: ChannelProduct, option?: ProductAddon) => void;
+  channelName?: string;
 }
 
 /** iPad-Optimized Product Card with Pill Options */
 export function ProductChannelCard({
   product,
   category,
+  channelName,
 }: ProductChannelCardProps) {
+  const { addItem } = useOrder();
   const [quantity, setQuantity] = useState(1);
   const [selectedOptionIds, setSelectedOptionIds] = useState<number[]>([]);
   const channelProductAddOn: ProductAddon[] = (product?.channel_product_addons ?? [])
@@ -98,7 +101,10 @@ export function ProductChannelCard({
           <button 
             type="button" 
             onClick={() => {
-              console.log(`[Add to bill] ${product.products?.name} → ฿${product.price.toLocaleString()}`);
+              const selectedAddons = channelProductAddOn.filter(a => selectedOptionIds.includes(a.id));
+              addItem(product, quantity, selectedAddons, channelName);
+              setQuantity(1);
+              setSelectedOptionIds([]);
             }}
             className="w-full px-4 py-2 rounded-xl bg-primary text-white flex items-center justify-center gap-1.5 hover:bg-primary/90 active:scale-95 transition-all shadow-md"
           >

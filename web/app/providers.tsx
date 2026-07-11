@@ -4,6 +4,8 @@ import { QueryClient, QueryClientProvider } from '@tanstack/react-query';
 import { ReactQueryDevtools } from '@tanstack/react-query-devtools';
 import { useState, type ReactNode } from 'react';
 import { AuthProvider } from '@/contexts/AuthContext';
+import { OrderProvider } from '@/contexts/OrderContext';
+import { ChannelMismatchModal } from '@/components/app/channel-mismatch-modal';
 import { ToastProvider, Toaster } from '@/lib/toast';
 
 export default function Providers({ children }: { children: ReactNode }) {
@@ -23,7 +25,12 @@ export default function Providers({ children }: { children: ReactNode }) {
   return (
     <QueryClientProvider client={queryClient}>
       <ToastProvider>
-        <AuthProvider>{children}</AuthProvider>
+        <AuthProvider>
+          <OrderProvider>
+            {children}
+            <ChannelMismatchModal />
+          </OrderProvider>
+        </AuthProvider>
         <ReactQueryDevtools initialIsOpen={false} />
         <Toaster />
       </ToastProvider>

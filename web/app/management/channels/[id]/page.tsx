@@ -124,7 +124,7 @@ export default function ChannelDetailPage() {
               key={cp.id}
               product={cp}
               category={cp.products?.categories ?? null}
-              onAdd={() => {}}
+              channelName={channel?.name}
             />
           ))}
         </div>
