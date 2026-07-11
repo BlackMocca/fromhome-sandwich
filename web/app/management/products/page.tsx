@@ -29,6 +29,7 @@ export default function ProductsPage() {
       return data || [];
     },
     placeholderData: keepPreviousData,
+    staleTime: 5 * 60 * 1000, // 5 minutes
   });
 
   const toggleCategory = (categoryId: number) => {

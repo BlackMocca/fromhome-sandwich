@@ -63,7 +63,7 @@ export function ProductCard({ product, category, options, onAdd, hideActions = f
             <p className="text-3xl font-semibold text-primary tracking-tight select-text">
               ฿{product.base_price.toLocaleString()}
             </p>
-            <span className="text-sm text-muted-foreground line-through">
+            <span className="text-sm text-destructive">
               ต้นทุน ฿{product.cost.toLocaleString()}
             </span>
           </div>
