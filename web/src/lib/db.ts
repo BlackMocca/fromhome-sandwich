@@ -386,6 +386,56 @@ export async function getChannels() {
   });
 }
 
+export async function getChannelById(id: number | string) {
+  return getOne<import('@/types/channel').Channel>('channels', id);
+}
+
+// ─── Channel Products ──────────────────────────────────────
+
+export async function getChannelProducts(channelId: number) {
+  return get<import('@/types/channel_product').ChannelProduct[]>('channel_products', {
+    params: {
+      channel_id: `eq.${channelId}`,
+      select: '*,products(*,categories(*),product_mapping_addons(addon_id,product_addons(*))),channel_product_addons(addon_id,price,product_addons(*))',
+      order: 'created_at.desc'
+    }
+  });
+}
+
+export async function createChannelProduct(data: {
+  channel_id: number;
+  product_id: number;
+  price: number;
+  cost: number;
+  is_active?: boolean;
+}) {
+  return create<import('@/types/channel_product').ChannelProduct>('channel_products', data);
+}
+
+export async function saveChannelProductAddonMappings(
+  channelProductId: number,
+  addons: { addon_id: number; price: number }[]
+) {
+  const deleteUrl = `${SUPABASE_URL}/rest/v1/channel_product_addons?channel_product_id=eq.${channelProductId}`;
+  const delRes = await fetch(deleteUrl, {
+    method: 'DELETE',
+    headers: getHeaders('application/json'),
+  });
+  if (!delRes.ok) {
+    throw new Error(`DELETE channel_product_addons failed: ${delRes.status}`);
+  }
+  
+  if (addons.length > 0) {
+    for (const addon of addons) {
+      await create('channel_product_addons', {
+        channel_product_id: channelProductId,
+        addon_id: addon.addon_id,
+        price: addon.price,
+      });
+    }
+  }
+}
+
 export async function getReceipts(options?: { channel_code?: string }) {
   const params: Record<string, string> = options?.channel_code 
     ? { channel_code: `eq.${options.channel_code}`, order: 'bill_date.desc' }

@@ -22,10 +22,14 @@ export function ProductCard({ product, category, options, onAdd, hideActions = f
   const [active, setActive] = useState(true);
 
   return (
-      <div className={cn(
-        "group relative bg-surface rounded-2xl shadow-xl transition-all duration-300 h-full flex flex-col min-h-[500px]",
-        hideActions || active ? 'opacity-100 hover:shadow-2xl' : 'opacity-50',
-      )}>
+      <div
+        onClick={hideActions ? () => onAdd(product) : undefined}
+        className={cn(
+          "group relative bg-surface rounded-2xl shadow-xl transition-all duration-300 h-full flex flex-col min-h-[500px]",
+          hideActions || active ? 'opacity-100 hover:shadow-2xl' : 'opacity-50',
+          hideActions && 'cursor-pointer hover:ring-2 hover:ring-action/50',
+        )}
+      >
       {/* ── Category Badge — frosted glass over image */}
       {category && (
         <span className="absolute top-3 right-3 z-10 px-3 py-1 rounded-xl bg-white/85 backdrop-blur-md shadow-lg border border-white/40 text-primary text-xs font-bold uppercase tracking-wider select-none">

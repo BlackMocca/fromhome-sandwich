@@ -1,18 +1,17 @@
 'use client';
 
-import Image from 'next/image';
 import { Plus } from 'lucide-react';
 import { useState } from 'react';
-import type { Product } from '@/types/product';
-import type { Category } from '@/types/category';
 import type { ProductAddon } from '@/types/product_addon';
+import type { Category } from '@/types/category';
 import { ProductOptionsPills } from './product-options-pills';
+import { ChannelProduct } from '@/types/channel_product';
 
 interface ProductChannelCardProps {
-  product: Product;
+  product: ChannelProduct;
   category?: Category | null;
   options: ProductAddon[];
-  onAdd: (product: Product) => void;
+  onAdd: (product: ChannelProduct, option?: ProductAddon) => void;
 }
 
 /** iPad-Optimized Product Card with Pill Options */
@@ -43,8 +42,8 @@ export function ProductChannelCard({
 
       {/* ── 1. Image Section (fixed aspect ratio) ───────── */}
       <div className="relative w-full aspect-[4/3] bg-surface overflow-hidden rounded-t-2xl">
-        {product.cover_url ? (
-          <Image src={product.cover_url} alt={product.name} fill className="object-cover transition-transform duration-500 group-hover:scale-105" />
+        {product.products?.cover_url ? (
+          <img src={product.products?.cover_url} alt={product.products?.name} className="w-full h-full object-cover transition-transform duration-500 group-hover:scale-105" />
         ) : (
           <div className="w-full h-full flex items-center justify-center text-5xl select-none">🥪</div>
         )}
@@ -56,12 +55,12 @@ export function ProductChannelCard({
         <div>
           {/* Product Name */}
           <h3 className="text-2xl font-bold text-primary leading-tight flex-1 line-clamp-2 select-text min-h-0 mb-2">
-            {product.name}
+            {product.products?.name}
           </h3>
 
           {/* Price (Prominent) */}
           <p className="text-3xl font-semibold text-primary tracking-tight select-text shrink-0 mb-2">
-            ฿{product.base_price.toLocaleString()}
+            ฿{product.price.toLocaleString()}
           </p>
         </div>
 
@@ -95,8 +94,7 @@ export function ProductChannelCard({
           <button 
             type="button" 
             onClick={() => {
-              const total = product.base_price;
-              console.log(`[Add to bill] ${product.name} → ฿${total.toLocaleString()}`);
+              console.log(`[Add to bill] ${product.products?.name} → ฿${product.price.toLocaleString()}`);
             }}
             className="w-full px-4 py-2 rounded-xl bg-primary text-white flex items-center justify-center gap-1.5 hover:bg-primary/90 active:scale-95 transition-all shadow-md"
           >
