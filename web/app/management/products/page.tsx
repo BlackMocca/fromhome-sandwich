@@ -1,46 +1,35 @@
 'use client';
 
-import { useState, useEffect } from 'react';
-import { PlusCircle, Search } from 'lucide-react';
+import { useState } from 'react';
+import { PlusCircle, Loader2 } from 'lucide-react';
 import { useRouter } from 'next/navigation';
+import { useQuery, keepPreviousData } from '@tanstack/react-query';
 import { Input } from '@/components/ui/input';
-import type { Product } from '@/types/product';
-import type { Category } from '@/types/category';
-import type { ProductAddon } from '@/types/product_addon';
 import { ProductCard } from '@/components/app/product-card';
 import { BadgeCategoryCarousel } from '@/components/ui/badge-category-carousel';
-import { getActiveCategories, getProductsFiltered, getActiveProductAddons } from '@/lib/db';
+import { getActiveCategories, getProducts } from '@/lib/db';
 
 // ─── Component ──────────────────────────────────────
 export default function ProductsPage() {
   const router = useRouter();
-  const [categories, setCategories] = useState<Category[]>([]);
   const [selectedCategories, setSelectedCategories] = useState<number[]>([]);
   const [search, setSearch] = useState('');
-  const [products, setProducts] = useState<Product[]>([]);
-  const [options, setOptions] = useState<ProductAddon[]>([]);
 
-  // Fetch active categories and product addons on mount
-  useEffect(() => {
-    getActiveCategories().then(setCategories).catch(console.error);
-    getActiveProductAddons().then(setOptions).catch(console.error);
-  }, []);
+  // Fetch active categories on mount using React Query
+  const { data: categories = [] } = useQuery({
+    queryKey: ['active-categories'],
+    queryFn: getActiveCategories,
+  });
 
-  // Fetch products when search or selectedCategories change (with debounce)
-  useEffect(() => {
-    const fetchProducts = async () => {
-      try {
-        const data = await getProductsFiltered(search, selectedCategories.length > 0 ? selectedCategories : undefined);
-        setProducts(data || []);
-      } catch (err) {
-        console.error('Failed to fetch products:', err);
-        setProducts([]);
-      }
-    };
-
-    const delayDebounce = setTimeout(fetchProducts, 300);
-    return () => clearTimeout(delayDebounce);
-  }, [search, selectedCategories]);
+  // Fetch products with relations (categories + addons) using React Query
+  const { data: products = [], isLoading, isFetching } = useQuery({
+    queryKey: ['products', search.trim(), selectedCategories],
+    queryFn: async () => {
+      const data = await getProducts(search.trim() || undefined, selectedCategories.length > 0 ? selectedCategories : undefined);
+      return data || [];
+    },
+    placeholderData: keepPreviousData,
+  });
 
   const toggleCategory = (categoryId: number) => {
     setSelectedCategories(prev => 
@@ -50,15 +39,15 @@ export default function ProductsPage() {
     );
   };
 
-  const handleAction = (product: Product) => {
-    console.log(`[ProductCard action] ${product.name}`);
+  const handleAction = (product: any) => {
+    router.push(`/management/products/${product?.id}/edit`);
   };
 
   return (
     <div className="min-h-screen">
       {/* Header */}
       <div className="flex items-center justify-between mb-6">
-        <h1 className="text-2xl font-bold text-primary">สินค้าทั้งหมด (Products)</h1>
+        <h1 className="text-2xl font-bold text-primary">สินค้าทั้งหมด ({products?.length} รายการ)</h1>
         <button 
           onClick={() => router.push('/management/products/create')}
           className="btn-primary text-white flex items-center gap-2 text-sm px-4 py-2 rounded-xl shadow-md cursor-pointer"
@@ -86,17 +75,20 @@ export default function ProductsPage() {
         />
       </div>
 
-      {/* Search & Product cards grid */}
-      {products.length > 0 ? (
+      {/* Loading or Product cards grid */}
+      {isLoading || (products.length === 0 && isFetching) ? (
+        <div className="flex items-center justify-center py-20 text-muted-foreground">
+          <Loader2 className="mr-2 h-6 w-6 animate-spin" /> กำลังโหลดสินค้า...
+        </div>
+      ) : products.length > 0 ? (
         <div className="grid grid-cols-1 sm:grid-cols-2 lg:grid-cols-3 xl:grid-cols-4 gap-4">
           {products.map(product => {
-            const category = categories.find(c => c.id === product.category_id);
             return (
               <ProductCard
                 key={product.id}
-                product={{ ...product }}
-                category={category}
-                options={options.filter(o => o.is_active)}
+                product={product}
+                category={product.categories || null}
+                options={(product.product_mapping_addons?.map(item => item.product_addons) || []).filter(data => data !== undefined).filter(o => o.is_active) || []}
                 onAdd={handleAction}
               />
             );

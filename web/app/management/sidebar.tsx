@@ -185,7 +185,7 @@ export default function ManagementSidebar({ children }: { children: React.ReactN
       )}
 
       {/* ── RIGHT CONTENT ───────────────────── */}
-      <main className="flex-1 w-full max-w-[1440px] mx-auto overflow-y-auto px-4 py-6 bg-background">
+      <main className="flex-1 w-full max-w-[1440px] mx-auto overflow-y-auto no-scrollbar px-4 py-6 bg-background">
         {children}
       </main>
 

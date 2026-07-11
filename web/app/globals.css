@@ -48,6 +48,14 @@
 
   /* Radius — shadcn/ui standard 8px */
   --radius: 0.5rem;
+
+  .no-scrollbar::-webkit-scrollbar {
+    display: none;
+  }
+  .no-scrollbar {
+    -ms-overflow-style: none;
+    scrollbar-width: none;
+  }
 }
 
 /* Dark mode support (optional) */

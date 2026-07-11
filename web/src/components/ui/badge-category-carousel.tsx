@@ -43,8 +43,8 @@ export function BadgeCategoryCarousel({
               className={cn(
                 'flex-shrink-0 inline-flex items-center px-3 py-1.5 rounded-full text-sm font-medium transition-all duration-200',
                 isSelected
-                  ? 'bg-primary text-secondary shadow-md'
-                  : 'bg-muted text-muted-foreground hover:bg-muted/80 border border-border'
+                  ? 'bg-primary text-white shadow-md border border-border'
+                  : 'bg-muted text-muted-foreground hover:bg-muted/80 shadow-md border border-border'
               )}
             >
               {category.name}

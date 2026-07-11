@@ -23,7 +23,7 @@ export function ProductCard({ product, category, options, onAdd, hideActions = f
 
   return (
       <div className={cn(
-        "group relative bg-surface rounded-2xl shadow-xl transition-all duration-300 h-full flex flex-col",
+        "group relative bg-surface rounded-2xl shadow-xl transition-all duration-300 h-full flex flex-col min-h-[500px]",
         hideActions || active ? 'opacity-100 hover:shadow-2xl' : 'opacity-50',
       )}>
       {/* ── Category Badge — frosted glass over image */}
@@ -49,22 +49,24 @@ export function ProductCard({ product, category, options, onAdd, hideActions = f
       {/* ── 2. Content Section (white bg + rounded top + shadow) */}
       <div className="flex-1 flex flex-col p-5 bg-white -mt-4 rounded-t-3xl shadow-lg relative z-10">
         
-        {/* Product Name */}
-        <h3 className={cn(
-          "text-2xl font-bold text-primary leading-tight flex-1 line-clamp-2 select-text min-h-0 mb-2",
-          !active && 'line-through text-muted-foreground',
-        )}>
-          {product.name}
-        </h3>
+        <div>
+          {/* Product Name */}
+          <h3 className={cn(
+            "text-2xl font-bold text-primary leading-tight flex-1 line-clamp-2 select-text min-h-0 mb-2",
+            !active && 'line-through text-muted-foreground',
+          )}>
+            {product.name}
+          </h3>
 
-        {/* Price + Cost */}
-        <div className={cn("flex items-baseline gap-2 shrink-0 mb-2", !active && 'opacity-60')}>
-          <p className="text-3xl font-semibold text-primary tracking-tight select-text">
-            ฿{product.base_price.toLocaleString()}
-          </p>
-          <span className="text-sm text-muted-foreground line-through">
-            ต้นทุน ฿{product.cost.toLocaleString()}
-          </span>
+          {/* Price + Cost */}
+          <div className={cn("flex items-baseline gap-2 shrink-0 mb-2", !active && 'opacity-60')}>
+            <p className="text-3xl font-semibold text-primary tracking-tight select-text">
+              ฿{product.base_price.toLocaleString()}
+            </p>
+            <span className="text-sm text-muted-foreground line-through">
+              ต้นทุน ฿{product.cost.toLocaleString()}
+            </span>
+          </div>
         </div>
 
         {/* Options */}

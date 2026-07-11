@@ -263,4 +263,327 @@ DELETE /rest/v1/<table>?id=eq.<id>
 
 ---
 
+## 8. 🟢 PostgREST Relationship Query Guide
+
+PostgREST does not use SQL JOIN syntax directly.
+Relationships are queried using **resource embedding** based on foreign key relationships.
+
+General syntax:
+
+```
+table?select=columns,related_table(columns)
+```
+
+The relationship must exist as a foreign key constraint in PostgreSQL.
+
+---
+
+### 8.1 One-to-Many Relationship
+
+**Schema:**
+```
+users
+-----
+id
+name
+
+posts
+-----
+id
+user_id
+title
+```
+
+Relationship:
+```
+users.id <- posts.user_id
+```
+
+**Query: Get posts with user information**
+
+SQL equivalent:
+```sql
+SELECT
+  posts.*,
+  users.name
+FROM posts
+LEFT JOIN users
+ON users.id = posts.user_id;
+```
+
+PostgREST:
+```
+GET /posts?select=*,users(name)
+```
+
+Response:
+```json
+[
+  {
+    "id": 1,
+    "title": "Hello",
+    "users": {
+      "name": "John"
+    }
+  }
+]
+```
+
+---
+
+### 8.2 Explicit LEFT JOIN
+
+Default embedding behaves like LEFT JOIN.
+
+To explicitly request LEFT JOIN:
+```
+GET /posts?select=*,users!left(name)
+```
+
+Use when:
+* You want to make the join behavior clear.
+* You are mixing with `!inner` relationships.
+
+---
+
+### 8.3 INNER JOIN
+
+Use `!inner` when only rows with matching relationships should return.
+
+Example:
+```
+GET /posts?select=*,users!inner(name)
+```
+
+SQL equivalent:
+```sql
+INNER JOIN users
+```
+
+Behavior:
+* User exists → return row
+* User missing → remove row
+
+---
+
+### 8.4 Many-to-Many Relationship
+
+PostgREST requires querying through the junction table.
+
+**Schema:**
+```
+users
+-----
+id
+name
+
+roles
+-----
+id
+name
+
+user_roles
+-----------
+user_id
+role_id
+```
+
+Relationship:
+```
+users
+  |
+  |
+user_roles
+  |
+  |
+roles
+```
+
+**Query: Get users with roles**
+
+SQL equivalent:
+```sql
+SELECT
+  users.*,
+  roles.*
+FROM users
+LEFT JOIN user_roles
+ON users.id = user_roles.user_id
+LEFT JOIN roles
+ON roles.id = user_roles.role_id;
+```
+
+PostgREST:
+```
+GET /users?select=*,user_roles(roles(*))
+```
+
+Response:
+```json
+[
+  {
+    "id": 1,
+    "name": "John",
+    "user_roles": [
+      {
+        "roles": {
+          "id": 10,
+          "name": "Admin"
+        }
+      }
+    ]
+  }
+]
+```
+
+---
+
+### 8.5 Many-to-Many with Explicit LEFT JOIN
+
+Keep users even when they have no roles:
+```
+GET /users?select=*,user_roles!left(roles(*))
+```
+
+Behavior:
+```
+User with roles
+    -> return user + roles
+
+User without roles
+    -> return user + empty relation
+```
+
+---
+
+### 8.6 Many-to-Many with INNER JOIN
+
+Only users with roles:
+```
+GET /users?select=*,user_roles!inner(roles(*))
+```
+
+Behavior:
+```
+User without roles
+    -> removed
+```
+
+---
+
+### 8.7 Nested Relationships
+
+Example:
+```
+posts
+ |
+comments
+ |
+users
+```
+
+Query:
+```
+GET /posts?select=*,
+comments(
+  *,
+  users(name)
+)
+```
+
+Response:
+```json
+{
+  "id": 1,
+  "comments": [
+    {
+      "text": "Nice",
+      "users": {
+        "name": "John"
+      }
+    }
+  ]
+}
+```
+
+---
+
+### 8.8 Foreign Key Ambiguous Relationship
+
+When a table has multiple foreign keys to the same table:
+
+Example:
+```
+orders
+-------
+customer_id -> users.id
+created_by  -> users.id
+```
+
+Cannot use:
+```
+users(name)
+```
+because PostgREST cannot determine which relationship.
+
+Specify foreign key:
+```
+GET /orders?
+select=*,
+customer:users!customer_id(name),
+creator:users!created_by(name)
+```
+
+---
+
+### 8.9 Filtering Related Tables
+
+Example:
+Get posts only from users named John.
+
+```
+GET /posts?
+select=*,
+users(name)
+&users.name=eq.John
+```
+
+---
+
+## 9. Agent Rules for PostgREST Queries
+
+When generating PostgREST queries:
+
+1. Never write SQL JOIN syntax.
+2. Use embedding syntax:
+
+```
+table(related_table(columns))
+```
+
+3. For many-to-many:
+   * Always traverse through junction table.
+   * Pattern:
+
+```
+parent -> junction -> target
+```
+
+Example (products -> product_mapping_addons -> product_addons):
+
+Query:
+```
+/products?select=*,product_mapping_addons(product_addons(*))
+```
+
+4. Use `!left` when parent rows must remain even without relationships.
+
+5. Use `!inner` only when filtering out missing relationships is intended.
+
+6. If multiple foreign keys exist between two tables, specify the foreign key name.
+
+7. Prefer database views or RPC functions when the response shape requires flattening nested many-to-many results.
+
+---
+
 *เอกสารนี้รวมข้อมูลจาก: SPEC.md, Solution.md, DESIGN.md และปัญหาจริงที่พบระหว่างการพัฒนาโครงการ From Home Sandwich*

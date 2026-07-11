@@ -99,8 +99,8 @@ export async function get<T>(table: string, opts?: { params?: Record<string, str
 }
 
 /** Get single row (returns array with one item, or first element) */
-export async function getOne<T>(table: string, id: number | string): Promise<T> {
-  const rows = await get<T[]>(`${table}?id=eq.${id}`);
+export async function getOne<T>(table: string, id: number | string, select: string = "*"): Promise<T> {
+  const rows = await get<T[]>(`${table}?id=eq.${id}&select=${select}`);
   return Array.isArray(rows) && rows.length > 0 ? rows[0] : null as unknown as T;
 }
 
@@ -137,12 +137,27 @@ export async function create<T>(table: string, data: Record<string, unknown>): P
     }
   }
 
+  let json: any;
   try {
-    return res.json() as Promise<T>;
+    const text = await res.text();
+    if (!text || text.trim() === '') {
+      return data as unknown as T;
+    }
+    json = JSON.parse(text);
   } catch (err) {
-    // JSON parse failed — return data anyway
+    // JSON parse failed — fallback to input
     return data as unknown as T;
   }
+
+  // PostgREST returns representations for insert/update/delete as a **JSON array** of objects: [ {...} ]
+  if (Array.isArray(json)) {
+    if (json.length > 0) {
+      return json[0] as T; // Return first element from the representation array
+    }
+    return data as unknown as T;
+  }
+
+  return json as T;
 }
 
 /** Update a row by ID */
@@ -165,11 +180,28 @@ export async function update<T>(table: string, id: number | string, data: Record
     }
   }
 
+  let json: any;
   try {
-    return res.json() as Promise<T>;
+    const text = await res.text();
+    if (!text || text.trim() === '') {
+      // For PATCH/204, PostgREST sometimes returns empty body even without content-length header
+      return data as unknown as T;
+    }
+    json = JSON.parse(text);
   } catch (err) {
+    // JSON parse failed — fallback to input
     return data as unknown as T;
   }
+
+  // PostgREST returns representations for insert/update/delete as a **JSON array** of objects: [ {...} ]
+  if (Array.isArray(json)) {
+    if (json.length > 0) {
+      return json[0] as T; // Return first element from the representation array
+    }
+    return data as unknown as T;
+  }
+
+  return json as T;
 }
 
 /** Delete a row by ID */
@@ -203,16 +235,7 @@ export async function getActiveCategories() {
   });
 }
 
-export async function getProducts(params?: Record<string, string>) {
-  return get<import('@/types/product').Product[]>('products', params);
-}
-
-export async function getProductById(id: number | string) {
-  return getOne<import('@/types/product').Product>('products', id);
-}
-
-/** Get products with optional search and category filters */
-export async function getProductsFiltered(search?: string, categoryIds?: number[]) {
+export async function getProducts(search?: string, categoryIds?: number[]) {
   const params: Record<string, string> = {};
   
   if (search?.trim()) {
@@ -225,7 +248,43 @@ export async function getProductsFiltered(search?: string, categoryIds?: number[
     params['category_id'] = `in.(${idsStr})`;
   }
 
-  return get<import('@/types/product').Product[]>('products', { params });
+  // Use resource embedding for many-to-many relationship:
+  // products -> product_mapping_addons -> product_addons
+  return get<import('@/types/product').Product[]>('products', {
+    params: {
+      ...params,
+      select: '*,product_mapping_addons(addon_id,product_addons(*)),categories(*)'
+    },
+  });
+}
+
+export async function getProductById(id: number | string) {
+  const select = '*,product_mapping_addons(addon_id,product_addons(*)),categories(*)'
+  return getOne<import('@/types/product').Product>('products', id, select);
+}
+
+/** Get products with their mapped addons via product_mapping_addons junction table */
+export async function getProductsWithAddons(search?: string, categoryIds?: number[]) {
+  const params: Record<string, string> = {};
+  
+  if (search?.trim()) {
+    params['name'] = `ilike.*${search.trim()}*`;
+  }
+  
+  if (categoryIds && categoryIds.length > 0) {
+    // PostgREST 'in' filter: column.in.(val1,val2,...)
+    const idsStr = categoryIds.map(id => String(id)).join(',');
+    params['category_id'] = `in.(${idsStr})`;
+  }
+
+  // Use resource embedding for many-to-many relationship:
+  // products -> product_mapping_addons -> product_addons
+  return get<Record<string, unknown>[]>('products', { 
+    params: {
+      ...params,
+      select: '*,product_mapping_addons(addon_id,product_addons(*)),categories(*)'
+    }
+  });
 }
 
 export async function createProduct(data: {

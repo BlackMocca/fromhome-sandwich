@@ -33,7 +33,7 @@ export function ProductChannelCard({
   };
 
   return (
-    <div className="group relative bg-surface rounded-2xl shadow-xl hover:shadow-2xl transition-all duration-300 h-full flex flex-col">
+    <div className="group relative bg-surface rounded-2xl shadow-xl hover:shadow-2xl transition-all duration-300 h-full flex flex-col min-h-[500px]">
       {/* ── Category Badge — frosted glass over image */}
       {category && (
         <span className="absolute top-3 right-3 z-10 px-3 py-1 rounded-xl bg-white/85 backdrop-blur-md shadow-lg border border-white/40 text-primary text-xs font-bold uppercase tracking-wider select-none">
@@ -53,15 +53,17 @@ export function ProductChannelCard({
       {/* ── 2. Content Section (white bg + rounded top + shadow) */}
       <div className="flex-1 flex flex-col p-5 bg-white -mt-4 rounded-t-3xl shadow-lg relative z-10">
         
-        {/* Product Name */}
-        <h3 className="text-2xl font-bold text-primary leading-tight flex-1 line-clamp-2 select-text min-h-0 mb-2">
-          {product.name}
-        </h3>
+        <div>
+          {/* Product Name */}
+          <h3 className="text-2xl font-bold text-primary leading-tight flex-1 line-clamp-2 select-text min-h-0 mb-2">
+            {product.name}
+          </h3>
 
-        {/* Price (Prominent) */}
-        <p className="text-3xl font-semibold text-primary tracking-tight select-text shrink-0 mb-2">
-          ฿{product.base_price.toLocaleString()}
-        </p>
+          {/* Price (Prominent) */}
+          <p className="text-3xl font-semibold text-primary tracking-tight select-text shrink-0 mb-2">
+            ฿{product.base_price.toLocaleString()}
+          </p>
+        </div>
 
         {/* Options — inside rounded border box */}
         <div className="shrink-0">
