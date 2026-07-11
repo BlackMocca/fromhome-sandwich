@@ -2,34 +2,40 @@
 
 import { useParams, useRouter } from 'next/navigation';
 import React, { useEffect, useState } from 'react';
-import { ArrowLeft, PlusCircle } from 'lucide-react';
+import { ArrowLeft, PlusCircle, Loader2 } from 'lucide-react';
 import Link from 'next/link';
 import { cn } from '@/lib/utils';
+import { Input } from '@/components/ui/input';
+import { BadgeCategoryCarousel } from '@/components/ui/badge-category-carousel';
 import { ProductChannelCard } from '@/components/app/product-channel-card';
-import { getChannelById, getChannelProducts } from '@/lib/db';
+import { getChannelById, getChannelProducts, getActiveCategories } from '@/lib/db';
 import type { Channel } from '@/types/channel';
 import type { ChannelProduct } from '@/types/channel_product';
-import type { ProductAddon } from '@/types/product_addon';
+import type { Category } from '@/types/category';
 
 export default function ChannelDetailPage() {
   const params   = useParams<{ id: string }>();
   const router   = useRouter();
   const channelId = params.id;
-  
+
   const [channel, setChannel] = useState<Channel | null>(null);
   const [products, setProducts] = useState<ChannelProduct[]>([]);
+  const [categories, setCategories] = useState<Category[]>([]);
   const [loading, setLoading] = useState(true);
-  const [activeFilter, setActiveFilter] = useState<string>('ทั้งหมด');
+  const [search, setSearch] = useState('');
+  const [selectedCategories, setSelectedCategories] = useState<number[]>([]);
 
   useEffect(() => {
     async function loadData() {
       try {
-        const [ch, prods] = await Promise.all([
+        const [ch, prods, cats] = await Promise.all([
           getChannelById(channelId),
           getChannelProducts(Number(channelId)),
+          getActiveCategories(),
         ]);
         setChannel(ch);
         setProducts(prods);
+        setCategories(cats);
       } catch (err) {
         console.error('Failed to load channel data:', err);
       } finally {
@@ -39,18 +45,24 @@ export default function ChannelDetailPage() {
     loadData();
   }, [channelId]);
 
-  // Extract unique category names from products via joined master product
-  const categories = Array.from(new Set(products.map(p => p.products?.categories?.name).filter(Boolean))) as string[];
-  const allCategoryNames = ['ทั้งหมด', ...categories];
+  const toggleCategory = (categoryId: number) => {
+    setSelectedCategories(prev =>
+      prev.includes(categoryId)
+        ? prev.filter(id => id !== categoryId)
+        : [...prev, categoryId]
+    );
+  };
 
-  const filteredProducts = activeFilter === 'ทั้งหมด'
-    ? products
-    : products.filter(p => p.products?.categories?.name === activeFilter);
-
+  const filteredProducts = products.filter(p => {
+    const matchSearch = !search.trim() || p.products?.name?.toLowerCase().includes(search.trim().toLowerCase());
+    const matchCategory = selectedCategories.length === 0 || (p.products?.category_id != null && selectedCategories.includes(p.products.category_id));
+    return matchSearch && matchCategory;
+  });
 
   if (loading) {
     return (
       <div className="flex items-center justify-center h-64">
+        <Loader2 className="mr-2 h-6 w-6 animate-spin text-muted-foreground" />
         <p className="text-muted-foreground">กำลังโหลด...</p>
       </div>
     );
@@ -71,7 +83,7 @@ export default function ChannelDetailPage() {
         <div className="flex items-center gap-3">
           <div>
             <h1 className="text-2xl font-bold text-primary">
-                สินค้าทั้งหมดของ {channel?.name ?? channelId} ({products.length} รายการ)
+              สินค้าทั้งหมดของ {channel?.name ?? channelId} ({filteredProducts.length} รายการ)
             </h1>
           </div>
         </div>
@@ -85,38 +97,42 @@ export default function ChannelDetailPage() {
         </Link>
       </div>
 
-      {/* Category filter tabs */}
-      <div className="flex items-center gap-2 mb-6 overflow-x-auto pb-1">
-        <span className="text-sm text-muted-foreground whitespace-nowrap mr-1">กรองตามหมวด:</span>
-        {allCategoryNames.map(cat => (
-          <button
-            key={cat}
-            onClick={() => setActiveFilter(cat)}
-            className={cn(
-              'px-3 py-1.5 rounded-full text-sm transition-colors whitespace-nowrap',
-              activeFilter === cat
-                ? 'bg-primary/15 text-primary font-semibold'
-                : 'bg-surface text-muted-foreground hover:bg-action/10 hover:text-primary border border-border/50',
-            )}
-          >
-            {cat}
-          </button>
-        ))}
+      {/* Search */}
+      <div className="mb-6 max-w-md">
+        <Input
+          placeholder="ค้นหาสินค้า..."
+          value={search}
+          onChange={e => setSearch(e.target.value)}
+          className="h-11"
+        />
+      </div>
+
+      {/* Category Filter Carousel */}
+      <div className="mb-6">
+        <BadgeCategoryCarousel
+          categories={categories}
+          selectedCategories={selectedCategories}
+          onToggleCategory={toggleCategory}
+        />
       </div>
 
       {/* Product cards grid */}
-      <div className="grid grid-cols-1 sm:grid-cols-2 lg:grid-cols-3 xl:grid-cols-4 gap-4">
-        {filteredProducts.map(cp => {
-          return (
+      {filteredProducts.length > 0 ? (
+        <div className="grid grid-cols-1 sm:grid-cols-2 lg:grid-cols-3 xl:grid-cols-4 gap-4">
+          {filteredProducts.map(cp => (
             <ProductChannelCard
               key={cp.id}
               product={cp}
               category={cp.products?.categories ?? null}
               onAdd={() => {}}
             />
-          );
-        })}
-      </div>
+          ))}
+        </div>
+      ) : (
+        <div className="flex items-center justify-center py-20 text-muted-foreground">
+          {products.length === 0 ? 'ยังไม่มีสินค้าในช่องทางนี้' : 'ไม่พบสินค้าที่ค้นหา'}
+        </div>
+      )}
     </div>
     </>
   );
