@@ -82,8 +82,8 @@ export default function ChannelDetailPage() {
       <div className="flex items-center justify-between mb-6">
         <div className="flex items-center gap-3">
           <div>
-            <h1 className="text-2xl font-bold text-primary">
-              สินค้าทั้งหมดของ {channel?.name ?? channelId} ({filteredProducts.length} รายการ)
+            <h1 className="text-xl lg:text-2xl font-bold text-primary">
+              สินค้า {channel?.name ?? channelId} ({filteredProducts.length} รายการ)
             </h1>
           </div>
         </div>
@@ -91,7 +91,7 @@ export default function ChannelDetailPage() {
         {/* Add Product Button */}
         <Link
           href={`/management/channels/${channelId}/add`}
-          className="bg-primary text-secondary px-4 py-2 rounded-lg flex items-center gap-2 text-sm hover:bg-primary/90 transition-colors"
+          className="bg-primary text-white px-4 py-2 rounded-lg flex items-center gap-2 text-sm hover:bg-primary/90 transition-colors"
         >
           <PlusCircle className="w-4 h-4" /> เพิ่มสินค้า
         </Link>

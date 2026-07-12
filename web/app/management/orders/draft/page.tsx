@@ -1,9 +1,11 @@
 'use client';
 
+import { useState } from 'react';
 import { useOrder } from '@/contexts/OrderContext';
-import { useRouter } from 'next/navigation';
-import { ArrowLeft, Trash2, ShoppingBag } from 'lucide-react';
+import { Trash2 } from 'lucide-react';
 import { Button } from '@/components/ui/button';
+import { StepOrderItems } from './step-order-items';
+import { StepInvoiceForm } from './step-invoice-form';
 
 function OrderCover({ coverUrl, name, className = '' }: { coverUrl?: string | null; name: string; className?: string }) {
   return (
@@ -58,7 +60,7 @@ function OrderRowMobile({
       <div className="flex flex-col items-start justify-between gap-2 shrink-0">
         <div className="text-right">
           <p className="text-lg font-bold text-primary">฿{lineTotal.toLocaleString()}</p>
-          <p className="text-xs text-muted-foreground">×{item.quantity}</p>
+          <p className="text-xs text-muted-foreground">฿{unitPrice.toLocaleString()} × {item.quantity}</p>
         </div>
         <Button variant="destructive" size="sm" onClick={() => removeItem(index)}>
           <Trash2 className="w-4 h-4" />
@@ -94,7 +96,7 @@ function OrderRowDesktop({
       <div className="flex flex-col items-end gap-2 shrink-0">
         <div className="text-right">
           <p className="text-2xl font-bold text-primary">฿{lineTotal.toLocaleString()}</p>
-          <p className="text-sm text-muted-foreground">×{item.quantity}</p>
+          <p className="text-sm text-muted-foreground">฿{unitPrice.toLocaleString()} × {item.quantity}</p>
         </div>
         <Button variant="destructive" size="sm" onClick={() => removeItem(index)}>
           <Trash2 className="w-4 h-4 mr-1" />
@@ -105,7 +107,7 @@ function OrderRowDesktop({
   );
 }
 
-function OrderRow({
+export function OrderRow({
   index,
   item,
 }: {
@@ -125,79 +127,14 @@ function OrderRow({
 }
 
 export default function OrderDraftPage() {
-  const router = useRouter();
-  const { items, channelName, totalQuantity, totalPrice, clearOrder } = useOrder();
+  const [step, setStep] = useState<1 | 2>(1);
 
   return (
     <div className="no-scrollbar h-full w-full overflow-y-auto">
-      {/* Header */}
-      <div className="flex items-start justify-between mb-6">
-        <div className="flex items-center gap-3">
-          <button
-            type="button"
-            onClick={() => router.back()}
-            className="p-2 rounded-lg hover:bg-surface transition-colors"
-          >
-            <ArrowLeft className="w-5 h-5 text-primary" />
-          </button>
-          <div>
-            <h1 className="text-2xl font-bold text-primary">รายการสั่งซื้อ</h1>
-            {channelName && (
-              <span className="inline-flex items-center px-2.5 py-0.5 rounded-full bg-primary/10 text-primary text-xs font-medium mt-1">
-                {channelName}
-              </span>
-            )}
-          </div>
-        </div>
-
-        {items.length > 0 && (
-          <Button variant="destructive" size="sm" onClick={clearOrder}>
-            <Trash2 className="w-4 h-4 mr-1" />
-            ล้างทั้งหมด
-          </Button>
-        )}
-      </div>
-
-      {/* Items */}
-      {items.length > 0 ? (
-        <>
-          <div className="space-y-3 mb-6">
-            {items.map((item, i) => (
-              <OrderRow key={i} index={i} item={item} />
-            ))}
-          </div>
-
-          {/* Summary */}
-          <div className="sticky bottom-0 bg-white border-t border-gray-200 pt-4 pb-2 rounded-b-xl">
-            <div className="flex items-center justify-between mb-1 px-1">
-              <span className="text-sm text-muted-foreground">จำนวนทั้งหมด</span>
-              <span className="text-sm font-medium text-primary">{totalQuantity} ชิ้น</span>
-            </div>
-            <div className="flex items-center justify-between px-1 mb-4">
-              <span className="text-base font-bold text-primary">รวมทั้งหมด</span>
-              <span className="text-xl font-bold text-primary">฿{totalPrice.toLocaleString()}</span>
-            </div>
-
-            <Button variant="primary" className="w-full" size="lg">
-              ยืนยันรายการ
-            </Button>
-          </div>
-        </>
+      {step === 1 ? (
+        <StepOrderItems onNext={() => setStep(2)} />
       ) : (
-        /* Empty state */
-        <div className="flex flex-col items-center justify-center py-24 text-muted-foreground">
-          <ShoppingBag className="w-16 h-16 mb-4 text-primary/20" />
-          <p className="text-lg font-medium text-primary/40">ยังไม่มีรายการสั่งซื้อ</p>
-          <p className="text-sm text-primary/30 mt-1">เลือกสินค้าจากช่องทางขายเพื่อเริ่มสร้างบิล</p>
-          <Button
-            variant="primary"
-            size="sm"
-            className="mt-6"
-            onClick={() => router.push('/management/channels')}
-          >
-            เลือกสินค้า
-          </Button>
-        </div>
+        <StepInvoiceForm onBack={() => setStep(1)} />
       )}
     </div>
   );
