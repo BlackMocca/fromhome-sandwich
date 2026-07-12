@@ -4,6 +4,7 @@ import {
   createContext,
   useCallback,
   useContext,
+  useEffect,
   useMemo,
   useRef,
   useState,
@@ -35,6 +36,34 @@ interface OrderContextValue {
   totalPrice: number;
 }
 
+const STORAGE_KEY = 'fromhome-sandwich-order';
+
+interface StoredOrder {
+  channelId: number;
+  channelName: string | null;
+  items: OrderItem[];
+}
+
+function loadStoredOrder(): StoredOrder | null {
+  if (typeof window === 'undefined') return null;
+  try {
+    const raw = localStorage.getItem(STORAGE_KEY);
+    if (!raw) return null;
+    return JSON.parse(raw) as StoredOrder;
+  } catch {
+    return null;
+  }
+}
+
+function saveStoredOrder(data: StoredOrder | null) {
+  if (typeof window === 'undefined') return;
+  if (data) {
+    localStorage.setItem(STORAGE_KEY, JSON.stringify(data));
+  } else {
+    localStorage.removeItem(STORAGE_KEY);
+  }
+}
+
 const OrderContext = createContext<OrderContextValue | undefined>(undefined);
 
 export function OrderProvider({ children }: { children: ReactNode }) {
@@ -43,6 +72,28 @@ export function OrderProvider({ children }: { children: ReactNode }) {
   const [items, setItems] = useState<OrderItem[]>([]);
   const [pendingItem, setPendingItem] = useState<OrderItem | null>(null);
   const [pendingChannelName, setPendingChannelName] = useState<string | null>(null);
+  const [hydrated, setHydrated] = useState(false);
+
+  // Hydrate from localStorage on mount
+  useEffect(() => {
+    const stored = loadStoredOrder();
+    if (stored && stored.items.length > 0) {
+      setChannelId(stored.channelId);
+      setChannelName(stored.channelName);
+      setItems(stored.items);
+    }
+    setHydrated(true);
+  }, []);
+
+  // Persist to localStorage on state change
+  useEffect(() => {
+    if (!hydrated) return;
+    if (channelId !== null && items.length > 0) {
+      saveStoredOrder({ channelId, channelName, items });
+    } else {
+      saveStoredOrder(null);
+    }
+  }, [channelId, channelName, items, hydrated]);
 
   // Use ref to avoid stale closure in callbacks
   const channelIdRef = useRef(channelId);

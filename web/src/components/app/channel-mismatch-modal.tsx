@@ -42,7 +42,7 @@ export function ChannelMismatchModal() {
             จากช่องทาง
             <span className="font-semibold text-primary"> {pendingChannelName ?? 'อื่น'} </span>
           </p>
-          <p className="font-semibold text-action">
+          <p className="font-semibold text-destructive">
             หากยืนยัน ข้อมูลบิลเดิมจะถูกล้างทั้งหมด แล้วเริ่มบิลใหม่ด้วยสินค้าจากช่องทางนี้แทน
           </p>
         </div>
@@ -59,7 +59,7 @@ export function ChannelMismatchModal() {
           <button
             type="button"
             onClick={confirmReplace}
-            className="flex-1 px-4 py-2.5 rounded-xl bg-action text-white font-medium hover:bg-action/90 active:scale-95 transition-all text-sm shadow-md"
+            className="flex-1 px-4 py-2.5 rounded-xl bg-primary text-white font-medium hover:bg-primary/90 active:scale-95 transition-all text-sm shadow-md"
           >
             ยืนยันล้างและเพิ่มใหม่
           </button>

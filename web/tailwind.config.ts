@@ -9,6 +9,9 @@ const config: Config = {
   ],
   theme: {
     extend: {
+      screens: {
+        xs: { min: '400px', max: '639px' },
+      },
       colors: {
         // Design tokens from DESIGN.md — From Home Sandwich palette
         background: 'hsl(var(--background))',

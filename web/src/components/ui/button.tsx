@@ -3,7 +3,7 @@ import { cn } from '@/lib/utils';
 
 // Button variants matching DESIGN.md posture rules
 export type ButtonVariant = 'default' | 'primary' | 'action' | 'success' | 'destructive' | 'ghost';
-export type ButtonSize = 'default' | 'sm' | 'lg';
+export type ButtonSize = 'default' | 'xs' | 'sm' | 'lg';
 
 export interface ButtonProps extends React.ButtonHTMLAttributes<HTMLButtonElement> {
   asChild?: boolean;
@@ -24,6 +24,7 @@ const variantClasses: Record<ButtonVariant, string> = {
 
 const sizeClasses: Record<ButtonSize, string> = {
   default: 'px-4 py-2 h-10 text-sm',
+  xs: 'px-2 py-1 h-6 text-[10px]',
   sm: 'px-3 py-1.5 h-8 text-xs',
   lg: 'px-6 py-3 h-12 text-base',
 };
