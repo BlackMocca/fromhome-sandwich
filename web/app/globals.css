@@ -1,8 +1,109 @@
 @import "../node_modules/tw-animate-css/dist/tw-animate.css";
+@import "../node_modules/react-day-picker/src/style.css";
 @import "shadcn/tailwind.css";
 @tailwind base;
 @tailwind components;
 @tailwind utilities;
+
+/* Calendar — Modern clean style */
+.rdp {
+  --rdp-accent-color: #695848;
+  --rdp-accent-background-color: #695848;
+  --rdp-today-color: #695848;
+  --rdp-day-height: 34px;
+  --rdp-day-width: 34px;
+  --rdp-day_button-height: 32px;
+  --rdp-day_button-width: 32px;
+  --rdp-day_button-border-radius: 8px;
+  --rdp-nav_button-height: 1.75rem;
+  --rdp-nav_button-width: 1.75rem;
+  --rdp-nav-height: 2.25rem;
+}
+
+@media (max-width: 640px) {
+  .rdp {
+    --rdp-day-height: 28px;
+    --rdp-day-width: 28px;
+    --rdp-day_button-height: 26px;
+    --rdp-day_button-width: 26px;
+    --rdp-day_button-border-radius: 6px;
+    --rdp-nav_button-height: 1.25rem;
+    --rdp-nav_button-width: 1.25rem;
+    --rdp-nav-height: 1.75rem;
+  }
+  .rdp-month_grid { border-spacing: 1px; }
+  .rdp-weekday { font-size: 0.6rem; padding-bottom: 4px; }
+  .rdp-day_button { font-size: 0.7rem; }
+  .rdp-caption_label { font-size: 0.75rem; }
+  .rdp { padding: 0.5rem; }
+}
+
+.rdp-month_grid {
+  border-spacing: 2px;
+}
+
+.rdp-weekday {
+  font-size: 0.7rem;
+  font-weight: 500;
+  color: #9ca3af;
+  text-transform: uppercase;
+  letter-spacing: 0.05em;
+  padding-bottom: 6px;
+}
+
+.rdp-day_button {
+  border-radius: 8px;
+  font-size: 0.8rem;
+  font-weight: 500;
+  transition: all 0.15s ease;
+  border: 2px solid transparent;
+}
+
+.rdp-day_button:hover {
+  background: #f3f0ec;
+  color: #695848;
+}
+
+.rdp-selected .rdp-day_button {
+  background: #695848;
+  color: white;
+  border-color: #695848;
+  font-weight: 600;
+}
+
+.rdp-selected .rdp-day_button:hover {
+  background: #5a4a3c;
+}
+
+.rdp-today .rdp-day_button {
+  border-color: #e0b554;
+  color: #695848;
+  font-weight: 700;
+}
+
+.rdp-today.rdp-selected .rdp-day_button {
+  background: #695848;
+  color: white;
+  border-color: #e0b554;
+}
+
+.rdp-button_previous,
+.rdp-button_next {
+  border-radius: 6px;
+  transition: all 0.15s ease;
+}
+
+.rdp-button_previous:hover,
+.rdp-button_next:hover {
+  background: #f3f0ec;
+}
+
+.rdp-caption_label {
+  font-size: 0.85rem;
+  font-weight: 600;
+  color: #695848;
+  letter-spacing: 0.02em;
+}
 
 /* From Home Sandwich Design Tokens — DESIGN.md */
 /* From Home Sandwich Design Tokens — DESIGN.md */

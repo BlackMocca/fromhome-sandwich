@@ -34,6 +34,9 @@ export async function generateMetadata(
     title: 'From Home Sandwich — ระบบจัดการบิลและยอดขาย',
     description:
       'ระบบจัดการสินค้า ใบเสร็จ และรายงานยอดขายสำหรับ From Home Sandwich',
+    icons: {
+      icon: '/images/merchant/logo.jpg',
+    },
   };
 }
 
