@@ -6,9 +6,13 @@ CREATE TABLE IF NOT EXISTS channel_product_addons (
   PRIMARY KEY (channel_product_id, addon_id)
 );
 
-CREATE INDEX idx_channel_product_addons_channel_product_id ON channel_product_addons(channel_product_id);
-CREATE INDEX idx_channel_product_addons_addon_id ON channel_product_addons(addon_id);
+CREATE INDEX IF NOT EXISTS idx_channel_product_addons_channel_product_id ON channel_product_addons(channel_product_id);
+CREATE INDEX IF NOT EXISTS idx_channel_product_addons_addon_id ON channel_product_addons(addon_id);
 
 ALTER TABLE channel_product_addons ENABLE ROW LEVEL SECURITY;
-CREATE POLICY "Allow write access" ON channel_product_addons
-  FOR ALL USING (auth.role() = 'authenticated');
+DO $$ BEGIN
+  IF NOT EXISTS (SELECT 1 FROM pg_policies WHERE policyname = 'Allow write access' AND tablename = 'channel_product_addons') THEN
+    CREATE POLICY "Allow write access" ON channel_product_addons
+      FOR ALL USING (auth.role() = 'authenticated');
+  END IF;
+END $$;

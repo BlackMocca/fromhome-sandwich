@@ -125,6 +125,7 @@ export default function ChannelDetailPage() {
               product={cp}
               category={cp.products?.categories ?? null}
               channelName={channel?.name}
+              channelCode={channel?.code}
             />
           ))}
         </div>

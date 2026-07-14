@@ -89,9 +89,12 @@ export async function get<T>(table: string, opts?: { params?: Record<string, str
     reqUrl += `?${qs}`;
   }
 
+  console.log(`[db.get] ${reqUrl}`);
   const res = await fetch(reqUrl, { headers: getHeaders(), cache: 'no-store' });
   
   if (!res.ok) {
+    const body = await res.text().catch(() => '');
+    console.error(`[db.get] FAILED ${res.status}: ${body}`);
     throw new Error(`GET ${table} failed: ${res.status} ${res.statusText}`);
   }
   
@@ -434,6 +437,101 @@ export async function getReceipts(options?: { channel_code?: string }) {
   return get<import('@/types/receipt').Receipt[]>('receipts', { params });
 }
 
-export async function createReceipt(data: Record<string, unknown>) {
-  return create<import('@/types/receipt').Receipt>('receipts', data);
+// ─── Receipt Number ─────────────────────────────────────
+
+export async function getNextReceiptNo(channelCode: string, billDate: string): Promise<string> {
+  console.log(`[getNextReceiptNo] called with channelCode=${channelCode}, billDate=${billDate}`);
+  try {
+    const receipts = await get<import('@/types/receipt').Receipt[]>('receipts', {
+      params: {
+        channel_code: `eq.${channelCode}`,
+        bill_date: `eq.${billDate}`,
+        order: 'receipt_no.desc',
+        limit: '1',
+        select: 'receipt_no',
+      },
+    });
+
+    console.log(`[getNextReceiptNo] query result:`, receipts);
+
+    if (!receipts || receipts.length === 0) {
+      const dateCompact = billDate.replace(/-/g, '');
+      return `${channelCode}${dateCompact}0001`;
+    }
+
+    const lastNo = receipts[0].receipt_no;
+    const lastSeq = parseInt(lastNo.slice(-4), 10);
+    const nextSeq = String(lastSeq + 1).padStart(4, '0');
+    const prefix = lastNo.slice(0, -4);
+    return `${prefix}${nextSeq}`;
+  } catch (err) {
+    console.error('[getNextReceiptNo] Error:', err);
+    const dateCompact = billDate.replace(/-/g, '');
+    return `${channelCode}${dateCompact}0001`;
+  }
+}
+
+// ─── Create Receipt (Header + Items) ───────────────────
+
+interface CreateReceiptItemInput {
+  product_id: number | null;
+  product_name: string;
+  product_price: number;
+  product_cost: number;
+  product_options: { id: number; name: string; price: number }[];
+  quantity: number;
+  line_total: number;
+  note?: string | null;
+}
+
+export interface CreateReceiptInput {
+  channel_id: number;
+  channel_code: string;
+  receipt_no: string;
+  customer_name?: string;
+  bill_date: string;
+  total_quantity: number;
+  subtotal: number;
+  discount_total: number;
+  grand_total: number;
+  discounts: { type: string; price?: number; percentage?: number; code?: string }[];
+  note?: string | null;
+  items: CreateReceiptItemInput[];
+}
+
+export async function createReceipt(
+  input: CreateReceiptInput,
+): Promise<{ success: boolean; receipt: import('@/types/receipt').Receipt }> {
+  // 1. Create receipt header
+  const receipt = await create<import('@/types/receipt').Receipt>('receipts', {
+    channel_id: input.channel_id,
+    channel_code: input.channel_code,
+    receipt_no: input.receipt_no,
+    customer_name: input.customer_name || null,
+    bill_date: input.bill_date,
+    total_quantity: input.total_quantity,
+    subtotal: input.subtotal,
+    discount_total: input.discount_total,
+    grand_total: input.grand_total,
+    discounts: input.discounts,
+    status: 'active',
+    note: input.note || null,
+  });
+
+  // 2. Create receipt items
+  for (const item of input.items) {
+    await create('receipt_items', {
+      receipt_id: receipt.id,
+      product_id: item.product_id,
+      product_name: item.product_name,
+      product_price: item.product_price,
+      product_cost: item.product_cost,
+      product_options: item.product_options,
+      quantity: item.quantity,
+      line_total: item.line_total,
+      note: item.note || null,
+    });
+  }
+
+  return { success: true, receipt };
 }

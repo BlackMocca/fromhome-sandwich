@@ -23,10 +23,12 @@ export interface OrderItem {
 interface OrderContextValue {
   channelId: number | null;
   channelName: string | null;
+  channelCode: string | null;
   items: OrderItem[];
   pendingItem: OrderItem | null;
   pendingChannelName: string | null;
-  addItem: (channelProduct: ChannelProduct, quantity: number, selectedAddons: ProductAddon[], channelName?: string, note?: string) => void;
+  pendingChannelCode: string | null;
+  addItem: (channelProduct: ChannelProduct, quantity: number, selectedAddons: ProductAddon[], channelName?: string, channelCode?: string, note?: string) => void;
   confirmReplace: () => void;
   cancelPending: () => void;
   removeItem: (index: number) => void;
@@ -41,6 +43,7 @@ const STORAGE_KEY = 'fromhome-sandwich-order';
 interface StoredOrder {
   channelId: number;
   channelName: string | null;
+  channelCode: string | null;
   items: OrderItem[];
 }
 
@@ -69,9 +72,11 @@ const OrderContext = createContext<OrderContextValue | undefined>(undefined);
 export function OrderProvider({ children }: { children: ReactNode }) {
   const [channelId, setChannelId] = useState<number | null>(null);
   const [channelName, setChannelName] = useState<string | null>(null);
+  const [channelCode, setChannelCode] = useState<string | null>(null);
   const [items, setItems] = useState<OrderItem[]>([]);
   const [pendingItem, setPendingItem] = useState<OrderItem | null>(null);
   const [pendingChannelName, setPendingChannelName] = useState<string | null>(null);
+  const [pendingChannelCode, setPendingChannelCode] = useState<string | null>(null);
   const [hydrated, setHydrated] = useState(false);
 
   // Hydrate from localStorage on mount
@@ -80,6 +85,7 @@ export function OrderProvider({ children }: { children: ReactNode }) {
     if (stored && stored.items.length > 0) {
       setChannelId(stored.channelId);
       setChannelName(stored.channelName);
+      setChannelCode(stored.channelCode ?? null);
       setItems(stored.items);
     }
     setHydrated(true);
@@ -89,11 +95,11 @@ export function OrderProvider({ children }: { children: ReactNode }) {
   useEffect(() => {
     if (!hydrated) return;
     if (channelId !== null && items.length > 0) {
-      saveStoredOrder({ channelId, channelName, items });
+      saveStoredOrder({ channelId, channelName, channelCode, items });
     } else {
       saveStoredOrder(null);
     }
-  }, [channelId, channelName, items, hydrated]);
+  }, [channelId, channelName, channelCode, items, hydrated]);
 
   // Use ref to avoid stale closure in callbacks
   const channelIdRef = useRef(channelId);
@@ -102,9 +108,11 @@ export function OrderProvider({ children }: { children: ReactNode }) {
   pendingItemRef.current = pendingItem;
   const pendingChannelNameRef = useRef(pendingChannelName);
   pendingChannelNameRef.current = pendingChannelName;
+  const pendingChannelCodeRef = useRef(pendingChannelCode);
+  pendingChannelCodeRef.current = pendingChannelCode;
 
   const addItem = useCallback(
-    (channelProduct: ChannelProduct, quantity: number, selectedAddons: ProductAddon[], channelNameArg?: string, note?: string) => {
+    (channelProduct: ChannelProduct, quantity: number, selectedAddons: ProductAddon[], channelNameArg?: string, channelCodeArg?: string, note?: string) => {
       const newItem: OrderItem = { channelProduct, quantity, selectedAddons, note };
       const currentChannelId = channelIdRef.current;
 
@@ -112,12 +120,15 @@ export function OrderProvider({ children }: { children: ReactNode }) {
       if (currentChannelId === null) {
         setChannelId(channelProduct.channel_id);
         setChannelName(channelNameArg ?? null);
+        setChannelCode(channelCodeArg ?? null);
         setItems([newItem]);
         return;
       }
 
-      // Same channel — add directly
+      // Same channel — add directly, but backfill channelName/code if missing
       if (currentChannelId === channelProduct.channel_id) {
+        if (channelNameArg) setChannelName(channelNameArg);
+        if (channelCodeArg) setChannelCode(channelCodeArg);
         setItems(prev => [...prev, newItem]);
         return;
       }
@@ -125,6 +136,7 @@ export function OrderProvider({ children }: { children: ReactNode }) {
       // Different channel — pause and show confirmation modal
       setPendingItem(newItem);
       setPendingChannelName(channelNameArg ?? null);
+      setPendingChannelCode(channelCodeArg ?? null);
     },
     [],
   );
@@ -134,14 +146,17 @@ export function OrderProvider({ children }: { children: ReactNode }) {
     if (!pending) return;
     setChannelId(pending.channelProduct.channel_id);
     setChannelName(pendingChannelNameRef.current);
+    setChannelCode(pendingChannelCodeRef.current);
     setItems([pending]);
     setPendingItem(null);
     setPendingChannelName(null);
+    setPendingChannelCode(null);
   }, []);
 
   const cancelPending = useCallback(() => {
     setPendingItem(null);
     setPendingChannelName(null);
+    setPendingChannelCode(null);
   }, []);
 
   const removeItem = useCallback((index: number) => {
@@ -162,8 +177,10 @@ export function OrderProvider({ children }: { children: ReactNode }) {
     setItems([]);
     setChannelId(null);
     setChannelName(null);
+    setChannelCode(null);
     setPendingItem(null);
     setPendingChannelName(null);
+    setPendingChannelCode(null);
   }, []);
 
   const totalQuantity = useMemo(() => items.reduce((s, i) => s + i.quantity, 0), [items]);
@@ -181,9 +198,11 @@ export function OrderProvider({ children }: { children: ReactNode }) {
     () => ({
       channelId,
       channelName,
+      channelCode,
       items,
       pendingItem,
       pendingChannelName,
+      pendingChannelCode,
       addItem,
       confirmReplace,
       cancelPending,
@@ -193,7 +212,7 @@ export function OrderProvider({ children }: { children: ReactNode }) {
       totalQuantity,
       totalPrice,
     }),
-    [channelId, channelName, items, pendingItem, pendingChannelName, addItem, confirmReplace, cancelPending, removeItem, updateItem, clearOrder, totalQuantity, totalPrice],
+    [channelId, channelName, channelCode, items, pendingItem, pendingChannelName, pendingChannelCode, addItem, confirmReplace, cancelPending, removeItem, updateItem, clearOrder, totalQuantity, totalPrice],
   );
 
   return <OrderContext.Provider value={value}>{children}</OrderContext.Provider>;

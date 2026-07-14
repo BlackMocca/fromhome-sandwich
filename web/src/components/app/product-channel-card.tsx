@@ -12,6 +12,7 @@ interface ProductChannelCardProps {
   product: ChannelProduct;
   category?: Category | null;
   channelName?: string;
+  channelCode?: string;
 }
 
 /** iPad-Optimized Product Card with Pill Options */
@@ -19,6 +20,7 @@ export function ProductChannelCard({
   product,
   category,
   channelName,
+  channelCode,
 }: ProductChannelCardProps) {
   const { addItem } = useOrder();
   const [quantity, setQuantity] = useState(1);
@@ -102,7 +104,7 @@ export function ProductChannelCard({
             type="button" 
             onClick={() => {
               const selectedAddons = channelProductAddOn.filter(a => selectedOptionIds.includes(a.id));
-              addItem(product, quantity, selectedAddons, channelName);
+              addItem(product, quantity, selectedAddons, channelName, channelCode);
               setQuantity(1);
               setSelectedOptionIds([]);
             }}

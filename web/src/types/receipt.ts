@@ -1,20 +1,47 @@
-/** Receipt (Bill) entity — Billing system (Requirement.md §3) */
+/** Receipt (Bill) entity — snapshot order schema */
+
 export interface Receipt {
   id: number;
-  receipt_no: string;        // e.g., "LMN202607030001"
-  channel_code: string;      // Short code, e.g., "LMN"
+  channel_id: number;
+  channel_code: string;
+  receipt_no: string;
   customer_name: string | null;
-  bill_date: string;         // YYYY-MM-DD
-  total_amount: number;
-  status: 'Active' | 'Cancelled';
+  bill_date: string;
+  total_quantity: number;
+  subtotal: number;
+  discount_total: number;
+  grand_total: number;
+  discounts: DiscountSnapshot[];
+  status: 'active' | 'cancelled';
+  note: string | null;
+  created_at: string;
+  updated_at: string;
 }
 
-/** Receipt line item — Products + Options per bill */
-export interface ReceiptLineItem {
+/** Receipt line item — Product snapshot at order time */
+export interface ReceiptItem {
   id: number;
   receipt_id: number;
-  product_id: number;
-  option_id: number | null;
+  product_id: number | null;
+  product_name: string;
+  product_price: number;
+  product_cost: number;
+  product_options: ProductOptionSnapshot[];
   quantity: number;
-  price: number;             // Price at time of billing (may include channel override)
+  line_total: number;
+  note: string | null;
+  created_at: string;
+}
+
+export interface DiscountSnapshot {
+  type: 'pricing' | 'percentage' | 'coupon';
+  price?: number;
+  percentage?: number;
+  code?: string;
+}
+
+export interface ProductOptionSnapshot {
+  id: number;
+  name: string;
+  price: number;
 }

@@ -1,6 +1,9 @@
 'use client';
 
-import { useRef, useState } from 'react';
+import { useEffect, useRef, useState } from 'react';
+import { useFormik } from 'formik';
+import * as yup from 'yup';
+import { useQuery } from '@tanstack/react-query';
 import { useOrder } from '@/contexts/OrderContext';
 import { useRouter } from 'next/navigation';
 import { ArrowLeft, Download, Plus, Trash2 } from 'lucide-react';
@@ -8,7 +11,11 @@ import { Button } from '@/components/ui/button';
 import { Input } from '@/components/ui/input';
 import { InputDate } from '@/components/ui/input-date';
 import { OrderPreview } from '@/components/ui/OrderPreview';
+import { getNextReceiptNo, createReceipt } from '@/lib/db';
+import { getChannelById } from '@/lib/db';
 import html2canvas from 'html2canvas';
+
+// ─── Types ──────────────────────────────────────────────
 
 export interface DiscountSet {
   id: string;
@@ -18,34 +25,172 @@ export interface DiscountSet {
   price?: number;
 }
 
+interface InvoiceFormValues {
+  receiptNo: string;
+  customerName: string;
+  invoiceDate: string;
+  note: string;
+  discounts: DiscountSet[];
+}
+
+// ─── Validation Schema ─────────────────────────────────
+
+const invoiceSchema = yup.object({
+  receiptNo: yup.string(),
+  customerName: yup.string().trim().required('กรุณากรอกชื่อลูกค้า'),
+  invoiceDate: yup.string().required('กรุณาเลือกวันที่'),
+  note: yup.string(),
+  discounts: yup.array().of(
+    yup.object({
+      id: yup.string().required(),
+      discount_type: yup.string().oneOf(['percentage', 'pricing', 'coupon']).required(),
+      coupon_code: yup.string(),
+      percentage: yup.number().min(0).max(100),
+      price: yup.number().min(0),
+    })
+  ),
+});
+
+// ─── Component ─────────────────────────────────────────
+
 export function StepInvoiceForm({ onBack }: { onBack: () => void }) {
   const router = useRouter();
-  const { items, channelName, totalQuantity, totalPrice, clearOrder } = useOrder();
-  const [orderingRef, setOrderingRef] = useState('');
-  const [customerName, setCustomerName] = useState('');
-  const [invoiceDate, setInvoiceDate] = useState(() => new Date().toISOString().split('T')[0]);
-  const [discounts, setDiscounts] = useState<DiscountSet[]>([]);
+  const { items, channelId, channelCode, channelName, totalQuantity, totalPrice, clearOrder } = useOrder();
+  const previewRef = useRef<HTMLDivElement>(null);
+
+  console.log('[StepInvoiceForm] render', { channelId, channelCode, channelName });
+
+  // Resolve channelCode from DB if missing (e.g., old localStorage data)
+  const [resolvedCode, setResolvedCode] = useState(channelCode);
+  useEffect(() => {
+    if (channelCode) {
+      setResolvedCode(channelCode);
+      return;
+    }
+    if (!channelId) return;
+    getChannelById(channelId).then(ch => {
+      if (ch?.code) setResolvedCode(ch.code);
+    });
+  }, [channelCode, channelId]);
+
+  const effectiveCode = channelCode ?? resolvedCode;
+
+  // Sync fallback receipt number from channelCode
+  const today = new Date().toISOString().split('T')[0];
+  const fallbackReceiptNo = effectiveCode
+    ? `${effectiveCode}${today.replace(/-/g, '')}0001`
+    : '';
+
+  // Fetch actual running number from server via React Query
+  const receiptQuery = useQuery({
+    queryKey: ['receiptNo', effectiveCode, today],
+    queryFn: () => getNextReceiptNo(effectiveCode!, today),
+    enabled: !!effectiveCode,
+    staleTime: 30_000,
+  });
+  console.log('[StepInvoiceForm] receiptQuery', { enabled: !!effectiveCode, data: receiptQuery.data, status: receiptQuery.status });
+
+  const receiptNo = receiptQuery.data || fallbackReceiptNo;
+
+  // Sync receiptNo into Formik values
+  useEffect(() => {
+    if (receiptNo) formik.setFieldValue('receiptNo', receiptNo);
+  }, [receiptNo]);
+
+  // ─── Formik ──────────────────────────────────────────
+
+  const formik = useFormik<InvoiceFormValues>({
+    initialValues: {
+      receiptNo: '',
+      customerName: '',
+      invoiceDate: new Date().toISOString().split('T')[0],
+      note: '',
+      discounts: [],
+    },
+    validationSchema: invoiceSchema,
+    onSubmit: async (values) => {
+      if (!channelId || !effectiveCode || items.length === 0) return;
+
+      // Build receipt items with snapshot data
+      const receiptItems = items.map(item => {
+        const addonTotal = item.selectedAddons.reduce((s, a) => s + a.base_price, 0);
+        const unitPrice = item.channelProduct.price + addonTotal;
+        return {
+          product_id: item.channelProduct.product_id,
+          product_name: item.channelProduct.products?.name ?? 'สินค้า',
+          product_price: item.channelProduct.price,
+          product_cost: item.channelProduct.cost,
+          product_options: item.selectedAddons.map(a => ({
+            id: a.id,
+            name: a.name,
+            price: a.base_price,
+          })),
+          quantity: item.quantity,
+          line_total: unitPrice * item.quantity,
+          note: item.note || null,
+        };
+      });
+
+      // Calculate totals
+      const subtotal = totalPrice;
+      const discountTotal = values.discounts.reduce((s, d) => {
+        if (d.discount_type === 'percentage') return s + ((d.percentage ?? 0) * totalPrice) / 100;
+        return s + (d.price ?? 0);
+      }, 0);
+      const grandTotal = subtotal - discountTotal;
+
+      // Create receipt via server action
+      const result = await createReceipt({
+        channel_id: channelId,
+        channel_code: effectiveCode,
+        receipt_no: formik.values.receiptNo,
+        customer_name: values.customerName,
+        bill_date: values.invoiceDate,
+        total_quantity: totalQuantity,
+        subtotal,
+        discount_total: discountTotal,
+        grand_total: grandTotal,
+        discounts: values.discounts.map(d => ({
+          type: d.discount_type,
+          ...(d.price != null && d.price > 0 && { price: d.price }),
+          ...(d.percentage != null && d.percentage > 0 && { percentage: d.percentage }),
+          ...(d.coupon_code && { code: d.coupon_code }),
+        })),
+        note: values.note,
+        items: receiptItems,
+      });
+
+      if (result.success) {
+        clearOrder();
+        router.push('/management/orders');
+      }
+    },
+  });
+
+  // ─── Discount helpers ────────────────────────────────
 
   const addDiscount = () => {
-    setDiscounts([...discounts, { id: crypto.randomUUID(), discount_type: 'pricing' }]);
+    formik.setFieldValue('discounts', [
+      ...formik.values.discounts,
+      { id: crypto.randomUUID(), discount_type: 'pricing' },
+    ]);
   };
 
   const removeDiscount = (id: string) => {
-    setDiscounts(discounts.filter(d => d.id !== id));
+    formik.setFieldValue(
+      'discounts',
+      formik.values.discounts.filter(d => d.id !== id),
+    );
   };
 
-  const updateDiscount = (id: string, field: keyof DiscountSet, value: any) => {
-    setDiscounts(discounts.map(d => d.id === id ? { ...d, [field]: value } : d));
+  const updateDiscount = (id: string, field: keyof DiscountSet, value: unknown) => {
+    formik.setFieldValue(
+      'discounts',
+      formik.values.discounts.map(d => d.id === id ? { ...d, [field]: value } : d),
+    );
   };
-  const previewRef = useRef<HTMLDivElement>(null);
 
-  const handleSubmit = (e: React.FormEvent) => {
-    e.preventDefault();
-    if (!customerName.trim()) return;
-    console.log({ customerName, invoiceDate, items, totalQuantity, totalPrice });
-    clearOrder();
-    router.back();
-  };
+  // ─── Download ────────────────────────────────────────
 
   const handleDownload = async () => {
     if (!previewRef.current) return;
@@ -63,10 +208,12 @@ export function StepInvoiceForm({ onBack }: { onBack: () => void }) {
     const image = canvas.toDataURL('image/jpeg', 1.0);
     const link = document.createElement('a');
     link.href = image;
-    link.download = `invoice-${invoiceDate}.jpg`;
+    link.download = `invoice-${formik.values.receiptNo || formik.values.invoiceDate}.jpg`;
     link.click();
     style.remove();
   };
+
+  // ─── Render ──────────────────────────────────────────
 
   return (
     <>
@@ -99,8 +246,9 @@ export function StepInvoiceForm({ onBack }: { onBack: () => void }) {
             <Download className="w-4 h-4 mr-1" />
             ดาวน์โหลด
           </Button>
-          <Button type="submit" form="invoice-form" variant="primary" className="text-white">
-            สร้างบิล
+          <Button type="button" variant="primary" className="text-white" disabled={formik.isSubmitting}
+            onClick={() => (document.getElementById('invoice-form') as HTMLFormElement)?.requestSubmit()}>
+            {formik.isSubmitting ? 'กำลังสร้างบิล...' : 'สร้างบิล'}
           </Button>
         </div>
       </div>
@@ -109,32 +257,39 @@ export function StepInvoiceForm({ onBack }: { onBack: () => void }) {
       <div className="flex flex-col lg:flex-row gap-6 items-start w-full max-w-[1028px] px-2">
         {/* Form Section */}
         <div className="w-full space-y-4 flex-1 min-w-0">
-          <form id="invoice-form" onSubmit={handleSubmit} className="space-y-4">
-            {/* Form fields stacked vertically: Ordering, order_date, customer_name */}
+          <form id="invoice-form" onSubmit={formik.handleSubmit} className="space-y-4">
+            {/* Form fields */}
             <div className="space-y-4 mb-6">
+              {/* Receipt No (auto-generated, readonly) */}
               <div className="space-y-2">
-                <label htmlFor="orderingRef" className="text-sm font-medium text-primary">
-                  ที่สั่ง
+                <label htmlFor="receiptNo" className="text-sm font-medium text-primary">
+                  เลขที่บิล
                 </label>
                 <Input
-                  id="orderingRef"
-                  placeholder="เลขที่ใบสั่งซื้อ"
-                  value={orderingRef}
-                  onChange={e => setOrderingRef(e.target.value)}
+                  id="receiptNo"
+                  value={formik.values.receiptNo}
+                  readOnly
+                  disabled
+                  className="bg-surface/50 font-mono"
                 />
               </div>
 
+              {/* Invoice Date */}
               <div className="space-y-2">
                 <label className="text-sm font-medium text-primary">
                   วันที่ออกบิล <span className="text-destructive">*</span>
                 </label>
                 <InputDate
-                  value={invoiceDate}
-                  onValueChange={setInvoiceDate}
+                  value={formik.values.invoiceDate}
+                  onValueChange={(val) => formik.setFieldValue('invoiceDate', val)}
                   className="max-w-xs"
                 />
+                {formik.touched.invoiceDate && formik.errors.invoiceDate && (
+                  <p className="text-sm text-destructive">{formik.errors.invoiceDate}</p>
+                )}
               </div>
 
+              {/* Customer Name */}
               <div className="space-y-2">
                 <label htmlFor="customerName" className="text-sm font-medium text-primary">
                   ชื่อลูกค้า <span className="text-destructive">*</span>
@@ -142,9 +297,24 @@ export function StepInvoiceForm({ onBack }: { onBack: () => void }) {
                 <Input
                   id="customerName"
                   placeholder="กรอกชื่อลูกค้า"
-                  value={customerName}
-                  onChange={e => setCustomerName(e.target.value)}
-                  required
+                  {...formik.getFieldProps('customerName')}
+                />
+                {formik.touched.customerName && formik.errors.customerName && (
+                  <p className="text-sm text-destructive">{formik.errors.customerName}</p>
+                )}
+              </div>
+
+              {/* Note */}
+              <div className="space-y-2">
+                <label htmlFor="note" className="text-sm font-medium text-primary">
+                  หมายเหตุ
+                </label>
+                <textarea
+                  id="note"
+                  placeholder="หมายเหตุ (ถ้ามี)"
+                  rows={2}
+                  {...formik.getFieldProps('note')}
+                  className="flex w-full rounded-md border border-border bg-surface px-3 py-2 text-sm ring-offset-surface placeholder:text-muted-foreground focus-visible:outline-none focus-visible:ring-2 focus-visible:ring-ring focus-visible:ring-offset-2 disabled:cursor-not-allowed disabled:opacity-50 resize-none"
                 />
               </div>
             </div>
@@ -158,7 +328,7 @@ export function StepInvoiceForm({ onBack }: { onBack: () => void }) {
                   เพิ่มส่วนลด
                 </Button>
               </div>
-              {discounts.map((discount) => {
+              {formik.values.discounts.map((discount) => {
                 const isCoupon = discount.discount_type === 'coupon';
                 const isPercentage = discount.discount_type === 'percentage';
                 const isPricing = discount.discount_type === 'pricing';
@@ -174,7 +344,7 @@ export function StepInvoiceForm({ onBack }: { onBack: () => void }) {
                       <label className="text-xs font-medium text-muted-foreground">ประเภทส่วนลด</label>
                       <select
                         value={discount.discount_type}
-                        onChange={(e) => updateDiscount(discount.id, 'discount_type', e.target.value as 'percentage' | 'pricing' | 'coupon')}
+                        onChange={(e) => updateDiscount(discount.id, 'discount_type', e.target.value)}
                         className="w-full h-10 px-3 border border-border rounded-lg bg-surface text-sm focus:outline-none focus:ring-2 focus:ring-action truncate"
                       >
                         <option value="pricing">Pricing</option>
@@ -251,8 +421,8 @@ export function StepInvoiceForm({ onBack }: { onBack: () => void }) {
         <div className="w-full lg:w-[320px] flex justify-center lg:justify-start">
           <OrderPreview
             ref={previewRef}
-            customerName={customerName}
-            invoiceDate={invoiceDate}
+            customerName={formik.values.customerName}
+            invoiceDate={formik.values.invoiceDate}
             channelName={channelName}
             items={items}
             totalQuantity={totalQuantity}
@@ -270,8 +440,9 @@ export function StepInvoiceForm({ onBack }: { onBack: () => void }) {
           <Download className="w-4 h-4 mr-1" />
           ดาวน์โหลด
         </Button>
-        <Button type="submit" form="invoice-form" variant="primary" className="text-white">
-          สร้างบิล
+        <Button type="button" variant="primary" className="text-white" disabled={formik.isSubmitting}
+          onClick={() => (document.getElementById('invoice-form') as HTMLFormElement)?.requestSubmit()}>
+          {formik.isSubmitting ? 'กำลังสร้างบิล...' : 'สร้างบิล'}
         </Button>
       </div>
     </>
