@@ -15,6 +15,7 @@ const NAV_ITEMS = [
   { label: 'หมวดหมู่ (Category)', href: '/management/categories', icon: '📂' },
   { label: 'สินค้า (Product)', href: '/management/products', icon: '🥪' },
   { label: 'ตัวเลือกสินค้า (Add-on)', href: '/management/addons', icon: '➕' },
+  { label: 'รายการบิล (Receipts)', href: '/management/receipts', icon: '🧾' },
 ];
 
 // Module-level stable state for mobile sidebar (survives SSR/CSR boundary)

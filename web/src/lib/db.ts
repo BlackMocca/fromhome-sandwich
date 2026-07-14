@@ -430,11 +430,35 @@ export async function saveChannelProductAddonMappings(
   }
 }
 
-export async function getReceipts(options?: { channel_code?: string }) {
-  const params: Record<string, string> = options?.channel_code 
-    ? { channel_code: `eq.${options.channel_code}`, order: 'bill_date.desc' }
-    : { order: 'bill_date.desc' };
+export async function getReceipts(options?: { channel_code?: string; search?: string; bill_date?: string }) {
+  const params: Record<string, string> = { order: 'created_at.desc' };
+  if (options?.channel_code) params.channel_code = `eq.${options.channel_code}`;
+  if (options?.bill_date) params.bill_date = `eq.${options.bill_date}`;
+  if (options?.search) {
+    params.or = `(receipt_no.ilike.*${options.search}*,customer_name.ilike.*${options.search}*)`;
+  }
   return get<import('@/types/receipt').Receipt[]>('receipts', { params });
+}
+
+export async function getReceipt(id: number) {
+  return getOne<import('@/types/receipt').Receipt>('receipts', id);
+}
+
+export async function getReceiptItems(receiptId: number) {
+  return get<import('@/types/receipt').ReceiptItem[]>('receipt_items', {
+    params: {
+      receipt_id: `eq.${receiptId}`,
+      order: 'id.asc',
+    },
+  });
+}
+
+export async function searchReceipts(query: string) {
+  return getReceipts({ search: query });
+}
+
+export async function updateReceiptStatus(id: number, status: 'active' | 'cancelled') {
+  return update<import('@/types/receipt').Receipt>('receipts', id, { status, updated_at: new Date().toISOString() });
 }
 
 // ─── Receipt Number ─────────────────────────────────────
