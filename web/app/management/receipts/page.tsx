@@ -192,12 +192,12 @@ export default function ReceiptsPage() {
             <div
               key={r.id}
               className={cn(
-                "grid grid-cols-12 gap-3 px-4 border-b transition-colors text-sm cursor-pointer hover:bg-surface h-[60px] items-center",
+                "grid grid-cols-12 gap-3 p-4 border-b transition-colors text-sm cursor-pointer hover:bg-surface h-[76px] items-center",
                 i === paginatedReceipts.length - 1 && 'border-b-0',
               )}
               onClick={() => router.push(`/management/receipts/${r.id}`)}
             >
-              <div className="col-span-2">
+              <div className="col-span-2 h-full">
                 <div className="flex items-start gap-1.5">
                   {channelMap.get(r.channel_code)?.cover_url ? (
                     <img
@@ -216,28 +216,26 @@ export default function ReceiptsPage() {
                   </div>
                 </div>
               </div>
-              <div className="col-span-2">
-                <span className="font-medium text-primary font-mono">{r.receipt_no}</span>
+              <div className="col-span-2 h-full">
+                <span className="text-md font-medium text-primary font-mono">{r.receipt_no}</span>
               </div>
-              <div className="col-span-2">
+              <div className="col-span-2 h-full space-y-1">
                 <div>{toBuddhistDate(r.bill_date)}</div>
-                <div className="text-xs text-muted-foreground">สร้างเมื่อ {toBuddhistDateTime(r.created_at)}</div>
+                <div className="text-xs text-gray-400">สร้างเมื่อ {toBuddhistDateTime(r.created_at)}</div>
               </div>
-              <div className="col-span-2 text-lg">{r.customer_name || '-'}</div>
-              <div className="col-span-1 text-center font-medium text-primary">
+              <div className="col-span-2 text-md h-full">{r.customer_name || '-'}</div>
+              <div className="col-span-1 h-full text-center font-medium text-primary ">
                 ฿{r.grand_total.toLocaleString()}
               </div>
-              <div className="col-span-2 flex justify-center" onClick={(e) => e.stopPropagation()}>
-                <div className="flex items-center gap-1">
+              <div className="col-span-2 h-full flex justify-center items-start" onClick={(e) => e.stopPropagation()}>
+                <div className="flex flex-col items-center gap-1">
                   <ToggleSwitch
                     on={r.status === 'active'}
                     onToggle={() => handleStatusToggle(r.id, r.status)}
                     size="sm"
                     disabled={statusMutation.isPending}
                   />
-                  {r.status === 'cancelled' && (
-                    <span className="text-[10px] font-medium text-destructive whitespace-nowrap">ยกเลิก</span>
-                  )}
+                  <span className="text-[10px] font-medium text-destructive whitespace-nowrap">{r.status === 'cancelled' && "ยกเลิก"}</span>
                 </div>
               </div>
               <div className="col-span-1 flex justify-end">
@@ -265,39 +263,42 @@ export default function ReceiptsPage() {
           paginatedReceipts.map((r: Receipt) => (
             <div
               key={r.id}
-              className="bg-white rounded-xl border border-border/50 p-4 cursor-pointer active:bg-surface transition-colors space-y-3"
+              className="bg-white rounded-2xl border border-border/30 shadow-sm hover:shadow-md active:scale-[0.98] transition-all duration-200 p-4 cursor-pointer"
               onClick={() => router.push(`/management/receipts/${r.id}`)}
             >
-              {/* Row 1+2: logo | receipt_no + badge | total */}
-              <div className="flex items-start gap-3 mb-2">
+              {/* Top: logo | receipt_no + badge | total */}
+              <div className="flex items-start gap-3 mb-3">
                 {/* Logo */}
                 <div className="shrink-0">
                   {channelMap.get(r.channel_code)?.cover_url ? (
-                    <img src={channelMap.get(r.channel_code)!.cover_url!} alt="" className="w-12 h-12 rounded-full object-cover" />
+                    <img src={channelMap.get(r.channel_code)!.cover_url!} alt="" className="w-11 h-11 rounded-xl object-cover shadow-sm" />
                   ) : (
-                    <div className="w-12 h-12 rounded bg-primary flex items-center justify-center text-sm font-bold text-white">{r.channel_code.charAt(0)}</div>
+                    <div className="w-11 h-11 rounded-xl bg-gradient-to-br from-primary to-primary-dark flex items-center justify-center text-sm font-bold text-white shadow-sm">{r.channel_code.charAt(0)}</div>
                   )}
                 </div>
 
                 {/* Middle: receipt_no + badge */}
                 <div className="flex-1 min-w-0">
-                  <div className="font-mono font-medium text-sm truncate">{r.receipt_no}</div>
-                  <span className="inline-block mt-1 px-2 py-0.5 rounded-full text-[11px] font-medium bg-primary text-white">{channelMap.get(r.channel_code)?.name || r.channel_code}</span>
+                  <div className="font-mono font-semibold text-sm text-primary truncate">{r.receipt_no}</div>
+                  <span className="inline-block mt-1.5 px-2.5 py-0.5 rounded-full text-[11px] font-medium bg-action/15 text-action">{channelMap.get(r.channel_code)?.name || r.channel_code}</span>
                 </div>
 
                 {/* Right: total */}
                 <div className="text-right shrink-0">
-                  <div className="font-bold text-primary">฿{r.grand_total.toLocaleString()}</div>
+                  <div className="text-lg font-bold text-primary">฿{r.grand_total.toLocaleString()}</div>
                 </div>
               </div>
 
-              {/* Row 3: customer name */}
-              <div className="text-sm truncate">{r.customer_name || '-'}</div>
+              {/* Divider */}
+              <div className="h-px bg-border/40 mb-3"></div>
 
-              {/* Row 4: date + toggle */}
+              {/* Bottom: customer + date + toggle */}
               <div className="flex items-center justify-between">
-                <span className="text-xs text-muted-foreground">{toBuddhistDate(r.bill_date)}</span>
-                <div onClick={(e) => e.stopPropagation()} className="flex items-center gap-1.5">
+                <div className="min-w-0">
+                  <div className="text-sm font-medium text-foreground truncate">{r.customer_name || '-'}</div>
+                  <div className="text-xs text-muted-foreground mt-0.5">{toBuddhistDate(r.bill_date)}</div>
+                </div>
+                <div onClick={(e) => e.stopPropagation()} className="flex items-center gap-1.5 shrink-0 ml-3">
                   {r.status === 'cancelled' && (
                     <span className="text-[10px] font-medium text-destructive">ยกเลิก</span>
                   )}
