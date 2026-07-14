@@ -263,42 +263,39 @@ export default function ReceiptsPage() {
           paginatedReceipts.map((r: Receipt) => (
             <div
               key={r.id}
-              className="bg-white rounded-2xl border border-border/30 shadow-sm hover:shadow-md active:scale-[0.98] transition-all duration-200 p-4 cursor-pointer"
+              className="bg-white rounded-xl border border-border/50 p-4 cursor-pointer active:bg-surface transition-colors"
               onClick={() => router.push(`/management/receipts/${r.id}`)}
             >
               {/* Top: logo | receipt_no + badge | total */}
-              <div className="flex items-start gap-3 mb-3">
+              <div className="flex items-start gap-3 mb-2">
                 {/* Logo */}
                 <div className="shrink-0">
                   {channelMap.get(r.channel_code)?.cover_url ? (
-                    <img src={channelMap.get(r.channel_code)!.cover_url!} alt="" className="w-11 h-11 rounded-xl object-cover shadow-sm" />
+                    <img src={channelMap.get(r.channel_code)!.cover_url!} alt="" className="w-12 h-12 rounded-full object-cover" />
                   ) : (
-                    <div className="w-11 h-11 rounded-xl bg-gradient-to-br from-primary to-primary-dark flex items-center justify-center text-sm font-bold text-white shadow-sm">{r.channel_code.charAt(0)}</div>
+                    <div className="w-12 h-12 rounded bg-primary flex items-center justify-center text-sm font-bold text-white">{r.channel_code.charAt(0)}</div>
                   )}
                 </div>
 
                 {/* Middle: receipt_no + badge */}
                 <div className="flex-1 min-w-0">
-                  <div className="font-mono font-semibold text-sm text-primary truncate">{r.receipt_no}</div>
-                  <span className="inline-block mt-1.5 px-2.5 py-0.5 rounded-full text-[11px] font-medium bg-action/15 text-action">{channelMap.get(r.channel_code)?.name || r.channel_code}</span>
+                  <div className="font-mono font-medium text-sm truncate">{r.receipt_no}</div>
+                  <span className="inline-block mt-1 px-2 py-0.5 rounded-full text-[11px] font-medium bg-primary text-white">{channelMap.get(r.channel_code)?.name || r.channel_code}</span>
                 </div>
 
                 {/* Right: total */}
                 <div className="text-right shrink-0">
-                  <div className="text-lg font-bold text-primary">฿{r.grand_total.toLocaleString()}</div>
+                  <div className="font-bold text-primary">฿{r.grand_total.toLocaleString()}</div>
                 </div>
               </div>
 
-              {/* Divider */}
-              <div className="h-px bg-border/40 mb-3"></div>
+              {/* Row 3: customer name */}
+              <div className="text-lg truncate">{r.customer_name || '-'}</div>
 
-              {/* Bottom: customer + date + toggle */}
+              {/* Row 4: date + toggle */}
               <div className="flex items-center justify-between">
-                <div className="min-w-0">
-                  <div className="text-sm font-medium text-foreground truncate">{r.customer_name || '-'}</div>
-                  <div className="text-xs text-muted-foreground mt-0.5">{toBuddhistDate(r.bill_date)}</div>
-                </div>
-                <div onClick={(e) => e.stopPropagation()} className="flex items-center gap-1.5 shrink-0 ml-3">
+                <span className="text-xs text-muted-foreground">{toBuddhistDate(r.bill_date)}</span>
+                <div onClick={(e) => e.stopPropagation()} className="flex items-center gap-1.5">
                   {r.status === 'cancelled' && (
                     <span className="text-[10px] font-medium text-destructive">ยกเลิก</span>
                   )}
