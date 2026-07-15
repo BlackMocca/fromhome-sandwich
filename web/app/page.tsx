@@ -25,7 +25,7 @@ export default function LandingPage() {
         {/* Action buttons */}
         <div className="flex gap-4 justify-center flex-wrap">
           <button
-            onClick={() => router.push('/management')}
+            onClick={() => router.push('/management/dashboard/overview')}
             className="btn-action text-lg px-8 py-3"
           >
             ไปที่ระบบจัดการ →

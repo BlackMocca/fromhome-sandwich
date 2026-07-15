@@ -42,7 +42,7 @@ export default function LoginPage() {
   /* ─── Check existing session on mount ─── */
   useEffect(() => {
     if (isAuthenticated) {
-      router.replace('/management');
+      router.replace('/management/dashboard/overview');
       return;
     }
 
@@ -50,7 +50,7 @@ export default function LoginPage() {
     const supabase = createClient();
     supabase.auth.getSession().then(({ data: { session } }) => {
       if (session?.user) {
-        router.replace('/management');
+        router.replace('/management/dashboard/overview');
       }
     });
   }, [isAuthenticated, router]);
@@ -92,7 +92,7 @@ export default function LoginPage() {
       }
 
       queryClient.invalidateQueries({ queryKey: ['user'] });
-      router.push('/management');
+      router.push('/management/dashboard/overview');
     },
   });
 

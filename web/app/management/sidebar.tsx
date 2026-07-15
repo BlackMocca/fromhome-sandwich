@@ -9,13 +9,16 @@ import { ChevronLeft, ChevronDown } from 'lucide-react';
 import type { Channel } from '@/types/channel';
 import { getChannels } from '@/lib/db';
 
-const NAV_ITEMS = [
+const STATIC_NAV_ITEMS = [
   { label: 'แดชบอร์ด (Dashboard)', href: '/management', icon: '📊' },
+  { label: 'รายการบิล (Receipts)', href: '/management/receipts', icon: '🧾' },
+];
+
+const SYSTEM_MANAGEMENT_ITEMS = [
+  { label: 'สินค้า (Product)', href: '/management/products', icon: '🥪' },
   { label: 'ผู้ใช้งาน (User)', href: '/management/user', icon: '👤' },
   { label: 'หมวดหมู่ (Category)', href: '/management/categories', icon: '📂' },
-  { label: 'สินค้า (Product)', href: '/management/products', icon: '🥪' },
   { label: 'ตัวเลือกสินค้า (Add-on)', href: '/management/addons', icon: '➕' },
-  { label: 'รายการบิล (Receipts)', href: '/management/receipts', icon: '🧾' },
 ];
 
 // Module-level stable state for mobile sidebar (survives SSR/CSR boundary)
@@ -32,7 +35,9 @@ export function closeMobileSidebar(): void {
 export default function ManagementSidebar({ children }: { children: React.ReactNode }) {
   const pathname = usePathname();
   const router = useRouter();
-  const [channelsExpanded, setChannelsExpanded] = useState(true);
+  const [dashboardExpanded, setDashboardExpanded] = useState(false);
+  const [channelsExpanded, setChannelsExpanded] = useState(false);
+  const [systemManagementExpanded, setSystemManagementExpanded] = useState(false);
 
   const { data: channels = [] } = useQuery({
     queryKey: ['channels'],
@@ -73,6 +78,25 @@ export default function ManagementSidebar({ children }: { children: React.ReactN
   // Check if we're currently on a channel detail page
   const currentChannelCode = isChannelCardsView ? pathname.split('/').pop() : null;
 
+  // Compute active child states for collapsible menus
+  const dashboardHasActiveChild = 
+    pathname === '/management/dashboard/overview' || 
+    pathname === '/management/dashboard/product';
+
+  const channelsHaveActiveChild = 
+    isChannelCardsView || pathname.startsWith('/management/channels/');
+
+  const systemManagementHasActiveChild =
+    pathname === '/management/products' || pathname.startsWith('/management/products/') ||
+    pathname === '/management/user' || pathname.startsWith('/management/user/') ||
+    pathname === '/management/categories' || pathname.startsWith('/management/categories/') ||
+    pathname === '/management/addons' || pathname.startsWith('/management/addons/');
+
+  // Effective expanded states: if a child route is active, the parent must be expanded and shown as active.
+  const effectiveDashboardExpanded = dashboardExpanded || dashboardHasActiveChild;
+  const effectiveChannelsExpanded = channelsExpanded || channelsHaveActiveChild;
+  const effectiveSystemManagementExpanded = systemManagementExpanded || systemManagementHasActiveChild;
+
   return (
     <div className="flex w-full h-[calc(100dvh-4rem)]">
       {/* ── LEFT NAVBAR (Responsive) ─────────────── */}
@@ -84,21 +108,69 @@ export default function ManagementSidebar({ children }: { children: React.ReactN
       )}>
 
         <nav className="px-3 space-y-1 py-4">
-          {NAV_ITEMS.map(item => (
-            <Link
-              key={item.href}
-              href={item.href}
+          {/* เพิ่มช่องทางการขาย button */}
+          <button
+            type="button"
+            onClick={() => router.push('/management/channels/create')}
+            className="w-full mb-3 px-4 py-2.5 rounded-xl bg-primary text-white border border-transparent text-sm font-medium hover:bg-primary/90 transition-all flex items-center justify-center gap-1 shadow-md hover:shadow-lg"
+          >
+            <span>+</span> เพิ่มช่องทางการขาย
+          </button>
+
+          {/* Dashboard group header - เป็นปุ่ม expand/collapse */}
+          <button
+            type="button"
+            onClick={() => setDashboardExpanded(!dashboardExpanded)}
+            className={cn(
+              'w-full flex items-center justify-between px-4 py-3 rounded-xl text-sm transition-all cursor-pointer',
+              effectiveDashboardExpanded ? 'bg-primary/10 text-primary font-semibold shadow-sm' : 'text-primary/70 hover:bg-surface hover:shadow-sm'
+            )}
+          >
+            <span className="flex items-center gap-2">
+              <span>📊</span>
+              <span>แดชบอร์ด (Dashboard)</span>
+            </span>
+            <ChevronDown
               className={cn(
-                'flex items-center gap-3 px-4 py-3 rounded-xl text-sm transition-all',
-                pathname === item.href
-                  ? 'bg-primary/10 text-primary font-semibold shadow-sm'
-                  : 'text-primary/70 hover:bg-surface hover:shadow-sm'
+                'w-4 h-4 transition-transform',
+                effectiveDashboardExpanded ? 'rotate-180' : ''
               )}
-            >
-              <span className="text-base">{item.icon}</span>
-              {item.label}
-            </Link>
-          ))}
+            />
+          </button>
+
+          {/* Dashboard group content - แสดงเมื่อ expand พร้อม slide animation */}
+          <div className={cn('overflow-hidden transition-all duration-300 ease-out', effectiveDashboardExpanded ? 'max-h-96 opacity-100' : 'max-h-0 opacity-0')}>
+            <div className="pt-2 pb-1 space-y-1 px-1">
+              <Link
+                href="/management/dashboard/overview"
+                className={cn(
+                  'flex items-center gap-3 px-4 py-2.5 rounded-xl text-sm transition-all',
+                  pathname === '/management/dashboard/overview'
+                    ? 'bg-primary/90 text-white font-semibold shadow-md'
+                    : 'text-primary/60 hover:bg-surface hover:text-primary hover:shadow-sm bg-white'
+                )}
+              >
+                <span className="relative inline-flex h-6 w-6 flex-shrink-0 items-center justify-center rounded-full bg-primary/10 text-xs text-primary/50">
+                  <span>📈</span>
+                </span>
+                ภาพรวม (Overview)
+              </Link>
+              <Link
+                href="/management/dashboard/product"
+                className={cn(
+                  'flex items-center gap-3 px-4 py-2.5 rounded-xl text-sm transition-all',
+                  pathname === '/management/dashboard/product'
+                    ? 'bg-primary/90 text-white font-semibold shadow-md'
+                    : 'text-primary/60 hover:bg-surface hover:text-primary hover:shadow-sm bg-white'
+                )}
+              >
+                <span className="relative inline-flex h-6 w-6 flex-shrink-0 items-center justify-center rounded-full bg-primary/10 text-xs text-primary/50">
+                  <span>📦</span>
+                </span>
+                รายสินค้า (Products)
+              </Link>
+            </div>
+          </div>
 
           {/* Channel group header - เป็นปุ่ม expand/collapse */}
           <button
@@ -106,7 +178,7 @@ export default function ManagementSidebar({ children }: { children: React.ReactN
             onClick={() => setChannelsExpanded(!channelsExpanded)}
             className={cn(
               'w-full flex items-center justify-between px-4 py-3 rounded-xl text-sm transition-all cursor-pointer',
-              channelsExpanded ? 'bg-primary/10 text-primary font-semibold shadow-sm' : 'text-primary/70 hover:bg-surface hover:shadow-sm'
+              effectiveChannelsExpanded ? 'bg-primary/10 text-primary font-semibold shadow-sm' : 'text-primary/70 hover:bg-surface hover:shadow-sm'
             )}
           >
             <span className="flex items-center gap-2">
@@ -116,13 +188,13 @@ export default function ManagementSidebar({ children }: { children: React.ReactN
             <ChevronDown
               className={cn(
                 'w-4 h-4 transition-transform',
-                channelsExpanded ? 'rotate-180' : ''
+                effectiveChannelsExpanded ? 'rotate-180' : ''
               )}
             />
           </button>
 
           {/* Channel group content - แสดงเมื่อ expand พร้อม slide animation */}
-          <div className={cn('overflow-hidden transition-all duration-300 ease-out', channelsExpanded ? 'max-h-96 opacity-100' : 'max-h-0 opacity-0')}>
+          <div className={cn('overflow-hidden transition-all duration-300 ease-out', effectiveChannelsExpanded ? 'max-h-96 opacity-100' : 'max-h-0 opacity-0')}>
             <div className="pt-2 pb-1 space-y-1 px-1">
               {channels.map(channel => {
                 const isChannelPathname = pathname === `/management/channels/${channel.id}`;
@@ -166,14 +238,63 @@ export default function ManagementSidebar({ children }: { children: React.ReactN
             </div>
           </div>
 
-          {/* Add Channel button — ปุ่ม primary */}
+          {/* รายการบิล (Receipts) */}
+          <Link
+            href="/management/receipts"
+            className={cn(
+              'flex items-center gap-3 px-4 py-3 rounded-xl text-sm transition-all',
+              pathname === '/management/receipts'
+                ? 'bg-primary/10 text-primary font-semibold shadow-sm'
+                : 'text-primary/70 hover:bg-surface hover:shadow-sm'
+            )}
+          >
+            <span className="text-base">🧾</span>
+            รายการบิล (Receipts)
+          </Link>
+
+          {/* System Management group header - เป็นปุ่ม expand/collapse */}
           <button
             type="button"
-            onClick={() => router.push('/management/channels/create')}
-            className="w-full mt-3 px-4 py-2.5 rounded-xl bg-primary text-white border border-transparent text-sm font-medium hover:bg-primary/90 transition-all flex items-center justify-center gap-1 shadow-md hover:shadow-lg"
+            onClick={() => setSystemManagementExpanded(!systemManagementExpanded)}
+            className={cn(
+              'w-full flex items-center justify-between px-4 py-3 rounded-xl text-sm transition-all cursor-pointer',
+              effectiveSystemManagementExpanded ? 'bg-primary/10 text-primary font-semibold shadow-sm' : 'text-primary/70 hover:bg-surface hover:shadow-sm'
+            )}
           >
-            <span>+</span> เพิ่มช่องทางใหม่
+            <span className="flex items-center gap-2">
+              <span>⚙️</span>
+              <span>จัดการระบบ (System)</span>
+            </span>
+            <ChevronDown
+              className={cn(
+                'w-4 h-4 transition-transform',
+                effectiveSystemManagementExpanded ? 'rotate-180' : ''
+              )}
+            />
           </button>
+
+          {/* System Management group content - แสดงเมื่อ expand พร้อม slide animation */}
+          <div className={cn('overflow-hidden transition-all duration-300 ease-out', effectiveSystemManagementExpanded ? 'max-h-96 opacity-100' : 'max-h-0 opacity-0')}>
+            <div className="pt-2 pb-1 space-y-1 px-1">
+              {SYSTEM_MANAGEMENT_ITEMS.map(item => (
+                <Link
+                  key={item.href}
+                  href={item.href}
+                  className={cn(
+                    'flex items-center gap-3 px-4 py-2.5 rounded-xl text-sm transition-all',
+                    pathname === item.href
+                      ? 'bg-primary/90 text-white font-semibold shadow-md'
+                      : 'text-primary/60 hover:bg-surface hover:text-primary hover:shadow-sm bg-white'
+                  )}
+                >
+                  <span className="relative inline-flex h-6 w-6 flex-shrink-0 items-center justify-center rounded-full bg-primary/10 text-xs text-primary/50">
+                    <span>{item.icon}</span>
+                  </span>
+                  {item.label}
+                </Link>
+              ))}
+            </div>
+          </div>
         </nav>
       </aside>
 

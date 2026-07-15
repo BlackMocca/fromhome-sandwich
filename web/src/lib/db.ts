@@ -461,6 +461,23 @@ export async function updateReceiptStatus(id: number, status: 'active' | 'cancel
   return update<import('@/types/receipt').Receipt>('receipts', id, { status, updated_at: new Date().toISOString() });
 }
 
+// ─── Dashboard Views ─────────────────────────────────────
+
+export async function getDailySummary(date?: string) {
+  const targetDate = date || new Date().toISOString().split('T')[0];
+  return get<Record<string, unknown>[]>('view_daily_summary', {
+    params: { bill_date: `eq.${targetDate}` },
+  });
+}
+
+export async function getProductSalesLines(date?: string) {
+  const params: Record<string, string> = {};
+  if (date) {
+    params.bill_date = `eq.${date}`;
+  }
+  return get<Record<string, unknown>[]>('view_sales_product_lines', { params });
+}
+
 // ─── Receipt Number ─────────────────────────────────────
 
 export async function getNextReceiptNo(channelCode: string, billDate: string): Promise<string> {
