@@ -134,7 +134,7 @@ export function StepInvoiceForm({ onBack }: { onBack: () => void }) {
       // Calculate totals
       const subtotal = totalPrice;
       const discountTotal = values.discounts.reduce((s, d) => {
-        if (d.discount_type === 'percentage') return s + ((d.percentage ?? 0) * totalPrice) / 100;
+        if (d.discount_type === 'percentage') return s + Math.round(((d.percentage ?? 0) * totalPrice) / 100);
         return s + (d.price ?? 0);
       }, 0);
       const grandTotal = subtotal - discountTotal;
@@ -162,10 +162,17 @@ export function StepInvoiceForm({ onBack }: { onBack: () => void }) {
 
       if (result.success) {
         clearOrder();
-        router.push('/management/orders');
+        router.push(`/management/receipts/${result.receipt?.id}`);
       }
     },
   });
+
+  // Compute discount total + grand total for the live preview (mirrors onSubmit logic)
+  const previewDiscountTotal = formik.values.discounts.reduce((s, d) => {
+    if (d.discount_type === 'percentage') return s + Math.round(((d.percentage ?? 0) * totalPrice) / 100);
+    return s + (d.price ?? 0);
+  }, 0);
+  const previewGrandTotal = totalPrice - previewDiscountTotal;
 
   // ─── Discount helpers ────────────────────────────────
 
@@ -334,7 +341,7 @@ export function StepInvoiceForm({ onBack }: { onBack: () => void }) {
                 const isPricing = discount.discount_type === 'pricing';
 
                 const calculatedPrice = isPercentage
-                  ? ((discount.percentage ?? 0) * totalPrice) / 100
+                  ? Math.round(((discount.percentage ?? 0) * totalPrice) / 100)
                   : discount.price ?? 0;
 
                 return (
@@ -426,7 +433,11 @@ export function StepInvoiceForm({ onBack }: { onBack: () => void }) {
             channelName={channelName}
             items={items}
             totalQuantity={totalQuantity}
-            totalPrice={totalPrice}
+            totalPrice={previewGrandTotal}
+            orderNo={formik.values.receiptNo}
+            subtotal={totalPrice}
+            discountTotal={previewDiscountTotal}
+            note={formik.values.note}
           />
         </div>
       </div>

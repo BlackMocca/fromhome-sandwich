@@ -120,7 +120,7 @@ export const OrderPreview = forwardRef<HTMLDivElement, OrderPreviewProps>(
               </div>
               <div className="flex justify-between">
                 <p>ส่วนลด</p>
-                <p>-฿{discountTotal!.toLocaleString()}</p>
+                <p>฿{discountTotal!.toLocaleString()}</p>
               </div>
             </div>
           )}
