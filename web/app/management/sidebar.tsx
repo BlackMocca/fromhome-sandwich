@@ -242,7 +242,7 @@ export default function ManagementSidebar({ children }: { children: React.ReactN
           <Link
             href="/management/receipts"
             className={cn(
-              'flex items-center gap-3 px-4 py-3 rounded-xl text-sm transition-all',
+              'flex items-center gap-2 px-4 py-3 rounded-xl text-sm transition-all',
               pathname === '/management/receipts'
                 ? 'bg-primary/10 text-primary font-semibold shadow-sm'
                 : 'text-primary/70 hover:bg-surface hover:shadow-sm'
