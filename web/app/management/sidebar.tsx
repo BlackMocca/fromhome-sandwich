@@ -2,7 +2,7 @@
 
 import { useState, useEffect } from 'react';
 import Link from 'next/link';
-import { usePathname, useRouter } from 'next/navigation';
+import { usePathname } from 'next/navigation';
 import { useQuery } from '@tanstack/react-query';
 import { cn } from '@/lib/utils';
 import { ChevronLeft, ChevronDown, ShoppingCart } from 'lucide-react';
@@ -10,10 +10,11 @@ import type { Channel } from '@/types/channel';
 import { getChannels } from '@/lib/db';
 
 const SYSTEM_MANAGEMENT_ITEMS = [
-  { label: 'สินค้า (Product)', href: '/management/products', icon: '🥪' },
   { label: 'ผู้ใช้งาน (User)', href: '/management/user', icon: '👤' },
+  { label: 'สินค้า (Product)', href: '/management/products', icon: '🥪' },
   { label: 'หมวดหมู่ (Category)', href: '/management/categories', icon: '📂' },
   { label: 'ตัวเลือกสินค้า (Add-on)', href: '/management/addons', icon: '➕' },
+  { label: 'ช่องทางการขาย (Channels)', href: '/management/channels', icon: '🛒' },
   { label: 'เชื่อมต่อ Telegram', href: '/management/telegram', icon: '✈️' },
 ];
 
@@ -30,7 +31,6 @@ export function closeMobileSidebar(): void {
 
 export default function ManagementSidebar({ children }: { children: React.ReactNode }) {
   const pathname = usePathname();
-  const router = useRouter();
   const [dashboardExpanded, setDashboardExpanded] = useState(false);
   const [channelsExpanded, setChannelsExpanded] = useState(false);
   const [systemManagementExpanded, setSystemManagementExpanded] = useState(false);
@@ -83,6 +83,7 @@ export default function ManagementSidebar({ children }: { children: React.ReactN
     isChannelCardsView || pathname.startsWith('/management/channels/');
 
   const systemManagementHasActiveChild =
+    pathname === '/management/channels' ||
     pathname === '/management/products' || pathname.startsWith('/management/products/') ||
     pathname === '/management/user' || pathname.startsWith('/management/user/') ||
     pathname === '/management/categories' || pathname.startsWith('/management/categories/') ||
@@ -105,15 +106,6 @@ export default function ManagementSidebar({ children }: { children: React.ReactN
       )}>
 
         <nav className="px-3 space-y-1 py-4">
-          {/* เพิ่มช่องทางการขาย button */}
-          <button
-            type="button"
-            onClick={() => router.push('/management/channels/create')}
-            className="w-full mb-3 px-4 py-2.5 rounded-xl bg-primary text-white border border-transparent text-sm font-medium hover:bg-primary/90 transition-all flex items-center justify-center gap-1 shadow-md hover:shadow-lg"
-          >
-            <span>+</span> เพิ่มช่องทางการขาย
-          </button>
-
           {/* Dashboard group header - เป็นปุ่ม expand/collapse */}
           <button
             type="button"

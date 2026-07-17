@@ -1,7 +1,9 @@
 'use client';
 
 import { useRouter } from 'next/navigation';
+import Link from 'next/link';
 import { useQuery } from '@tanstack/react-query';
+import { PlusCircle, Edit2 } from 'lucide-react';
 import { Button } from '@/components/ui/button';
 import { Card, CardContent } from '@/components/ui/card';
 import { getChannels } from '@/lib/db';
@@ -11,7 +13,16 @@ function ChannelCard({ channel }: { channel: Channel }) {
   const router = useRouter();
 
   return (
-    <Card className="group border border-primary/20 bg-white shadow-sm transition-shadow hover:shadow-md">
+    <Card className="group relative border border-primary/20 bg-white shadow-sm transition-shadow hover:shadow-md">
+      {/* Edit icon (top-right) */}
+      <Link
+        href={`/management/channels/${channel.id}/edit`}
+        aria-label="แก้ไขช่องทาง"
+        className="absolute right-3 top-3 z-10 flex h-8 w-8 items-center justify-center rounded-full bg-white/90 text-primary shadow-sm ring-1 ring-primary/20 transition-colors hover:bg-primary hover:text-white"
+        onClick={(e) => e.stopPropagation()}
+      >
+        <Edit2 className="h-4 w-4" aria-hidden />
+      </Link>
       <CardContent className="flex flex-col items-center gap-3 p-5">
         <div className="flex h-20 w-20 items-center justify-center overflow-hidden rounded-full bg-primary/5">
           {channel.cover_url ? (
@@ -48,6 +59,7 @@ function ChannelCard({ channel }: { channel: Channel }) {
 }
 
 export default function ChannelsPage() {
+  const router = useRouter();
   const { data: channels = [], isLoading } = useQuery({
     queryKey: ['channels'],
     queryFn: getChannels,
@@ -61,25 +73,34 @@ export default function ChannelsPage() {
     );
   }
 
-  if (channels.length === 0) {
-    return (
-      <div className="flex flex-col items-center justify-center gap-4 py-20 text-primary/50">
-        <p>ยังไม่มีช่องทางการขาย</p>
+  return (
+    <div className="min-h-screen">
+      {/* Header */}
+      <div className="flex items-center justify-between mb-6">
+        <h1 className="text-2xl font-bold text-primary">
+          ช่องทางการขายทั้งหมด ({channels.length} รายการ)
+        </h1>
         <Button
+          type="button"
           variant="primary"
-          onClick={() => window.location.href = '/management/channels/create'}
+          onClick={() => router.push('/management/channels/create')}
+          className="flex items-center gap-2"
         >
-          เพิ่มช่องทางใหม่
+          <PlusCircle className="w-4 h-4" /> เพิ่มช่องทางการขาย
         </Button>
       </div>
-    );
-  }
 
-  return (
-    <div className="grid grid-cols-2 gap-4 sm:grid-cols-3 lg:grid-cols-4 xl:grid-cols-5">
-      {channels.map(channel => (
-        <ChannelCard key={channel.id} channel={channel} />
-      ))}
+      {channels.length === 0 ? (
+        <div className="flex flex-col items-center justify-center gap-4 py-20 text-primary/50">
+          <p>ยังไม่มีช่องทางการขาย</p>
+        </div>
+      ) : (
+        <div className="grid grid-cols-2 gap-4 sm:grid-cols-3 lg:grid-cols-4 xl:grid-cols-5">
+        {channels.map(channel => (
+          <ChannelCard key={channel.id} channel={channel} />
+        ))}
+      </div>
+      )}
     </div>
   );
 }
