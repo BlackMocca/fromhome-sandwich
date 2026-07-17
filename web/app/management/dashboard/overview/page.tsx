@@ -1,198 +1,232 @@
 'use client';
 
-import { Card, CardContent, CardHeader, CardTitle } from '@/components/ui/card';
-import { BarChart3, Package, ReceiptText, TrendingUp, DollarSign } from 'lucide-react';
-import { getDailySummary, getProductSalesLines } from '@/lib/db';
-import { useState, useEffect } from 'react';
+import * as React from 'react';
+import { RefreshCw } from 'lucide-react';
+import { ReceiptText, Boxes, DollarSign, TrendingUp } from 'lucide-react';
 
-type DailySummaryRow = {
-  bill_date: string;
-  channel_code: string;
-  order_count: number;
-  total_items: number;
-  total_sales: number;
-  total_discounts: number;
-  net_sales: number;
-  total_cost: number;
-  net_profit: number;
+import { Card, CardContent } from '@/components/ui/card';
+import { Button } from '@/components/ui/button';
+import { KpiCard } from '@/components/dashboard/KpiCard';
+import {
+  PeriodFilter,
+  defaultPeriodFilter,
+  type PeriodFilterValue,
+} from '@/components/dashboard/PeriodFilter';
+import { SalesByChannelCard } from '@/components/dashboard/SalesByChannelCard';
+import { MonthlyTrendCard } from '@/components/dashboard/MonthlyTrendCard';
+import { TopProductsTable } from '@/components/dashboard/TopProductsTable';
+import { DashboardSkeleton, SectionError } from '@/components/dashboard/QueryState';
+
+import {
+  useDailySummary,
+  useDailySummaryRange,
+  useMonthlySalesProfit,
+  useTopProducts,
+} from '@/lib/dashboard-queries';
+import type {
+  DailySummaryRow,
+  ChannelSummary,
+  DashboardOverviewSummary,
+} from '@/types/dashboard';
+import { toNum, bahtSign } from '@/types/dashboard';
+
+/* ─── Aggregation helpers ─────────────────────────────────── */
+const ZERO_SUMMARY: DashboardOverviewSummary = {
+  order_count: 0,
+  total_items: 0,
+  total_sales: 0,
+  total_discounts: 0,
+  net_sales: 0,
+  total_cost: 0,
+  net_profit: 0,
 };
 
-type ProductSalesLine = {
-  receipt_id: number;
-  receipt_no: string;
-  bill_date: string;
-  channel_code: string;
-  product_id: number | null;
-  product_name: string;
-  product_price: number;
-  product_cost: number;
-  quantity: number;
-  line_total: number;
-  line_cost: number;
-  line_profit: number;
-};
-
-export default function DashboardOverviewPage() {
-  const [dailySummaries, setDailySummaries] = useState<DailySummaryRow[]>([]);
-  const [productLines, setProductLines] = useState<ProductSalesLine[]>([]);
-  const [loading, setLoading] = useState(true);
-
-  useEffect(() => {
-    async function fetchData() {
-      try {
-        const today = new Date().toISOString().split('T')[0];
-        const [summaries, lines] = await Promise.all([
-          getDailySummary(today),
-          getProductSalesLines(today),
-        ]);
-        setDailySummaries((summaries as DailySummaryRow[]) || []);
-        setProductLines((lines as ProductSalesLine[]) || []);
-      } catch (error) {
-        console.error('Failed to fetch dashboard data:', error);
-      } finally {
-        setLoading(false);
-      }
-    }
-
-    fetchData();
-  }, []);
-
-  const todaySummary = dailySummaries.reduce(
-    (acc, row) => ({
-      order_count: acc.order_count + row.order_count,
-      total_items: acc.total_items + row.total_items,
-      total_sales: acc.total_sales + row.total_sales,
-      total_discounts: acc.total_discounts + row.total_discounts,
-      net_sales: acc.net_sales + row.net_sales,
-      total_cost: acc.total_cost + row.total_cost,
-      net_profit: acc.net_profit + row.net_profit,
+function aggregateRows(rows: DailySummaryRow[]): DashboardOverviewSummary {
+  return rows.reduce<DashboardOverviewSummary>(
+    (acc, r) => ({
+      order_count: acc.order_count + toNum(r.order_count),
+      total_items: acc.total_items + toNum(r.total_items),
+      total_sales: acc.total_sales + toNum(r.total_sales),
+      total_discounts: acc.total_discounts + toNum(r.total_discounts),
+      net_sales: acc.net_sales + toNum(r.net_sales),
+      total_cost: acc.total_cost + toNum(r.total_cost),
+      net_profit: acc.net_profit + toNum(r.net_profit),
     }),
-    { order_count: 0, total_items: 0, total_sales: 0, total_discounts: 0, net_sales: 0, total_cost: 0, net_profit: 0 }
+    { ...ZERO_SUMMARY },
+  );
+}
+
+function toChannelSummaries(rows: DailySummaryRow[]): ChannelSummary[] {
+  // Group by channel_code (range mode can have multiple dates per channel).
+  const map = new Map<string, ChannelSummary>();
+  for (const r of rows) {
+    const existing =
+      map.get(r.channel_code) ??
+      ({
+        channel_code: r.channel_code,
+        ...ZERO_SUMMARY,
+      } as ChannelSummary);
+    existing.order_count += toNum(r.order_count);
+    existing.total_items += toNum(r.total_items);
+    existing.total_sales += toNum(r.total_sales);
+    existing.total_discounts += toNum(r.total_discounts);
+    existing.net_sales += toNum(r.net_sales);
+    existing.total_cost += toNum(r.total_cost);
+    existing.net_profit += toNum(r.net_profit);
+    map.set(r.channel_code, existing);
+  }
+  return Array.from(map.values());
+}
+
+/* Period label helper */
+function periodLabel(v: PeriodFilterValue): string {
+  if (v.period === 'today') return `วันที่ ${formatThai(v.range.dateFrom)}`;
+  if (v.period === 'month') return `เดือนนี้`;
+  return `${formatThai(v.range.dateFrom)} - ${formatThai(v.range.dateTo)}`;
+}
+
+function formatThai(iso: string): string {
+  if (!iso) return '';
+  try {
+    const d = new Date(iso + 'T00:00:00');
+    return d.toLocaleDateString('th-TH', { day: '2-digit', month: 'short', year: 'numeric' });
+  } catch {
+    return iso;
+  }
+}
+
+/* ─── Page ────────────────────────────────────────────────── */
+export default function DashboardOverviewPage() {
+  const [period, setPeriod] = React.useState<PeriodFilterValue>(() =>
+    defaultPeriodFilter('today'),
   );
 
-  if (loading) {
-    return (
-      <div className="flex items-center justify-center h-64">
-        <p className="text-muted-foreground">กำลังโหลดข้อมูล...</p>
-      </div>
-    );
-  }
+  // Choose the right summary query based on the period type.
+  const isRange = period.period !== 'today';
+  const singleDate = period.range.dateFrom;
+
+  const singleDayQuery = useDailySummary(singleDate);
+  const rangeQuery = useDailySummaryRange({ dateFrom: period.range.dateFrom, dateTo: period.range.dateTo });
+
+  const summaryQuery = isRange ? rangeQuery : singleDayQuery;
+  const monthlyQuery = useMonthlySalesProfit(12);
+  const topProductsQuery = useTopProducts(5);
+
+  const dailyRows: DailySummaryRow[] = isRange
+    ? (rangeQuery.data ?? [])
+    : (singleDayQuery.data ?? []);
+
+  const summary = React.useMemo(
+    () => aggregateRows(dailyRows),
+    [dailyRows],
+  );
+  const channels = React.useMemo(() => toChannelSummaries(dailyRows), [dailyRows]);
+
+  const isLoading = summaryQuery.isLoading;
+  const isError = summaryQuery.isError;
+  const refetch = () => {
+    if (isRange) rangeQuery.refetch();
+    else singleDayQuery.refetch();
+    monthlyQuery.refetch();
+    topProductsQuery.refetch();
+  };
 
   return (
-    <div>
-      {/* Header */}
-      <h1 className="text-2xl font-bold text-primary mb-6">ภาพรวมระบบจัดการ</h1>
-
-      {/* Stats cards */}
-      <div className="grid grid-cols-4 gap-4 mb-8">
-        <Card className="bg-primary/10 border-border/50">
-          <CardHeader className="pb-2">
-            <CardTitle className="text-sm text-muted-foreground">จำนวนบิลวันนี้</CardTitle>
-          </CardHeader>
-          <CardContent>
-            <p className="text-3xl font-bold text-primary">{todaySummary.order_count}</p>
-          </CardContent>
-        </Card>
-
-        <Card className="bg-action/10 border-border/50">
-          <CardHeader className="pb-2">
-            <CardTitle className="text-sm text-muted-foreground">รายการสินค้าทั้งหมด</CardTitle>
-          </CardHeader>
-          <CardContent>
-            <p className="text-3xl font-bold text-action">{todaySummary.total_items}</p>
-          </CardContent>
-        </Card>
-
-        <Card className="bg-success/10 border-border/50">
-          <CardHeader className="pb-2">
-            <CardTitle className="text-sm text-muted-foreground">ยอดขายรวม</CardTitle>
-          </CardHeader>
-          <CardContent>
-            <p className="text-3xl font-bold text-success">฿{todaySummary.net_sales.toLocaleString()}</p>
-          </CardContent>
-        </Card>
-
-        <Card className="bg-destructive/10 border-border/50">
-          <CardHeader className="pb-2">
-            <CardTitle className="text-sm text-muted-foreground">กำไรสุทธิ</CardTitle>
-          </CardHeader>
-          <CardContent>
-            <p className="text-3xl font-bold text-destructive">฿{todaySummary.net_profit.toLocaleString()}</p>
-          </CardContent>
-        </Card>
+    <div className="space-y-5">
+      {/* Header + controls */}
+      <div className="flex flex-col gap-3 sm:flex-row sm:items-start sm:justify-between">
+        <div>
+          <h1 className="text-xl sm:text-2xl font-bold text-primary">ภาพรวมยอดขาย</h1>
+          <p className="text-sm text-muted-foreground mt-0.5">
+            สรุปยอดขาย ต้นทุน และกำไรของช่วงเวลาที่เลือก
+          </p>
+        </div>
+        <div className="flex items-center gap-2 sm:gap-3 flex-wrap">
+          <PeriodFilter value={period} onChange={setPeriod} />
+          <Button variant="ghost" size="sm" onClick={refetch} aria-label="รีเฟรชข้อมูล">
+            <RefreshCw className={`w-4 h-4 ${isLoading ? 'animate-spin' : ''}`} />
+            <span className="hidden sm:inline ml-1">รีเฟรช</span>
+          </Button>
+        </div>
       </div>
 
-      {/* Channel breakdown */}
-      <Card className="border-border/50 mb-6">
-        <CardHeader>
-          <CardTitle>สรุปตามช่องทางการขาย (วันนี้)</CardTitle>
-        </CardHeader>
-        <CardContent>
-          <div className="space-y-3">
-            {dailySummaries.length === 0 ? (
-              <p className="text-muted-foreground text-sm">ไม่มีข้อมูลบิลในวันนี้</p>
-            ) : (
-              dailySummaries.map((row, index) => (
-                <div key={index} className="flex items-center justify-between p-3 rounded-lg bg-surface border border-border/50">
-                  <div className="flex items-center gap-3">
-                    <span className="px-2 py-1 rounded bg-primary/10 text-xs font-mono text-primary">{row.channel_code}</span>
-                    <span className="text-sm text-muted-foreground">{row.order_count} บิล | {row.total_items} รายการ</span>
-                  </div>
-                  <div className="flex items-center gap-6 text-sm">
-                    <span className="text-success font-medium">ยอดขาย: ฿{row.net_sales.toLocaleString()}</span>
-                    <span className="text-destructive font-medium">กำไร: ฿{row.net_profit.toLocaleString()}</span>
-                  </div>
-                </div>
-              ))
-            )}
+      {/* KPI cards */}
+      {isLoading ? (
+        <DashboardSkeleton kpiCount={4} />
+      ) : (
+        <>
+          <div className="grid grid-cols-1 sm:grid-cols-2 lg:grid-cols-4 gap-3">
+            <KpiCard
+              accent="primary"
+              icon={<ReceiptText className="w-5 h-5" />}
+              label="จำนวนบิล"
+              value={`${summary.order_count}`}
+              hint={`${summary.total_items} ชิ้นสินค้า`}
+            />
+            <KpiCard
+              accent="action"
+              icon={<DollarSign className="w-5 h-5" />}
+              label="ยอดขายรวม"
+              value={bahtSign(summary.net_sales)}
+              hint={
+                summary.total_discounts > 0
+                  ? `ส่วนลดรวม ${bahtSign(summary.total_discounts)}`
+                  : undefined
+              }
+            />
+            <KpiCard
+              accent="primary"
+              icon={<Boxes className="w-5 h-5" />}
+              label="ต้นทุนรวม"
+              value={bahtSign(summary.total_cost)}
+            />
+            <KpiCard
+              accent={summary.net_profit >= 0 ? 'success' : 'destructive'}
+              icon={<TrendingUp className="w-5 h-5" />}
+              label="กำไรสุทธิ"
+              value={bahtSign(summary.net_profit)}
+              hint={
+                summary.net_sales > 0
+                  ? `margin ${((summary.net_profit / Math.max(summary.net_sales, 1)) * 100).toFixed(1)}%`
+                  : undefined
+              }
+            />
           </div>
-        </CardContent>
-      </Card>
 
-      {/* Recent product sales lines */}
-      <Card className="border-border/50">
-        <CardHeader>
-          <CardTitle>รายละเอียดการขายสินค้า (วันนี้)</CardTitle>
-        </CardHeader>
-        <CardContent>
-          <div className="overflow-x-auto">
-            <table className="w-full text-sm">
-              <thead>
-                <tr className="border-b border-border/50">
-                  <th className="text-left py-2 px-3 font-medium text-muted-foreground">บิล</th>
-                  <th className="text-left py-2 px-3 font-medium text-muted-foreground">ช่องขาย</th>
-                  <th className="text-left py-2 px-3 font-medium text-muted-foreground">สินค้า</th>
-                  <th className="text-right py-2 px-3 font-medium text-muted-foreground">จำนวน</th>
-                  <th className="text-right py-2 px-3 font-medium text-muted-foreground">ยอดขาย</th>
-                  <th className="text-right py-2 px-3 font-medium text-muted-foreground">ต้นทุน</th>
-                  <th className="text-right py-2 px-3 font-medium text-muted-foreground">กำไร</th>
-                </tr>
-              </thead>
-              <tbody>
-                {productLines.length === 0 ? (
-                  <tr>
-                    <td colSpan={7} className="py-4 text-center text-muted-foreground">ไม่มีข้อมูลการขายในวันนี้</td>
-                  </tr>
-                ) : (
-                  productLines.map((line, index) => (
-                    <tr key={`${line.receipt_id}-${index}`} className="border-b border-border/30 hover:bg-surface/50 transition-colors">
-                      <td className="py-2 px-3 font-mono text-xs">{line.receipt_no}</td>
-                      <td className="py-2 px-3"><span className="px-1.5 py-0.5 rounded bg-primary/10 text-xs font-mono text-primary">{line.channel_code}</span></td>
-                      <td className="py-2 px-3 max-w-[200px] truncate">{line.product_name}</td>
-                      <td className="py-2 px-3 text-right">{line.quantity}</td>
-                      <td className="py-2 px-3 text-right font-medium">฿{line.line_total.toLocaleString()}</td>
-                      <td className="py-2 px-3 text-right text-muted-foreground">฿{line.line_cost.toLocaleString()}</td>
-                      <td className={`py-2 px-3 text-right ${line.line_profit >= 0 ? 'text-success' : 'text-destructive'} font-medium`}>
-                        ฿{line.line_profit.toLocaleString()}
-                      </td>
-                    </tr>
-                  ))
-                )}
-              </tbody>
-            </table>
+          {isError && (
+            <SectionError
+              message={summaryQuery.error?.message}
+              onRetry={refetch}
+            />
+          )}
+
+          {/* Channel breakdown + monthly trend */}
+          <div className="grid grid-cols-1 lg:grid-cols-2 gap-4">
+            <SalesByChannelCard
+              channels={channels}
+              loading={isLoading}
+              periodLabel={periodLabel(period)}
+            />
+            <MonthlyTrendCard months={monthlyQuery.data ?? []} loading={monthlyQuery.isLoading} />
           </div>
-        </CardContent>
-      </Card>
+
+          {/* Highlight: current period top 5 best sellers */}
+          <TopProductsTable
+            products={topProductsQuery.data ?? []}
+            loading={topProductsQuery.isLoading}
+            limit={5}
+            title="สินค้าขายดี 5 อันดับ (ตลอดกาล)"
+            emptyText="ยังไม่มีข้อมูลการขาย"
+          />
+        </>
+      )}
+
+      {/* Hint when empty after load */}
+      {!isLoading && !isError && dailyRows.length === 0 && (
+        <p className="text-sm text-muted-foreground text-center pt-2">
+          ไม่มีข้อมูลบิลใน{periodLabel(period)}
+        </p>
+      )}
     </div>
   );
 }

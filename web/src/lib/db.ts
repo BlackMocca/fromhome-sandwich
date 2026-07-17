@@ -462,20 +462,89 @@ export async function updateReceiptStatus(id: number, status: 'active' | 'cancel
 }
 
 // ─── Dashboard Views ─────────────────────────────────────
+// Views are security_invoker (RLS-aware) — see migration
+// 20260717000001_dashboard_views_rls_and_best_sellers.sql.
+// Access role `authenticated` is granted explicitly.
 
-export async function getDailySummary(date?: string) {
+/**
+ * Per-day, per-channel summary.
+ * @param date single day as 'YYYY-MM-DD' (defaults to today, UTC)
+ */
+export async function getDailySummary(
+  date?: string,
+): Promise<import('@/types/dashboard').DailySummaryRow[]> {
   const targetDate = date || new Date().toISOString().split('T')[0];
-  return get<Record<string, unknown>[]>('view_daily_summary', {
-    params: { bill_date: `eq.${targetDate}` },
+  return get<import('@/types/dashboard').DailySummaryRow[]>('view_daily_summary', {
+    params: { bill_date: `eq.${targetDate}`, order: 'channel_code.asc' },
   });
 }
 
-export async function getProductSalesLines(date?: string) {
-  const params: Record<string, string> = {};
-  if (date) {
-    params.bill_date = `eq.${date}`;
+/**
+ * Per-day, per-channel summary across an inclusive date range.
+ * @param range { dateFrom, dateTo } as 'YYYY-MM-DD'
+ */
+export async function getDailySummaryRange(range: {
+  dateFrom: string;
+  dateTo: string;
+}): Promise<import('@/types/dashboard').DailySummaryRow[]> {
+  if (!range?.dateFrom || !range?.dateTo) return [];
+  return get<import('@/types/dashboard').DailySummaryRow[]>('view_daily_summary', {
+    params: {
+      bill_date: `gte.${range.dateFrom}`,
+      and: `(bill_date.lte.${range.dateTo})`,
+      order: 'bill_date.asc,channel_code.asc',
+    },
+  });
+}
+
+/**
+ * Per receipt-item sales detail.
+ * Pass a single date or an inclusive date range (both optional).
+ */
+export async function getProductSalesLines(
+  range?: string | { dateFrom: string; dateTo: string },
+): Promise<import('@/types/dashboard').SalesProductLine[]> {
+  const params: Record<string, string> = { order: 'bill_date.desc,receipt_no.desc' };
+  if (range) {
+    if (typeof range === 'string') {
+      params.bill_date = `eq.${range}`;
+    } else {
+      params.bill_date = `gte.${range.dateFrom}`;
+      params.and = `(bill_date.lte.${range.dateTo})`;
+    }
   }
-  return get<Record<string, unknown>[]>('view_sales_product_lines', { params });
+  return get<import('@/types/dashboard').SalesProductLine[]>('view_sales_product_lines', {
+    params,
+  });
+}
+
+/**
+ * Best-sellers / top products ranking (view_top_products).
+ * Aggregates all active sales per product; client sorts/limits.
+ * @param range optional { limit } (filtering by date is not applied
+ *   server-side here; view groups by product_name across all time —
+ *   keep endpoint stable & cheap).
+ */
+export async function getTopProducts(
+  range?: { dateFrom?: string; dateTo?: string; limit?: number },
+): Promise<import('@/types/dashboard').TopProductRow[]> {
+  const params: Record<string, string> = {
+    order: 'total_quantity.desc,total_revenue.desc',
+  };
+  if (range?.limit) params.limit = String(range.limit);
+  return get<import('@/types/dashboard').TopProductRow[]>('view_top_products', { params });
+}
+
+/**
+ * Monthly sales/cost/profit trend (view_monthly_sales_profit).
+ * @param months number of most-recent months to fetch (default 12)
+ */
+export async function getMonthlySalesProfit(
+  months = 12,
+): Promise<import('@/types/dashboard').MonthlySalesRow[]> {
+  return get<import('@/types/dashboard').MonthlySalesRow[]>('view_monthly_sales_profit', {
+    params: { order: 'bill_month.asc', limit: String(months) },
+  });
 }
 
 // ─── Receipt Number ─────────────────────────────────────
