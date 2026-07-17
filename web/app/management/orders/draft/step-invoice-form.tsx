@@ -36,7 +36,7 @@ interface InvoiceFormValues {
 
 const invoiceSchema = yup.object({
   receiptNo: yup.string(),
-  customerName: yup.string().trim().required('กรุณากรอกชื่อลูกค้า'),
+  customerName: yup.string().trim(),
   invoiceDate: yup.string().required('กรุณาเลือกวันที่'),
   note: yup.string(),
   discounts: yup.array().of(
@@ -273,7 +273,7 @@ export function StepInvoiceForm({ onBack }: { onBack: () => void }) {
               {/* Customer Name */}
               <div className="space-y-2">
                 <label htmlFor="customerName" className="text-sm font-medium text-primary">
-                  ชื่อลูกค้า <span className="text-destructive">*</span>
+                  ชื่อลูกค้า <span className="text-muted-foreground text-xs">(ไม่บังคับ)</span>
                 </label>
                 <Input
                   id="customerName"
