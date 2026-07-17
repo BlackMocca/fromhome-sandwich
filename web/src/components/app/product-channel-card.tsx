@@ -1,18 +1,23 @@
 'use client';
 
-import { Plus } from 'lucide-react';
-import { useState } from 'react';
+import { Menu, Pencil, Plus } from 'lucide-react';
+import { useEffect, useRef, useState } from 'react';
+import { useRouter } from 'next/navigation';
+import { cn } from '@/lib/utils';
 import type { ProductAddon } from '@/types/product_addon';
 import type { Category } from '@/types/category';
 import { ProductOptionsPills } from './product-options-pills';
 import { ChannelProduct } from '@/types/channel_product';
 import { useOrder } from '@/contexts/OrderContext';
+import { ToggleSwitch } from '@/components/ui/toggle-switch';
+import { updateChannelProduct } from '@/lib/db';
 
 interface ProductChannelCardProps {
   product: ChannelProduct;
   category?: Category | null;
   channelName?: string;
   channelCode?: string;
+  channelId: number;
 }
 
 /** iPad-Optimized Product Card with Pill Options */
@@ -21,10 +26,56 @@ export function ProductChannelCard({
   category,
   channelName,
   channelCode,
+  channelId,
 }: ProductChannelCardProps) {
+  const router = useRouter();
   const { addItem } = useOrder();
   const [quantity, setQuantity] = useState(1);
   const [selectedOptionIds, setSelectedOptionIds] = useState<number[]>([]);
+
+  // ── Active state (synced from prop, updated optimistically) ──
+  const [active, setActive] = useState<boolean>(product.is_active);
+  const [updating, setUpdating] = useState(false);
+  const [menuOpen, setMenuOpen] = useState(false);
+  const menuRef = useRef<HTMLDivElement>(null);
+
+  // Keep local active state in sync when the parent reloads data
+  useEffect(() => { setActive(product.is_active); }, [product.is_active]);
+
+  // Close burger menu on outside click
+  useEffect(() => {
+    if (!menuOpen) return;
+    function handlePointer(e: MouseEvent) {
+      if (menuRef.current && !menuRef.current.contains(e.target as Node)) {
+        setMenuOpen(false);
+      }
+    }
+    document.addEventListener('mousedown', handlePointer);
+    return () => document.removeEventListener('mousedown', handlePointer);
+  }, [menuOpen]);
+
+  // Toggle is_active on channel_products via client-side REST update
+  const handleToggleActive = async (next: boolean) => {
+    if (updating) return;
+    setUpdating(true);
+    setActive(next); // optimistic update so the card fades immediately
+    try {
+      await updateChannelProduct(product.id, {
+        is_active: next,
+        updated_at: new Date().toISOString(),
+      });
+    } catch (err) {
+      setActive(!next); // revert on failure
+      console.error('Failed to update channel product active:', err);
+    } finally {
+      setUpdating(false);
+    }
+  };
+
+  const handleEdit = () => {
+    setMenuOpen(false);
+    router.push(`/management/channels/${channelId}/product/${product.id}/edit`);
+  };
   const channelProductAddOn: ProductAddon[] = (product?.channel_product_addons ?? [])
     .map(data => {
       if (!data?.product_addons) return undefined;
@@ -41,7 +92,50 @@ export function ProductChannelCard({
   };
 
   return (
-    <div className="group relative bg-surface rounded-2xl shadow-xl hover:shadow-2xl transition-all duration-300 h-full flex flex-col min-h-[500px]">
+    <div className={cn(
+      "group relative bg-surface rounded-2xl shadow-xl hover:shadow-2xl transition-all duration-300 h-full flex flex-col min-h-[500px]",
+      active ? 'opacity-100' : 'opacity-60',
+    )}>
+      {/* ── Burger Menu — top-left corner */}
+      <div className="absolute top-3 left-3 z-20" ref={menuRef}>
+        <button
+          type="button"
+          onClick={(e) => { e.stopPropagation(); setMenuOpen(o => !o); }}
+          aria-label="เมนูสินค้า"
+          className="p-2 rounded-lg bg-white/85 backdrop-blur-md shadow-lg border border-white/40 text-primary hover:bg-white transition-colors"
+        >
+          <Menu className="w-5 h-5" />
+        </button>
+
+        {menuOpen && (
+          <div className="absolute left-0 top-full mt-2 w-52 bg-white rounded-xl shadow-2xl border border-border p-1.5 z-30">
+            {/* Edit */}
+            <button
+              type="button"
+              onClick={handleEdit}
+              className="w-full flex items-center gap-2 px-3 py-2 rounded-lg text-sm font-medium text-primary hover:bg-surface transition-colors text-left"
+            >
+              <Pencil className="w-4 h-4" />
+              แก้ไข
+            </button>
+
+            {/* Enable / Disable (label follows current state) */}
+            <div className="flex items-center justify-between gap-2 px-3 py-2 rounded-lg hover:bg-surface transition-colors">
+              <span className="text-sm font-medium text-primary">
+                {active ? 'ปิดใช้งาน' : 'เปิดใช้งาน'}
+              </span>
+              <ToggleSwitch
+                on={active}
+                onToggle={handleToggleActive}
+                size="sm"
+                knobContent="เปิด"
+                disabled={updating}
+              />
+            </div>
+          </div>
+        )}
+      </div>
+
       {/* ── Category Badge — frosted glass over image */}
       {category && (
         <span className="absolute top-3 right-3 z-10 px-3 py-1 rounded-xl bg-white/85 backdrop-blur-md shadow-lg border border-white/40 text-primary text-xs font-bold uppercase tracking-wider select-none">
@@ -89,26 +183,34 @@ export function ProductChannelCard({
             <button 
               type="button" 
               onClick={() => setQuantity(q => Math.max(1, q - 1))} 
-              className="w-10 h-10 rounded-full border border-border/40 flex items-center justify-center hover:bg-surface active:bg-white transition-colors text-xl font-bold"
+              disabled={!active}
+              className="w-10 h-10 rounded-full border border-border/40 flex items-center justify-center hover:bg-surface active:bg-white transition-colors text-xl font-bold disabled:opacity-40 disabled:cursor-not-allowed"
             >−</button>
             <span className="text-lg font-semibold text-primary w-6 text-center">{quantity}</span>
             <button 
               type="button" 
               onClick={() => setQuantity(q => q + 1)} 
-              className="w-10 h-10 rounded-full bg-action text-white flex items-center justify-center hover:bg-action/90 active:scale-95 transition-all text-xl font-bold shadow-sm"
+              disabled={!active}
+              className="w-10 h-10 rounded-full bg-action text-white flex items-center justify-center hover:bg-action/90 active:scale-95 transition-all text-xl font-bold shadow-sm disabled:opacity-40 disabled:cursor-not-allowed"
             >+</button>
           </div>
 
           {/* Add-to-bill button — always at bottom of card */}
           <button 
             type="button" 
+            disabled={!active}
             onClick={() => {
               const selectedAddons = channelProductAddOn.filter(a => selectedOptionIds.includes(a.id));
               addItem(product, quantity, selectedAddons, channelName, channelCode);
               setQuantity(1);
               setSelectedOptionIds([]);
             }}
-            className="w-full px-4 py-2 rounded-xl bg-primary text-white flex items-center justify-center gap-1.5 hover:bg-primary/90 active:scale-95 transition-all shadow-md"
+            className={cn(
+              "w-full px-4 py-2 rounded-xl flex items-center justify-center gap-1.5 transition-all shadow-md text-white",
+              active
+                ? "bg-primary hover:bg-primary/90 active:scale-95"
+                : "bg-primary/40 cursor-not-allowed",
+            )}
           >
             <Plus className="w-5 h-5" />
             <span className="text-sm font-bold">รายการ</span>

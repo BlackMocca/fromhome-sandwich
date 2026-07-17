@@ -396,6 +396,14 @@ export async function getChannelProducts(channelId: number) {
   });
 }
 
+export async function getChannelProductById(id: number) {
+  return getOne<import('@/types/channel_product').ChannelProduct>(
+    'channel_products',
+    id,
+    '*,products(*,categories(*),product_mapping_addons(addon_id,product_addons(*))),channel_product_addons(addon_id,price,product_addons(*))',
+  );
+}
+
 export async function createChannelProduct(data: {
   channel_id: number;
   product_id: number;
@@ -429,6 +437,51 @@ export async function saveChannelProductAddonMappings(
     }
   }
 }
+
+export async function updateChannelProduct(id: number, data: {
+  price?: number;
+  cost?: number;
+  is_active?: boolean;
+  updated_at?: string;
+}) {
+  return update<import('@/types/channel_product').ChannelProduct>('channel_products', id, data);
+}
+
+// ─── Telegram Settings ────────────────────────────────────
+
+/** Read the (single) Telegram config row, or null if not set. */
+export async function getTelegramSettings(): Promise<import('@/types/telegram').TelegramSettings | null> {
+  const rows = await get<import('@/types/telegram').TelegramSettings[]>('telegram_settings', {
+    params: { limit: '1', order: 'id.asc' },
+  });
+  return rows && rows.length > 0 ? rows[0] : null;
+}
+
+/** Create a new Telegram config row. */
+export async function createTelegramSettings(
+  data: import('@/types/telegram').TelegramSettingsInput,
+) {
+  return create<import('@/types/telegram').TelegramSettings>('telegram_settings', {
+    bot_token: data.bot_token,
+    chat_id: data.chat_id ?? null,
+    is_active: data.is_active ?? true,
+  });
+}
+
+/** Update an existing Telegram config row by id. */
+export async function updateTelegramSettings(
+  id: number,
+  data: Partial<import('@/types/telegram').TelegramSettingsInput>,
+) {
+  return update<import('@/types/telegram').TelegramSettings>('telegram_settings', id, data);
+}
+
+/** Delete a Telegram config row by id. */
+export async function deleteTelegramSettings(id: number) {
+  return remove('telegram_settings', id);
+}
+
+// ─── Receipts (Header + Items) ────────────────────────
 
 export async function getReceipts(options?: { channel_code?: string; search?: string; bill_date?: string }) {
   const params: Record<string, string> = { order: 'created_at.desc' };
@@ -533,6 +586,21 @@ export async function getTopProducts(
   };
   if (range?.limit) params.limit = String(range.limit);
   return get<import('@/types/dashboard').TopProductRow[]>('view_top_products', { params });
+}
+
+/**
+ * Best-selling add-ons / product options (view_top_addons).
+ * Unnests receipt_items.product_options and ranks by total quantity
+ * sold — all-time across active receipts. Optional `limit` for top-N.
+ */
+export async function getTopAddons(
+  limit?: number,
+): Promise<import('@/types/dashboard').TopAddonRow[]> {
+  const params: Record<string, string> = {
+    order: 'total_quantity.desc,total_revenue.desc',
+  };
+  if (limit) params.limit = String(limit);
+  return get<import('@/types/dashboard').TopAddonRow[]>('view_top_addons', { params });
 }
 
 /**

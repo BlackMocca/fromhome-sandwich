@@ -14,6 +14,7 @@ import { calcPercentage, calcGrandPercentage } from '@/utils/gp';
 import type { Channel } from '@/types/channel';
 import type { Product } from '@/types/product';
 import type { ProductAddon } from '@/types/product_addon';
+import type { ChannelProduct } from '@/types/channel_product';
 
 /* ─── Addon item shape inside Formik ─── */
 type AddonItem = {
@@ -48,28 +49,38 @@ interface Step2Props {
   template: Product;
   onSubmit: (values: { price: number; cost: number }, addons: { addon_id: number; price: number }[]) => Promise<void>;
   onBack: () => void;
+  /** Present in edit mode — used to pre-fill price/cost and selected addons */
+  channelProduct?: ChannelProduct;
 }
 
-export function Step2ChannelForm({ channel, template, onSubmit, onBack }: Step2Props) {
+export function Step2ChannelForm({ channel, template, onSubmit, onBack, channelProduct }: Step2Props) {
   const router = useRouter();
 
   const templateAddons: ProductAddon[] = (template.product_mapping_addons ?? [])
     .map(m => m.product_addons)
     .filter((a): a is ProductAddon => a !== undefined);
 
-  /* ─── Build initial addons from template ─── */
+  // In edit mode, map existing channel-product addons to their stored prices
+  const existingAddonPrices = new Map<number, number>();
+  if (channelProduct?.channel_product_addons) {
+    for (const cpa of channelProduct.channel_product_addons) {
+      existingAddonPrices.set(cpa.addon_id, cpa.price);
+    }
+  }
+
+  /* ─── Build initial addons (selected + price) ─── */
   const initialAddons: AddonItem[] = templateAddons.map(a => ({
     addon_id: a.id,
     name: a.name,
-    price: a.base_price,
-    is_selected: true,
+    price: channelProduct ? (existingAddonPrices.get(a.id) ?? a.base_price) : a.base_price,
+    is_selected: channelProduct ? existingAddonPrices.has(a.id) : true,
   }));
 
   /* ─── Formik ─── */
   const formik = useFormik<FormValues>({
     initialValues: {
-      price: calcGrandPercentage(template.base_price, channel.gp_percentage || 0),
-      cost: calcGrandPercentage(template.cost, channel.gp_percentage || 0),
+      price: channelProduct ? channelProduct.price : calcGrandPercentage(template.base_price, channel.gp_percentage || 0),
+      cost: channelProduct ? channelProduct.cost : calcGrandPercentage(template.cost, channel.gp_percentage || 0),
       addons: initialAddons,
     },
     enableReinitialize: false,
@@ -114,7 +125,7 @@ export function Step2ChannelForm({ channel, template, onSubmit, onBack }: Step2P
       {/* Right: Form */}
       <Card className="border border-primary/20 bg-white shadow-sm">
         <CardContent className="space-y-4 pt-6">
-          <h2 className="text-lg font-bold text-primary mb-2">Step 2: ปรับข้อมูลสินค้า</h2>
+          <h2 className="text-lg font-bold text-primary mb-2">{channelProduct ? 'แก้ไขสินค้าในช่องทาง' : 'Step 2: ปรับข้อมูลสินค้า'}</h2>
 
           {/* Price Breakdown */}
           <div className="rounded-lg bg-surface border border-border/50 p-4 space-y-2 text-sm">

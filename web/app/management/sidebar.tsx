@@ -5,20 +5,16 @@ import Link from 'next/link';
 import { usePathname, useRouter } from 'next/navigation';
 import { useQuery } from '@tanstack/react-query';
 import { cn } from '@/lib/utils';
-import { ChevronLeft, ChevronDown } from 'lucide-react';
+import { ChevronLeft, ChevronDown, ShoppingCart } from 'lucide-react';
 import type { Channel } from '@/types/channel';
 import { getChannels } from '@/lib/db';
-
-const STATIC_NAV_ITEMS = [
-  { label: 'แดชบอร์ด (Dashboard)', href: '/management', icon: '📊' },
-  { label: 'รายการบิล (Receipts)', href: '/management/receipts', icon: '🧾' },
-];
 
 const SYSTEM_MANAGEMENT_ITEMS = [
   { label: 'สินค้า (Product)', href: '/management/products', icon: '🥪' },
   { label: 'ผู้ใช้งาน (User)', href: '/management/user', icon: '👤' },
   { label: 'หมวดหมู่ (Category)', href: '/management/categories', icon: '📂' },
   { label: 'ตัวเลือกสินค้า (Add-on)', href: '/management/addons', icon: '➕' },
+  { label: 'เชื่อมต่อ Telegram', href: '/management/telegram', icon: '✈️' },
 ];
 
 // Module-level stable state for mobile sidebar (survives SSR/CSR boundary)
@@ -90,7 +86,8 @@ export default function ManagementSidebar({ children }: { children: React.ReactN
     pathname === '/management/products' || pathname.startsWith('/management/products/') ||
     pathname === '/management/user' || pathname.startsWith('/management/user/') ||
     pathname === '/management/categories' || pathname.startsWith('/management/categories/') ||
-    pathname === '/management/addons' || pathname.startsWith('/management/addons/');
+    pathname === '/management/addons' || pathname.startsWith('/management/addons/') ||
+    pathname === '/management/telegram' || pathname.startsWith('/management/telegram/');
 
   // Effective expanded states: if a child route is active, the parent must be expanded and shown as active.
   const effectiveDashboardExpanded = dashboardExpanded || dashboardHasActiveChild;
@@ -182,7 +179,7 @@ export default function ManagementSidebar({ children }: { children: React.ReactN
             )}
           >
             <span className="flex items-center gap-2">
-              <span>📊</span>
+              <ShoppingCart className='w-5 h-5'/>
               <span>ช่องทางการขาย (Channels)</span>
             </span>
             <ChevronDown

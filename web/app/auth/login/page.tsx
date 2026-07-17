@@ -123,7 +123,7 @@ export default function LoginPage() {
   const submitError = error ? (error as Error).message : null;
 
   return (
-    <main className="flex flex-1 min-h-screen items-center justify-center bg-surface p-4 font-kanit">
+    <main className="flex flex-1 min-h-[100dvh] items-center justify-center xs:items-start bg-surface p-4 font-kanit">
       <Card className="w-full max-w-md border border-primary/20 bg-white shadow-sm">
         <CardHeader className="space-y-2 pb-2 text-center text-white">
           {/* Brand mark */}

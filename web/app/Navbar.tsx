@@ -91,15 +91,46 @@ export default function Navbar() {
 
                 {/* Dropdown card */}
                 {showDropdown && (
-                  <div className="absolute right-0 mt-2 w-48 bg-white border border-gray-200 rounded-lg shadow-lg z-50">
+                  <div className="absolute right-0 mt-2 w-56 bg-white border border-gray-200 rounded-lg shadow-lg z-50 overflow-hidden">
+                    {/* Profile info header */}
+                    <div className="px-4 py-3 border-b border-gray-100">
+                      <p className="text-sm font-semibold text-primary truncate">
+                        {authUser?.profile?.display_name ?? authUser?.user?.email?.split('@')[0] ?? 'Admin'}
+                      </p>
+                      {authUser?.user?.email && (
+                        <p className="text-xs text-primary/50 truncate mt-0.5">
+                          {authUser.user.email}
+                        </p>
+                      )}
+                    </div>
+
+                    {/* เข้าสู่ระบบจัดการ */}
+                    <a
+                      href="/management"
+                      onClick={() => setShowDropdown(false)}
+                      className="w-full flex items-center gap-2.5 px-4 py-3 text-left text-sm text-primary hover:bg-surface transition-colors"
+                    >
+                      <svg className="w-4 h-4 text-primary/70" fill="none" stroke="currentColor" viewBox="0 0 24 24">
+                        <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M4 5a1 1 0 011-1h14a1 1 0 011 1v3a1 1 0 01-1 1H5a1 1 0 01-1-1V5zM4 13a1 1 0 011-1h6a1 1 0 011 1v6a1 1 0 01-1 1H5a1 1 0 01-1-1v-6zM16 13a1 1 0 011-1h2a1 1 0 011 1v6a1 1 0 01-1 1h-2a1 1 0 01-1-1v-6z" />
+                      </svg>
+                      เข้าสู่ระบบจัดการ
+                    </a>
+
+                    {/* Divider */}
+                    <div className="border-t border-gray-100" />
+
+                    {/* ออกจากระบบ */}
                     <button
                       onClick={() => {
                         setShowDropdown(false);
                         clearAuthUser();
                         logoutAction();
                       }}
-                      className="w-full px-4 py-3 text-left text-sm text-primary hover:bg-surface transition-colors"
+                      className="w-full flex items-center gap-2.5 px-4 py-3 text-left text-sm text-primary hover:bg-surface transition-colors"
                     >
+                      <svg className="w-4 h-4 text-primary/70" fill="none" stroke="currentColor" viewBox="0 0 24 24">
+                        <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M17 16l4-4m0 0l-4-4m4 4H7m6 4v1a3 3 0 01-3 3H6a3 3 0 01-3-3V7a3 3 0 013-3h4a3 3 0 013 3v1" />
+                      </svg>
                       ออกจากระบบ
                     </button>
                   </div>

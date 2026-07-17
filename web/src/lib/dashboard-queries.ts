@@ -22,12 +22,14 @@ import {
   getDailySummaryRange,
   getProductSalesLines,
   getTopProducts,
+  getTopAddons,
   getMonthlySalesProfit,
 } from '@/lib/db';
 import type {
   DailySummaryRow,
   SalesProductLine,
   TopProductRow,
+  TopAddonRow,
   MonthlySalesRow,
 } from '@/types/dashboard';
 
@@ -43,6 +45,8 @@ export const dashboardKeys = {
   ) => [...dashboardKeys.all, 'product-lines', range] as const,
   topProducts: (limit?: number) =>
     [...dashboardKeys.all, 'top-products', { limit }] as const,
+  topAddons: (limit?: number) =>
+    [...dashboardKeys.all, 'top-addons', { limit }] as const,
   monthlySales: (months: number) =>
     [...dashboardKeys.all, 'monthly-sales', months] as const,
 };
@@ -83,6 +87,13 @@ export const topProductsOptions = (limit?: number) =>
     staleTime: 60 * 1000,
   });
 
+export const topAddonsOptions = (limit?: number) =>
+  queryOptions<TopAddonRow[]>({
+    queryKey: dashboardKeys.topAddons(limit),
+    queryFn: () => getTopAddons(limit),
+    staleTime: 60 * 1000,
+  });
+
 export const monthlySalesOptions = (months = 12) =>
   queryOptions<MonthlySalesRow[]>({
     queryKey: dashboardKeys.monthlySales(months),
@@ -109,6 +120,11 @@ export function useProductSalesLines(
 /** Best-sellers. Pass a limit (e.g. 5 for top-5 highlight, undefined for all). */
 export function useTopProducts(limit?: number) {
   return useQuery(topProductsOptions(limit));
+}
+
+/** Best-selling add-ons / product options (all-time). */
+export function useTopAddons(limit?: number) {
+  return useQuery(topAddonsOptions(limit));
 }
 
 export function useMonthlySalesProfit(months = 12) {

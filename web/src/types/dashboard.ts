@@ -51,6 +51,18 @@ export interface TopProductRow {
   rank?: number;
 }
 
+/** Ranked best-selling add-ons / product options (view_top_addons).
+ *  Add-ons have no cost snapshot, so only quantity / revenue are tracked. */
+export interface TopAddonRow {
+  addon_id: number | null;
+  addon_name: string;
+  total_quantity: number;
+  order_count: number;
+  total_revenue: number;
+  /** Assigned client-side when sorted by total_quantity desc. */
+  rank?: number;
+}
+
 /** Monthly sales/profit trend (view_monthly_sales_profit) */
 export interface MonthlySalesRow {
   bill_month: string;          // 'YYYY-MM'

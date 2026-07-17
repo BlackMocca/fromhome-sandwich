@@ -12,12 +12,14 @@ import {
   type PeriodFilterValue,
 } from '@/components/dashboard/PeriodFilter';
 import { TopProductsTable } from '@/components/dashboard/TopProductsTable';
+import { TopAddonsTable } from '@/components/dashboard/TopAddonsTable';
 import { KpiCard } from '@/components/dashboard/KpiCard';
 import { DashboardSkeleton, SectionError } from '@/components/dashboard/QueryState';
 
 import {
   useProductSalesLines,
   useTopProducts,
+  useTopAddons,
 } from '@/lib/dashboard-queries';
 import type { SalesProductLine } from '@/types/dashboard';
 import { toNum, bahtSign } from '@/types/dashboard';
@@ -120,6 +122,9 @@ export default function DashboardProductPage() {
   // Best-sellers across all time (DB view aggregates by product).
   const topProductsQuery = useTopProducts();
 
+  // Best-selling add-ons across all time (DB view unnests product_options).
+  const topAddonsQuery = useTopAddons();
+
   // Per-line sales detail for the selected period.
   const range = { dateFrom: period.range.dateFrom, dateTo: period.range.dateTo };
   const linesQuery = useProductSalesLines(range);
@@ -145,6 +150,7 @@ export default function DashboardProductPage() {
   const isLinesError = linesQuery.isError;
   const refetch = () => {
     topProductsQuery.refetch();
+    topAddonsQuery.refetch();
     linesQuery.refetch();
   };
 
@@ -214,6 +220,14 @@ export default function DashboardProductPage() {
             loading={topProductsQuery.isLoading}
             title="อันดับสินค้าขายดี (ตลอดกาล)"
             emptyText="ยังไม่มีข้อมูลการขาย"
+          />
+
+          {/* Best-selling add-ons ranking (all time) */}
+          <TopAddonsTable
+            addons={topAddonsQuery.data ?? []}
+            loading={topAddonsQuery.isLoading}
+            title="อันดับตัวเลือกขายดี (ตลอดกาล)"
+            emptyText="ยังไม่มีข้อมูลตัวเลือกในการขาย"
           />
 
           {/* Per-line detail for the selected period */}

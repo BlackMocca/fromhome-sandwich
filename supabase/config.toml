@@ -423,3 +423,15 @@ entrypoint = "./functions/upload/index.ts"
 # Specifies static files to be bundled with the function. Supports glob patterns.
 # For example, if you want to serve static HTML pages in your function:
 # static_files = [ "./functions/upload/*.html" ]
+
+[functions.telegram-send]
+enabled = true
+verify_jwt = true
+import_map = "./functions/telegram-send/deno.json"
+entrypoint = "./functions/telegram-send/index.ts"
+
+[functions.telegram-updates]
+enabled = true
+verify_jwt = true
+import_map = "./functions/telegram-updates/deno.json"
+entrypoint = "./functions/telegram-updates/index.ts"
