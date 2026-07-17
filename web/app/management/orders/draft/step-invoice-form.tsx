@@ -6,14 +6,13 @@ import * as yup from 'yup';
 import { useQuery } from '@tanstack/react-query';
 import { useOrder } from '@/contexts/OrderContext';
 import { useRouter } from 'next/navigation';
-import { ArrowLeft, Download, Plus, Trash2 } from 'lucide-react';
+import { ArrowLeft, Plus, Trash2 } from 'lucide-react';
 import { Button } from '@/components/ui/button';
 import { Input } from '@/components/ui/input';
 import { InputDate } from '@/components/ui/input-date';
 import { OrderPreview } from '@/components/ui/OrderPreview';
 import { getNextReceiptNo, createReceipt } from '@/lib/db';
 import { getChannelById } from '@/lib/db';
-import html2canvas from 'html2canvas';
 
 // ─── Types ──────────────────────────────────────────────
 
@@ -162,7 +161,9 @@ export function StepInvoiceForm({ onBack }: { onBack: () => void }) {
 
       if (result.success) {
         clearOrder();
-        router.push(`/management/receipts/${result.receipt?.id}`);
+        // Pass ?send=telegram so the receipt page auto-sends the bill to
+        // Telegram once it has rendered (only if Telegram is configured).
+        router.push(`/management/receipts/${result.receipt?.id}?send=telegram`);
       }
     },
   });
@@ -197,29 +198,6 @@ export function StepInvoiceForm({ onBack }: { onBack: () => void }) {
     );
   };
 
-  // ─── Download ────────────────────────────────────────
-
-  const handleDownload = async () => {
-    if (!previewRef.current) return;
-    const style = document.createElement('style');
-    document.head.appendChild(style);
-    style.sheet?.insertRule('body > div:last-child img { display: inline-block; }');
-
-    const canvas = await html2canvas(previewRef.current, {
-      scale: window.devicePixelRatio,
-      x: 0,
-      y: 0,
-      logging: true,
-    });
-
-    const image = canvas.toDataURL('image/jpeg', 1.0);
-    const link = document.createElement('a');
-    link.href = image;
-    link.download = `invoice-${formik.values.receiptNo || formik.values.invoiceDate}.jpg`;
-    link.click();
-    style.remove();
-  };
-
   // ─── Render ──────────────────────────────────────────
 
   return (
@@ -248,10 +226,6 @@ export function StepInvoiceForm({ onBack }: { onBack: () => void }) {
         <div className="hidden lg:flex justify-end items-center gap-2 w-full sm:w-auto">
           <Button type="button" variant="destructive" onClick={onBack}>
             ยกเลิก
-          </Button>
-          <Button type="button" variant="default" onClick={handleDownload}>
-            <Download className="w-4 h-4 mr-1" />
-            ดาวน์โหลด
           </Button>
           <Button type="button" variant="primary" className="text-white" disabled={formik.isSubmitting}
             onClick={() => (document.getElementById('invoice-form') as HTMLFormElement)?.requestSubmit()}>
@@ -446,10 +420,6 @@ export function StepInvoiceForm({ onBack }: { onBack: () => void }) {
       <div className="lg:hidden flex justify-end gap-2 pt-6 pb-8 w-full border-t mt-6 max-w-[1028px] px-2 mx-auto">
         <Button type="button" variant="destructive" onClick={onBack}>
           ยกเลิก
-        </Button>
-        <Button type="button" variant="default" onClick={handleDownload}>
-          <Download className="w-4 h-4 mr-1" />
-          ดาวน์โหลด
         </Button>
         <Button type="button" variant="primary" className="text-white" disabled={formik.isSubmitting}
           onClick={() => (document.getElementById('invoice-form') as HTMLFormElement)?.requestSubmit()}>

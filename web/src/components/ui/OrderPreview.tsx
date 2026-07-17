@@ -72,7 +72,7 @@ export const OrderPreview = forwardRef<HTMLDivElement, OrderPreviewProps>(
 
           {customerName && (
             <div className="py-2 text-center">
-              <p className="font-semibold text-4xl">{customerName}</p>
+              <p className="font-medium text-2xl">{customerName}</p>
             </div>
           )}
 

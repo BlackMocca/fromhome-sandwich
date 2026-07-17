@@ -1,14 +1,19 @@
 'use client';
 
-import { use, useRef } from 'react';
+import { use, useRef, useState, useEffect, useCallback } from 'react';
 import { useQuery } from '@tanstack/react-query';
 import { useRouter } from 'next/navigation';
-import { ArrowLeft, Download, Receipt as ReceiptIcon, Package, Calculator } from 'lucide-react';
+import { ArrowLeft, Download, Receipt as ReceiptIcon, Package, Calculator, Send, Loader2 } from 'lucide-react';
 import { Button } from '@/components/ui/button';
 import { cn } from '@/lib/utils';
-import { getReceipt, getReceiptItems } from '@/lib/db';
+import { getReceipt, getReceiptItems, getTelegramSettings } from '@/lib/db';
 import { OrderPreview } from '@/components/ui/OrderPreview';
+import { createClient } from '@/lib/supabase/client';
+import { toast } from '@/lib/toast';
 import html2canvas from 'html2canvas';
+
+const SUPABASE_URL = process.env.NEXT_PUBLIC_SUPABASE_URL || '';
+const ANON_KEY = process.env.NEXT_PUBLIC_SUPABASE_PUBLISHABLE_KEY || '';
 import type { Receipt, ReceiptItem, DiscountSnapshot, ProductOptionSnapshot } from '@/types/receipt';
 import type { OrderItem } from '@/contexts/OrderContext';
 import type { ChannelProduct } from '@/types/channel_product';
@@ -53,6 +58,99 @@ export default function ReceiptDetailPage({ params }: { params: Promise<{ id: st
   });
 
   const previewRef = useRef<HTMLDivElement>(null);
+  const autoSentRef = useRef(false);
+
+  // Whether Telegram is configured (a single settings row exists). Drives both
+  // the auto-send-on-arrival flow and the manual button's disabled state.
+  const { data: telegramSettings } = useQuery({
+    queryKey: ['telegramSettings'],
+    queryFn: () => getTelegramSettings(),
+  });
+
+  const [sending, setSending] = useState(false);
+
+  // Render the receipt preview to an image and send it to Telegram as a file
+  // (document) via the telegram-send Edge Function. Returns true on success.
+  const sendToTelegram = useCallback(async (): Promise<boolean> => {
+    if (!telegramSettings) {
+      toast({
+        title: 'ยังไม่ได้ตั้งค่า Telegram',
+        description: 'ไปที่เมนู “เชื่อมต่อ Telegram” เพื่อตั้งค่า Bot Token และ Chat',
+      });
+      return false;
+    }
+    if (!previewRef.current || !receipt) return false;
+    setSending(true);
+    try {
+      const style = document.createElement('style');
+      document.head.appendChild(style);
+      style.sheet?.insertRule('body > div:last-child img { display: inline-block; }');
+
+      const canvas = await html2canvas(previewRef.current, {
+        scale: window.devicePixelRatio,
+        x: 0,
+        y: 0,
+        logging: true,
+      });
+      style.remove();
+
+      const blob = await new Promise<Blob | null>((resolve) =>
+        canvas.toBlob(resolve, 'image/jpeg', 1.0),
+      );
+      if (!blob) throw new Error('ไม่สามารถสร้างรูปใบเสร็จได้');
+      const file = new File([blob], `receipt-${receipt.receipt_no}.jpg`, { type: 'image/jpeg' });
+
+      const supabase = createClient();
+      const { data: { session } } = await supabase.auth.getSession();
+      const token = session?.access_token;
+      if (!token) throw new Error('ไม่พบเซสชันผู้ใช้ (กรุณาเข้าสู่ระบบใหม่)');
+
+      const fd = new FormData();
+      fd.append(
+        'text',
+        `ใบเสร็จ ${receipt.receipt_no}\nลูกค้า: ${receipt.customer_name || '-'}\nยอดรวม: ฿${receipt.grand_total.toLocaleString()}`,
+      );
+      fd.append('file', file);
+
+      const res = await fetch(`${SUPABASE_URL}/functions/v1/telegram-send`, {
+        method: 'POST',
+        headers: { Authorization: `Bearer ${token}`, apikey: ANON_KEY },
+        body: fd,
+      });
+      const body = (await res.json().catch(() => ({}))) as Record<string, unknown>;
+      if (!res.ok) throw new Error((body?.error as string) || `HTTP ${res.status}`);
+
+      toast({
+        title: 'ส่งไป Telegram สำเร็จ',
+        description: `ใบเสร็จ ${receipt.receipt_no} ถูกส่งเรียบร้อยแล้ว`,
+      });
+      return true;
+    } catch (err) {
+      const msg = err instanceof Error ? err.message : 'ไม่สามารถส่งได้';
+      toast({ title: 'เกิดข้อผิดพลาด', description: msg });
+      return false;
+    } finally {
+      setSending(false);
+    }
+  }, [telegramSettings, receipt, id, router]);
+
+  // Auto-send when arriving from the “สร้างบิล” flow (?send=telegram). Waits
+  // until the receipt data + preview are rendered, then sends once.
+  useEffect(() => {
+    if (autoSentRef.current) return;
+    const shouldSend = new URLSearchParams(window.location.search).get('send') === 'telegram';
+    if (!shouldSend) return;
+    if (loadingReceipt || loadingItems) return;
+    if (!receipt || !previewRef.current || !telegramSettings) return;
+
+    autoSentRef.current = true;
+    const t = setTimeout(async () => {
+      const ok = await sendToTelegram();
+      // Strip the query param so a manual refresh won't re-send.
+      if (ok) router.replace(`/management/receipts/${id}`);
+    }, 500);
+    return () => clearTimeout(t);
+  }, [loadingReceipt, loadingItems, receipt, telegramSettings, sendToTelegram, id, router]);
 
   if (loadingReceipt || loadingItems) {
     return (
@@ -136,11 +234,24 @@ export default function ReceiptDetailPage({ params }: { params: Promise<{ id: st
         <h1 className="text-2xl font-bold text-primary">รายละเอียดบิล</h1>
       </div>
 
-      {/* Download action — under header, above the OrderPreview bill */}
-      <div className="flex justify-end mb-6">
+      {/* Download + Telegram actions — under header, above the OrderPreview bill */}
+      <div className="flex justify-end gap-2 mb-6">
         <Button variant="primary" className="text-white" onClick={handleDownload}>
           <Download className="w-4 h-4 mr-1" />
           ดาวน์โหลด
+        </Button>
+        <Button
+          variant="primary"
+          className="text-white"
+          onClick={sendToTelegram}
+          disabled={sending || !telegramSettings}
+        >
+          {sending ? (
+            <Loader2 className="w-4 h-4 mr-1 animate-spin" />
+          ) : (
+            <Send className="w-4 h-4 mr-1" />
+          )}
+          ส่งไปยัง Telegram
         </Button>
       </div>
 
