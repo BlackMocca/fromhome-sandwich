@@ -851,3 +851,100 @@ export async function getClaimLossRange(
     },
   });
 }
+
+// ─── Disbursements (เบิกเงิน) ──────────────────────────
+
+export async function getDisbursements(options?: {
+  status?: import('@/types/disbursement').DisbursementStatus;
+  search?: string;
+  withdraw_date?: string;
+}) {
+  const params: Record<string, string> = { order: 'created_at.desc' };
+  if (options?.status) params.status = `eq.${options.status}`;
+  if (options?.withdraw_date) params.withdraw_date = `eq.${options.withdraw_date}`;
+  if (options?.search) {
+    params.or = `(withdraw_no.ilike.*${options.search}*,description.ilike.*${options.search}*,note.ilike.*${options.search}*)`;
+  }
+  return get<import('@/types/disbursement').Disbursement[]>('disbursements', { params });
+}
+
+export async function getDisbursement(id: number) {
+  return getOne<import('@/types/disbursement').Disbursement>('disbursements', id);
+}
+
+export async function searchDisbursements(query: string) {
+  return getDisbursements({ search: query });
+}
+
+export async function updateDisbursementStatus(id: number, status: 'paid' | 'unpaid') {
+  return update<import('@/types/disbursement').Disbursement>('disbursements', id, {
+    status,
+    updated_at: new Date().toISOString(),
+  });
+}
+
+export async function updateDisbursement(
+  id: number,
+  data: {
+    description?: string;
+    amount?: number;
+    withdraw_date?: string;
+    status?: 'paid' | 'unpaid';
+    note?: string | null;
+  },
+) {
+  return update<import('@/types/disbursement').Disbursement>('disbursements', id, {
+    ...data,
+    updated_at: new Date().toISOString(),
+  });
+}
+
+// ─── Withdraw Number ─────────────────────────────────
+// Format: WD + YYYYMMDD + running seq (reset รันใหม่ทุกวัน)
+export async function getNextWithdrawNo(withdrawDate: string): Promise<string> {
+  console.log(`[getNextWithdrawNo] called with withdrawDate=${withdrawDate}`);
+  try {
+    const rows = await get<import('@/types/disbursement').Disbursement[]>('disbursements', {
+      params: {
+        withdraw_date: `eq.${withdrawDate}`,
+        order: 'withdraw_no.desc',
+        limit: '1',
+        select: 'withdraw_no',
+      },
+    });
+
+    console.log(`[getNextWithdrawNo] query result:`, rows);
+
+    if (!rows || rows.length === 0) {
+      const dateCompact = withdrawDate.replace(/-/g, '');
+      return `WD${dateCompact}0001`;
+    }
+
+    const lastNo = rows[0].withdraw_no;
+    const lastSeq = parseInt(lastNo.slice(-4), 10);
+    const nextSeq = String(lastSeq + 1).padStart(4, '0');
+    const prefix = lastNo.slice(0, -4);
+    return `${prefix}${nextSeq}`;
+  } catch (err) {
+    console.error('[getNextWithdrawNo] Error:', err);
+    const dateCompact = withdrawDate.replace(/-/g, '');
+    return `WD${dateCompact}0001`;
+  }
+}
+
+// ─── Create Disbursement ─────────────────────────────
+
+export async function createDisbursement(
+  input: import('@/types/disbursement').CreateDisbursementInput,
+): Promise<{ success: boolean; disbursement: import('@/types/disbursement').Disbursement }> {
+  const disbursement = await create<import('@/types/disbursement').Disbursement>('disbursements', {
+    withdraw_no: input.withdraw_no,
+    withdraw_date: input.withdraw_date,
+    description: input.description,
+    amount: input.amount,
+    status: input.status,
+    note: input.note || null,
+  });
+
+  return { success: true, disbursement };
+}
