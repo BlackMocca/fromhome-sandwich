@@ -2,7 +2,7 @@
 
 import * as React from 'react';
 import { RefreshCw } from 'lucide-react';
-import { ReceiptText, Boxes, DollarSign, TrendingUp } from 'lucide-react';
+import { ReceiptText, Boxes, DollarSign, TrendingUp, PackageX } from 'lucide-react';
 
 import { Card, CardContent } from '@/components/ui/card';
 import { Button } from '@/components/ui/button';
@@ -22,6 +22,7 @@ import {
   useDailySummaryRange,
   useMonthlySalesProfit,
   useTopProducts,
+  useClaimLossRange,
 } from '@/lib/dashboard-queries';
 import type {
   DailySummaryRow,
@@ -111,6 +112,7 @@ export default function DashboardOverviewPage() {
   const summaryQuery = isRange ? rangeQuery : singleDayQuery;
   const monthlyQuery = useMonthlySalesProfit(12);
   const topProductsQuery = useTopProducts(5);
+  const claimLossQuery = useClaimLossRange(period.range.dateFrom, period.range.dateTo);
 
   const dailyRows: DailySummaryRow[] = isRange
     ? (rangeQuery.data ?? [])
@@ -121,6 +123,15 @@ export default function DashboardOverviewPage() {
     [dailyRows],
   );
   const channels = React.useMemo(() => toChannelSummaries(dailyRows), [dailyRows]);
+
+  // ต้นทุนของเสียจากเคลมสินค้า ในช่วงเวลาเดียวกัน
+  const claimLoss = React.useMemo(() => {
+    const rows = (claimLossQuery.data ?? []) as { total_cost: number }[];
+    return rows.reduce((s, r) => s + toNum(r.total_cost), 0);
+  }, [claimLossQuery.data]);
+
+  // กำไรสุทธิหลังหักต้นทุนของเสีย (cost ที่ยังอยู่กับเรา)
+  const netProfitAfterClaim = summary.net_profit - claimLoss;
 
   const isLoading = summaryQuery.isLoading;
   const isError = summaryQuery.isError;
@@ -155,7 +166,7 @@ export default function DashboardOverviewPage() {
         <DashboardSkeleton kpiCount={4} />
       ) : (
         <>
-          <div className="grid grid-cols-1 sm:grid-cols-2 lg:grid-cols-4 gap-3">
+          <div className="grid grid-cols-1 sm:grid-cols-2 lg:grid-cols-5 gap-3">
             <KpiCard
               accent="primary"
               icon={<ReceiptText className="w-5 h-5" />}
@@ -190,6 +201,13 @@ export default function DashboardOverviewPage() {
                   ? `margin ${((summary.net_profit / Math.max(summary.net_sales, 1)) * 100).toFixed(1)}%`
                   : undefined
               }
+            />
+            <KpiCard
+              accent="destructive"
+              icon={<PackageX className="w-5 h-5" />}
+              label="ต้นทุนของเสีย (เคลม)"
+              value={bahtSign(claimLoss)}
+              hint={`กำไรหลังหัก ${bahtSign(netProfitAfterClaim)}`}
             />
           </div>
 

@@ -24,6 +24,7 @@ import {
   getTopProducts,
   getTopAddons,
   getMonthlySalesProfit,
+  getClaimLossRange,
 } from '@/lib/db';
 import type {
   DailySummaryRow,
@@ -129,4 +130,14 @@ export function useTopAddons(limit?: number) {
 
 export function useMonthlySalesProfit(months = 12) {
   return useQuery(monthlySalesOptions(months));
+}
+
+/** ต้นทุนของเสียจากเคลมสินค้า ในช่วงวันที่ (status='active') */
+export function useClaimLossRange(dateFrom: string, dateTo: string) {
+  return useQuery({
+    queryKey: [...dashboardKeys.all, 'claim-loss', { dateFrom, dateTo }],
+    queryFn: () => getClaimLossRange(dateFrom, dateTo),
+    staleTime: 60 * 1000,
+    enabled: !!dateFrom && !!dateTo,
+  });
 }

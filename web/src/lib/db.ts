@@ -713,3 +713,141 @@ export async function createReceipt(
 
   return { success: true, receipt };
 }
+
+// ─── Claims (เคลมสินค้า — หมดอายุ / เสียหาย / สูญหาย) ──
+
+export async function getClaims(options?: { reason?: import('@/types/claim').ClaimReason; search?: string; claim_date?: string }) {
+  const params: Record<string, string> = { order: 'created_at.desc' };
+  if (options?.reason) params.reason = `eq.${options.reason}`;
+  if (options?.claim_date) params.claim_date = `eq.${options.claim_date}`;
+  if (options?.search) {
+    params.or = `(claim_no.ilike.*${options.search}*,note.ilike.*${options.search}*)`;
+  }
+  return get<import('@/types/claim').Claim[]>('claims', { params });
+}
+
+export async function getClaim(id: number) {
+  return getOne<import('@/types/claim').Claim>('claims', id);
+}
+
+export async function getClaimItems(claimId: number) {
+  return get<import('@/types/claim').ClaimItem[]>('claim_items', {
+    params: {
+      claim_id: `eq.${claimId}`,
+      order: 'id.asc',
+    },
+  });
+}
+
+export async function searchClaims(query: string) {
+  return getClaims({ search: query });
+}
+
+export async function updateClaimStatus(id: number, status: 'active' | 'cancelled') {
+  return update<import('@/types/claim').Claim>('claims', id, { status, updated_at: new Date().toISOString() });
+}
+
+// ─── Claim Number ─────────────────────────────────────
+// Format: CLM + YYYYMMDD + running seq (reset รันใหม่ทุกวัน)
+export async function getNextClaimNo(claimDate: string): Promise<string> {
+  console.log(`[getNextClaimNo] called with claimDate=${claimDate}`);
+  try {
+    const claims = await get<import('@/types/claim').Claim[]>('claims', {
+      params: {
+        claim_date: `eq.${claimDate}`,
+        order: 'claim_no.desc',
+        limit: '1',
+        select: 'claim_no',
+      },
+    });
+
+    console.log(`[getNextClaimNo] query result:`, claims);
+
+    if (!claims || claims.length === 0) {
+      const dateCompact = claimDate.replace(/-/g, '');
+      return `CLM${dateCompact}0001`;
+    }
+
+    const lastNo = claims[0].claim_no;
+    const lastSeq = parseInt(lastNo.slice(-4), 10);
+    const nextSeq = String(lastSeq + 1).padStart(4, '0');
+    const prefix = lastNo.slice(0, -4);
+    return `${prefix}${nextSeq}`;
+  } catch (err) {
+    console.error('[getNextClaimNo] Error:', err);
+    const dateCompact = claimDate.replace(/-/g, '');
+    return `CLM${dateCompact}0001`;
+  }
+}
+
+// ─── Create Claim (Header + Items) ───────────────────
+
+interface CreateClaimItemInput {
+  product_id: number | null;
+  product_name: string;
+  unit_cost: number;
+  quantity: number;
+  line_cost: number;
+  note?: string | null;
+}
+
+export interface CreateClaimInput {
+  claim_no: string;
+  claim_date: string;
+  reason: import('@/types/claim').ClaimReason;
+  note?: string | null;
+  total_quantity: number;
+  total_cost: number;
+  items: CreateClaimItemInput[];
+}
+
+export async function createClaim(
+  input: CreateClaimInput,
+): Promise<{ success: boolean; claim: import('@/types/claim').Claim }> {
+  // 1. Create claim header
+  const claim = await create<import('@/types/claim').Claim>('claims', {
+    claim_no: input.claim_no,
+    claim_date: input.claim_date,
+    reason: input.reason,
+    total_quantity: input.total_quantity,
+    total_cost: input.total_cost,
+    status: 'active',
+    note: input.note || null,
+  });
+
+  // 2. Create claim items
+  for (const item of input.items) {
+    await create('claim_items', {
+      claim_id: claim.id,
+      product_id: item.product_id,
+      product_name: item.product_name,
+      unit_cost: item.unit_cost,
+      quantity: item.quantity,
+      line_cost: item.line_cost,
+      note: item.note || null,
+    });
+  }
+
+  return { success: true, claim };
+}
+
+// ─── Claim Loss (สำหรับ Dashboard) ───────────────────
+/**
+ * ดึงต้นทุนของเสียรายวันในช่วง [dateFrom, dateTo] (status='active')
+ * รวมฝั่ง client ให้ได้ยอดรวมต้นทุนของเสียของช่วงเวลานั้น
+ */
+export async function getClaimLossRange(
+  dateFrom: string,
+  dateTo: string,
+): Promise<import('@/types/claim').ClaimLossRow[]> {
+  if (!dateFrom || !dateTo) return [];
+  return get<import('@/types/claim').ClaimLossRow[]>('claims', {
+    params: {
+      claim_date: `gte.${dateFrom}`,
+      and: `(claim_date.lte.${dateTo})`,
+      status: 'eq.active',
+      select: 'claim_date,total_cost',
+      order: 'claim_date.asc',
+    },
+  });
+}

@@ -5,7 +5,7 @@ import Link from 'next/link';
 import { usePathname } from 'next/navigation';
 import { useQuery } from '@tanstack/react-query';
 import { cn } from '@/lib/utils';
-import { ChevronLeft, ChevronDown, ShoppingCart } from 'lucide-react';
+import { ChevronLeft, ChevronDown, ShoppingCart, PackageX } from 'lucide-react';
 import type { Channel } from '@/types/channel';
 import { getChannels } from '@/lib/db';
 
@@ -239,6 +239,20 @@ export default function ManagementSidebar({ children }: { children: React.ReactN
           >
             <span className="text-base">🧾</span>
             รายการบิล (Receipts)
+          </Link>
+
+          {/* เคลมสินค้า (Claims) */}
+          <Link
+            href="/management/claims"
+            className={cn(
+              'flex items-center gap-2 px-4 py-3 rounded-xl text-sm transition-all',
+              pathname === '/management/claims' || pathname.startsWith('/management/claims/')
+                ? 'bg-primary/10 text-primary font-semibold shadow-sm'
+                : 'text-primary/70 hover:bg-surface hover:shadow-sm'
+            )}
+          >
+            <span className="text-base"><PackageX className="w-4 h-4" /></span>
+            เคลมสินค้า (Claims)
           </Link>
 
           {/* System Management group header - เป็นปุ่ม expand/collapse */}
