@@ -350,7 +350,7 @@ export default function ManagementSidebar({ children }: { children: React.ReactN
       {isMobileOpen && (
         <div
           className="fixed inset-0 z-20 bg-black/30 md:hidden"
-          onClick={closeMobileSidebar}
+          onClick={() => setIsMobileOpen(false)}
         />
       )}
 

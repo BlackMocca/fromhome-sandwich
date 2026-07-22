@@ -148,7 +148,7 @@ export default function ReceiptDetailPage({ params }: { params: Promise<{ id: st
       const ok = await sendToTelegram();
       // Strip the query param so a manual refresh won't re-send.
       if (ok) router.replace(`/management/receipts/${id}`);
-    }, 500);
+    }, 1500);
     return () => clearTimeout(t);
   }, [loadingReceipt, loadingItems, receipt, telegramSettings, sendToTelegram, id, router]);
 
@@ -209,7 +209,7 @@ export default function ReceiptDetailPage({ params }: { params: Promise<{ id: st
     style.sheet?.insertRule('body > div:last-child img { display: inline-block; }');
 
     const canvas = await html2canvas(previewRef.current, {
-      scale: window.devicePixelRatio,
+      scale: 2,
       x: 0,
       y: 0,
       logging: true,
