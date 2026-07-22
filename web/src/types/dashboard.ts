@@ -91,6 +91,28 @@ export interface DailyTrendRow {
   net_profit_after_costs: number; // net_profit - claim_cost - ingredient_cost
 }
 
+/** Weekly ingredient cost trend (view_weekly_ingredient_costs) */
+export interface WeeklyIngredientCostRow {
+  iso_year_num: number;
+  iso_week_number: number;
+  period_id: string;           // e.g. '2026-W30'
+  total_ingredient_cost: number;
+  unique_ingredients_count: number;
+  week_start_date: string | null;
+  week_end_date: string | null;
+}
+
+/** Monthly ingredient cost trend (view_monthly_ingredient_costs) */
+export interface MonthlyIngredientCostRow {
+  month_identifier: string;    // 'YYYY-MM'
+  year_num: number;
+  month_number: number;        // 1..12
+  total_ingredient_cost: number;
+  unique_ingredients_count: number;
+  month_start_date: string | null;
+  month_end_date: string | null;
+}
+
 /* ─── Derived (client-side) summary shapes ─────────────────── */
 
 export interface DashboardOverviewSummary {

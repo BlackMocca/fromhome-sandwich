@@ -1035,6 +1035,20 @@ export async function getIngredientPurchaseDaily(
     .sort((a, b) => a.purchase_date.localeCompare(b.purchase_date));
 }
 
+/** Get weekly ingredient costs from view_weekly_ingredient_costs */
+export async function getWeeklyIngredientCosts(): Promise<import('@/types/dashboard').WeeklyIngredientCostRow[]> {
+  return get<import('@/types/dashboard').WeeklyIngredientCostRow[]>('view_weekly_ingredient_costs', {
+    params: { order: 'iso_year_num.desc,iso_week_number.desc' },
+  });
+}
+
+/** Get monthly ingredient costs from view_monthly_ingredient_costs */
+export async function getMonthlyIngredientCosts(): Promise<import('@/types/dashboard').MonthlyIngredientCostRow[]> {
+  return get<import('@/types/dashboard').MonthlyIngredientCostRow[]>('view_monthly_ingredient_costs', {
+    params: { order: 'year_num.desc,month_number.desc' },
+  });
+}
+
 /** Get all ingredients */
 export async function getIngredients(): Promise<any[]> {
   return get<any[]>('ingredients', { params: { order: 'name.asc' } });

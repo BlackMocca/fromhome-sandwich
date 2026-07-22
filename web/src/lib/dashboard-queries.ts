@@ -27,6 +27,8 @@ import {
   getClaimLossRange,
   getIngredientPurchaseTotal,
   getIngredientPurchaseDaily,
+  getWeeklyIngredientCosts,
+  getMonthlyIngredientCosts,
 } from '@/lib/db';
 import type {
   DailySummaryRow,
@@ -35,6 +37,8 @@ import type {
   TopAddonRow,
   MonthlySalesRow,
   DailyTrendRow,
+  WeeklyIngredientCostRow,
+  MonthlyIngredientCostRow,
 } from '@/types/dashboard';
 import { toNum } from '@/types/dashboard';
 
@@ -271,3 +275,22 @@ export function useDailyTrend(dateFrom: string, dateTo: string) {
     staleTime: 60 * 1000,
   });
 }
+
+/** Get weekly ingredient costs */
+export function useWeeklyIngredientCosts() {
+  return useQuery({
+    queryKey: [...dashboardKeys.all, 'weekly-ingredient-costs'],
+    queryFn: () => getWeeklyIngredientCosts(),
+    staleTime: 60 * 1000,
+  });
+}
+
+/** Get monthly ingredient costs */
+export function useMonthlyIngredientCosts() {
+  return useQuery({
+    queryKey: [...dashboardKeys.all, 'monthly-ingredient-costs'],
+    queryFn: () => getMonthlyIngredientCosts(),
+    staleTime: 60 * 1000,
+  });
+}
+

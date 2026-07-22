@@ -78,7 +78,8 @@ export default function ManagementSidebar({ children }: { children: React.ReactN
   // Compute active child states for collapsible menus
   const dashboardHasActiveChild = 
     pathname === '/management/dashboard/overview' || 
-    pathname === '/management/dashboard/product';
+    pathname === '/management/dashboard/product' ||
+    pathname === '/management/dashboard/cost-trends';
 
   const channelsHaveActiveChild = 
     isChannelCardsView || pathname.startsWith('/management/channels/');
@@ -159,6 +160,20 @@ export default function ManagementSidebar({ children }: { children: React.ReactN
                   <span>📦</span>
                 </span>
                 รายสินค้า (Products)
+              </Link>
+              <Link
+                href="/management/dashboard/cost-trends"
+                className={cn(
+                  'flex items-center gap-3 px-4 py-2.5 rounded-xl text-sm transition-all',
+                  pathname === '/management/dashboard/cost-trends'
+                    ? 'bg-primary/90 text-white font-semibold shadow-md'
+                    : 'text-primary/60 hover:bg-surface hover:text-primary hover:shadow-sm bg-white'
+                )}
+              >
+                <span className="relative inline-flex h-6 w-6 flex-shrink-0 items-center justify-center rounded-full bg-primary/10 text-xs text-primary/50">
+                  <span>📉</span>
+                </span>
+                ต้นทุนvsกำไร (Cost Trends)
               </Link>
             </div>
           </div>
