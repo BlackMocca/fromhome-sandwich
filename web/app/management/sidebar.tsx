@@ -14,6 +14,7 @@ const SYSTEM_MANAGEMENT_ITEMS = [
   { label: 'สินค้า (Product)', href: '/management/products', icon: '🥪' },
   { label: 'หมวดหมู่ (Category)', href: '/management/categories', icon: '📂' },
   { label: 'ตัวเลือกสินค้า (Add-on)', href: '/management/addons', icon: '➕' },
+  { label: 'วัตถุดิบ (Ingredients)', href: '/management/ingredients', icon: '🌾' },
   { label: 'ช่องทางการขาย (Channels)', href: '/management/channels', icon: '🛒' },
   { label: 'เชื่อมต่อ Telegram', href: '/management/telegram', icon: '✈️' },
 ];
@@ -88,6 +89,7 @@ export default function ManagementSidebar({ children }: { children: React.ReactN
     pathname === '/management/user' || pathname.startsWith('/management/user/') ||
     pathname === '/management/categories' || pathname.startsWith('/management/categories/') ||
     pathname === '/management/addons' || pathname.startsWith('/management/addons/') ||
+    pathname === '/management/ingredients' || pathname.startsWith('/management/ingredients/') ||
     pathname === '/management/telegram' || pathname.startsWith('/management/telegram/');
 
   // Effective expanded states: if a child route is active, the parent must be expanded and shown as active.
@@ -267,6 +269,20 @@ export default function ManagementSidebar({ children }: { children: React.ReactN
           >
             <span className="text-base"><Wallet className="w-4 h-4" /></span>
             เบิกเงิน (Disbursements)
+          </Link>
+
+          {/* บันทึกการซื้อวัตถุดิบ (Ingredient Purchases) */}
+          <Link
+            href="/management/ingredient-purchases"
+            className={cn(
+              'flex items-center gap-2 px-4 py-3 rounded-xl text-sm transition-all',
+              pathname === '/management/ingredient-purchases' || pathname.startsWith('/management/ingredient-purchases/')
+                ? 'bg-primary/10 text-primary font-semibold shadow-sm'
+                : 'text-primary/70 hover:bg-surface hover:shadow-sm'
+            )}
+          >
+            <span className="text-base">💰</span>
+            บันทึกการซื้อวัตถุดิบ (Purchases)
           </Link>
 
           {/* System Management group header - เป็นปุ่ม expand/collapse */}

@@ -17,7 +17,12 @@ export interface DailySummaryRow {
   total_discounts: number;
   net_sales: number;
   total_cost: number;
-  net_profit: number;          // net_sales - total_cost
+  /** ต้นทุนของเสีย (เคลม) ในวันนั้น (status='active' เท่านั้น) */
+  claim_loss: number;
+  /** ต้นทุนซื้อวัตถุดิบในวันนั้น */
+  ingredient_cost: number;
+  /** grand_total - total_cost - claim_loss */
+  net_profit: number;
 }
 
 /** Per receipt-item sales line (view_sales_product_lines) */
@@ -75,6 +80,17 @@ export interface MonthlySalesRow {
   net_profit: number;
 }
 
+/** Per-day trend data for sales / profit / costs (aggregated client-side) */
+export interface DailyTrendRow {
+  /** 'YYYY-MM-DD' */
+  date: string;
+  net_sales: number;
+  net_profit: number;          // net_sales - total_cost (ยังไม่หัก claim/ingredient)
+  claim_cost: number;          // ต้นทุนของเสีย (เคลม)
+  ingredient_cost: number;     // ต้นทุนซื้อวัตถุดิบ
+  net_profit_after_costs: number; // net_profit - claim_cost - ingredient_cost
+}
+
 /* ─── Derived (client-side) summary shapes ─────────────────── */
 
 export interface DashboardOverviewSummary {
@@ -93,7 +109,7 @@ export interface ChannelSummary extends DashboardOverviewSummary {
 
 /* ─── Filters used by the dashboard hooks/components ───────── */
 
-export type DashboardPeriod = 'today' | 'month' | 'range';
+export type DashboardPeriod = 'today' | 'week' | 'month' | 'range';
 
 export interface DashboardDateRange {
   /** Inclusive, 'YYYY-MM-DD' */

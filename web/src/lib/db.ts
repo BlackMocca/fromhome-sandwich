@@ -948,3 +948,119 @@ export async function createDisbursement(
 
   return { success: true, disbursement };
 }
+
+// ─── Ingredient Purchases (บันทึกการซื้อวัตถุดิบ) ──────
+
+export async function getIngredientPurchases(options?: {
+  search?: string;
+  ingredient_id?: number;
+  purchase_date_from?: string;
+  purchase_date_to?: string;
+}) {
+  const params: Record<string, string> = { order: 'purchase_date.desc,id.desc' };
+  if (options?.ingredient_id) params.ingredient_id = `eq.${options.ingredient_id}`;
+  if (options?.purchase_date_from) {
+    params.purchase_date = `gte.${options.purchase_date_from}`;
+    if (options?.purchase_date_to) {
+      params.and = `(purchase_date.lte.${options.purchase_date_to})`;
+    }
+  } else if (options?.purchase_date_to) {
+    params.purchase_date = `lte.${options.purchase_date_to}`;
+  }
+  return get<import('@/types/ingredient_purchase').IngredientPurchase[]>('ingredient_purchases', { params });
+}
+
+export async function createIngredientPurchase(
+  input: import('@/types/ingredient_purchase').CreateIngredientPurchaseInput,
+): Promise<import('@/types/ingredient_purchase').IngredientPurchase> {
+  return create<import('@/types/ingredient_purchase').IngredientPurchase>('ingredient_purchases', {
+    ingredient_id: input.ingredient_id,
+    purchase_date: input.purchase_date,
+    quantity: input.quantity,
+    unit: input.unit || 'ชิ้น',
+    amount: input.amount,
+    note: input.note || null,
+  });
+}
+
+export async function updateIngredientPurchase(
+  id: number,
+  data: import('@/types/ingredient_purchase').UpdateIngredientPurchaseInput & { updated_at?: string },
+): Promise<import('@/types/ingredient_purchase').IngredientPurchase> {
+  return update<import('@/types/ingredient_purchase').IngredientPurchase>('ingredient_purchases', id, {
+    ...data,
+    updated_at: new Date().toISOString(),
+  });
+}
+
+export async function deleteIngredientPurchase(id: number): Promise<void> {
+  return remove('ingredient_purchases', id);
+}
+
+/** Get total ingredient purchase amount within a date range (for dashboard cost section) */
+export async function getIngredientPurchaseTotal(dateFrom: string, dateTo: string): Promise<{ total_amount: number }> {
+  if (!dateFrom || !dateTo) return { total_amount: 0 };
+  const rows = await get<import('@/types/ingredient_purchase').IngredientPurchase[]>('ingredient_purchases', {
+    params: {
+      purchase_date: `gte.${dateFrom}`,
+      and: `(purchase_date.lte.${dateTo})`,
+    },
+  });
+  const total = (rows || []).reduce((sum, r) => sum + Number(r.amount || 0), 0);
+  return { total_amount: total };
+}
+
+/** Get ingredient purchase amount per day within a date range (for dashboard trend chart) */
+export async function getIngredientPurchaseDaily(
+  dateFrom: string,
+  dateTo: string,
+): Promise<{ purchase_date: string; total_amount: number }[]> {
+  if (!dateFrom || !dateTo) return [];
+  const rows = await get<import('@/types/ingredient_purchase').IngredientPurchase[]>('ingredient_purchases', {
+    params: {
+      purchase_date: `gte.${dateFrom}`,
+      and: `(purchase_date.lte.${dateTo})`,
+      select: 'purchase_date,amount',
+      order: 'purchase_date.asc',
+    },
+  });
+  // Group by date on client-side (PostgREST can't GROUP BY on simple API)
+  const byDate = new Map<string, number>();
+  for (const r of rows || []) {
+    const d = String(r.purchase_date).slice(0, 10);
+    byDate.set(d, (byDate.get(d) || 0) + Number(r.amount || 0));
+  }
+  return Array.from(byDate.entries())
+    .map(([purchase_date, total_amount]) => ({ purchase_date, total_amount }))
+    .sort((a, b) => a.purchase_date.localeCompare(b.purchase_date));
+}
+
+/** Get all ingredients */
+export async function getIngredients(): Promise<any[]> {
+  return get<any[]>('ingredients', { params: { order: 'name.asc' } });
+}
+
+/** Create a new ingredient */
+export async function createIngredient(input: {
+  name: string;
+  default_unit?: string | null;
+  description?: string | null;
+}): Promise<any> {
+  return create<any>('ingredients', {
+    name: input.name,
+    default_unit: input.default_unit || null,
+    description: input.description || null,
+  });
+}
+
+/** Update an ingredient */
+export async function updateIngredient(id: number, data: {
+  name?: string;
+  default_unit?: string | null;
+  description?: string | null;
+}): Promise<any> {
+  return update<any>('ingredients', id, {
+    ...data,
+    updated_at: new Date().toISOString(),
+  });
+}

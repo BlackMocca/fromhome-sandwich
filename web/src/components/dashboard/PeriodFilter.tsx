@@ -30,7 +30,26 @@ interface PeriodFilterProps {
 
 /* ─── helpers ─────────────────────────────────────────────── */
 function todayISO(): string {
-  return new Date().toISOString().split('T')[0];
+  const d = new Date();
+  return `${d.getFullYear()}-${String(d.getMonth() + 1).padStart(2, '0')}-${String(d.getDate()).padStart(2, '0')}`;
+}
+
+function weekStartISO(d = new Date()): string {
+  const date = new Date(d);
+  const day = date.getDay(); // 0 = Sun, 1 = Mon, ..., 6 = Sat
+  // Adjust to make Monday the start of the week (day === 1)
+  const diff = date.getDate() - day + (day === 0 ? -6 : 1);
+  const monday = new Date(date.setDate(diff));
+  return `${monday.getFullYear()}-${String(monday.getMonth() + 1).padStart(2, '0')}-${String(monday.getDate()).padStart(2, '0')}`;
+}
+
+function weekEndISO(d = new Date()): string {
+  const monISO = weekStartISO(d);
+  const [y, m, day] = monISO.split('-').map(Number);
+  const monday = new Date(y, m - 1, day);
+  const sunday = new Date(monday);
+  sunday.setDate(sunday.getDate() + 6);
+  return `${sunday.getFullYear()}-${String(sunday.getMonth() + 1).padStart(2, '0')}-${String(sunday.getDate()).padStart(2, '0')}`;
 }
 
 function monthStartISO(d = new Date()): string {
@@ -39,11 +58,14 @@ function monthStartISO(d = new Date()): string {
 
 function monthEndISO(d = new Date()): string {
   const end = new Date(d.getFullYear(), d.getMonth() + 1, 0);
-  return end.toISOString().split('T')[0];
+  return `${end.getFullYear()}-${String(end.getMonth() + 1).padStart(2, '0')}-${String(end.getDate()).padStart(2, '0')}`;
 }
 
 export function defaultPeriodFilter(period: DashboardPeriod = 'today'): PeriodFilterValue {
   const today = todayISO();
+  if (period === 'week') {
+    return { period, range: { dateFrom: weekStartISO(), dateTo: weekEndISO() } };
+  }
   if (period === 'month') {
     return { period, range: { dateFrom: monthStartISO(), dateTo: monthEndISO() } };
   }
@@ -54,7 +76,8 @@ export function defaultPeriodFilter(period: DashboardPeriod = 'today'): PeriodFi
 /* ─── presets ─────────────────────────────────────────────── */
 const PRESETS: { key: DashboardPeriod; label: string; icon: React.ReactNode }[] = [
   { key: 'today', label: 'วันนี้', icon: <CalendarCheck2 className="w-4 h-4" /> },
-  { key: 'month', label: 'เดือนนี้', icon: <CalendarDays className="w-4 h-4" /> },
+  { key: 'week', label: 'สัปดาห์นี้', icon: <CalendarDays className="w-4 h-4" /> },
+  { key: 'month', label: 'เดือนนี้', icon: <CalendarRange className="w-4 h-4" /> },
   { key: 'range', label: 'เลือกช่วง', icon: <CalendarRange className="w-4 h-4" /> },
 ];
 
