@@ -145,7 +145,7 @@ export const OrderPreview = forwardRef<HTMLDivElement, OrderPreviewProps>(
                   rel="noopener noreferrer"
                   className="inline-flex items-center gap-1.5 text-[11px] text-muted-foreground hover:text-primary transition-colors"
                 >
-                  <img src={`/images/icon/${icon}.svg`} alt={icon} className="w-4 h-4" />
+                  <img src={`/images/icon/${icon}.png`} alt={icon} className="w-4 h-4" />
                   <span>{MERCHANT.socials.search}</span>
                 </a>
               ))}
