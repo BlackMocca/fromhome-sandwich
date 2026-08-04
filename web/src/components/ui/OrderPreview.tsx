@@ -2,6 +2,7 @@
 
 import { forwardRef } from 'react';
 import type { OrderItem } from '@/contexts/OrderContext';
+import { formatDmyReceipt } from '@/lib/timezone';
 
 interface OrderPreviewProps {
   customerName: string;
@@ -20,26 +21,7 @@ interface OrderPreviewProps {
   note?: string;
 }
 
-/**
- * Formats an ISO date string as DD/MM/YY (Buddhist year).
- * If the string includes a time component it is appended as HH:MM:SS.
- * Examples: "2026-02-16" -> "16/02/69", "2026-02-16T18:12:50Z" -> "16/02/69 18:12:50"
- */
-function formatDmy(iso: string): string {
-  if (!iso) return '';
-  const [datePart, timePart] = iso.split('T');
-  const [year, month, day] = datePart.split('-').map(Number);
-  if (!year || !month || !day) return iso;
-  const yy = String(year + 543).slice(-2);
-  const dd = String(day).padStart(2, '0');
-  const mm = String(month).padStart(2, '0');
-  let result = `${dd}/${mm}/${yy}`;
-  if (timePart) {
-    const time = timePart.split(/[.Z+-]/)[0];
-    if (time) result += ` ${time}`;
-  }
-  return result;
-}
+
 
 const MERCHANT = {
   name: "From Home Sandwich & Beverage",
@@ -77,7 +59,7 @@ export const OrderPreview = forwardRef<HTMLDivElement, OrderPreviewProps>(
           )}
 
           <div className="py-4 space-y-1">
-            <p>วันที่: {formatDmy(invoiceDate)}</p>
+            <p>วันที่: {formatDmyReceipt(invoiceDate)}</p>
             {orderNo && <p>เลขคำสั่งซื้อ: {orderNo}</p>}
             {note && <p className="break-words">หมายเหตุ: {note}</p>}
           </div>

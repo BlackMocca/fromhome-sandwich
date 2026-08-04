@@ -11,6 +11,7 @@ import { ToggleSwitch } from '@/components/ui/toggle-switch';
 import { cn } from '@/lib/utils';
 import { toast } from '@/lib/toast';
 import { getNextWithdrawNo, createDisbursement } from '@/lib/db';
+import { getTodayDate } from '@/utils/receipt-no';
 import {
   DISBURSEMENT_STATUS_LABELS,
   type DisbursementStatus,
@@ -22,7 +23,7 @@ export default function CreateDisbursementPage() {
 
   const [description, setDescription] = useState('');
   const [amount, setAmount] = useState('');
-  const [withdrawDate, setWithdrawDate] = useState(new Date().toISOString().split('T')[0]);
+  const [withdrawDate, setWithdrawDate] = useState(getTodayDate());
   const [paid, setPaid] = useState(false); // default ค้างจ่าย
   const [note, setNote] = useState('');
 

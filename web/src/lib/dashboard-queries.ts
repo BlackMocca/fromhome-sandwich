@@ -204,7 +204,7 @@ export function useDailyTrend(dateFrom: string, dateTo: string) {
       const fromDate = new Date(dateFrom + 'T00:00:00');
       const toDate = new Date(dateTo + 'T00:00:00');
       for (let d = new Date(fromDate); d <= toDate; d.setDate(d.getDate() + 1)) {
-        const key = d.toISOString().slice(0, 10);
+        const key = `${d.getFullYear()}-${String(d.getMonth() + 1).padStart(2, '0')}-${String(d.getDate()).padStart(2, '0')}`;
         map.set(key, {
           date: key,
           net_sales: 0,

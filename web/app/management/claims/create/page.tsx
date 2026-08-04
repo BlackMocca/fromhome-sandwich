@@ -10,6 +10,7 @@ import { InputDate } from '@/components/ui/input-date';
 import { cn } from '@/lib/utils';
 import { toast } from '@/lib/toast';
 import { getProducts, getNextClaimNo, createClaim } from '@/lib/db';
+import { getTodayDate } from '@/utils/receipt-no';
 import {
   CLAIM_REASON_LABELS,
   type ClaimReason,
@@ -37,7 +38,7 @@ export default function CreateClaimPage() {
   const queryClient = useQueryClient();
 
   const [reason, setReason] = useState<ClaimReason>('expired');
-  const [claimDate, setClaimDate] = useState(new Date().toISOString().split('T')[0]);
+  const [claimDate, setClaimDate] = useState(getTodayDate());
   const [note, setNote] = useState('');
   const [items, setItems] = useState<DraftItem[]>([]);
 

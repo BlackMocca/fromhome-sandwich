@@ -12,6 +12,7 @@ import { Input } from '@/components/ui/input';
 import { InputDate } from '@/components/ui/input-date';
 import { OrderPreview } from '@/components/ui/OrderPreview';
 import { getNextReceiptNo, createReceipt } from '@/lib/db';
+import { getTodayDate } from '@/utils/receipt-no';
 import { getChannelById } from '@/lib/db';
 
 // ─── Types ──────────────────────────────────────────────
@@ -75,7 +76,7 @@ export function StepInvoiceForm({ onBack }: { onBack: () => void }) {
   const effectiveCode = channelCode ?? resolvedCode;
 
   // Sync fallback receipt number from channelCode
-  const today = new Date().toISOString().split('T')[0];
+  const today = getTodayDate();
   const fallbackReceiptNo = effectiveCode
     ? `${effectiveCode}${today.replace(/-/g, '')}0001`
     : '';
@@ -102,7 +103,7 @@ export function StepInvoiceForm({ onBack }: { onBack: () => void }) {
     initialValues: {
       receiptNo: '',
       customerName: '',
-      invoiceDate: new Date().toISOString().split('T')[0],
+      invoiceDate: getTodayDate(),
       note: '',
       discounts: [],
     },

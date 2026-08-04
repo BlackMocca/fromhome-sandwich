@@ -30,12 +30,23 @@ function toBuddhistDate(dateStr: string): string {
 }
 
 function toBuddhistDateTime(isoStr: string): string {
-  const dt = new Date(isoStr);
-  const buddhistYear = dt.getFullYear() + 543;
-  const day = dt.getDate();
-  const month = THAI_MONTHS[dt.getMonth()];
-  const time = dt.toLocaleString('th-TH', { hour: '2-digit', minute: '2-digit', hour12: false });
-  return `${day} ${month} ${buddhistYear} ${time}`;
+  if (!isoStr) return '-';
+  const d = new Date(isoStr);
+  // Use explicit Bangkok timezone for correct display regardless of server locale
+  const dateFmt = new Intl.DateTimeFormat('th-TH', {
+    timeZone: 'Asia/Bangkok', day: '2-digit', month: 'short'
+  }).formatToParts(d);
+  const partMap = Object.fromEntries(dateFmt.map(p => [p.type, p.value]));
+  // Buddhist year from Bangkok timezone explicitly
+  const bangkokYearStr = new Intl.DateTimeFormat('en-CA', {
+    timeZone: 'Asia/Bangkok', year: 'numeric'
+  }).format(d);
+  const buddhistYear = parseInt(bangkokYearStr) + 543;
+  const timeFmt = new Intl.DateTimeFormat('th-TH', {
+    timeZone: 'Asia/Bangkok', hour: '2-digit', minute: '2-digit', hour12: false, second: '2-digit'
+  }).formatToParts(d);
+  const tMap = Object.fromEntries(timeFmt.map(p => [p.type, p.value]));
+  return `${partMap.day} ${partMap.month} ${buddhistYear} ${tMap.hour}:${tMap.minute}`;
 }
 
 export default function DisbursementsPage() {

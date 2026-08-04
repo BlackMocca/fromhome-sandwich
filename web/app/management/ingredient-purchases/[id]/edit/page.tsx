@@ -8,6 +8,7 @@ import { Button } from '@/components/ui/button';
 import { Input } from '@/components/ui/input';
 import { toast } from '@/lib/toast';
 import { updateIngredientPurchase, getIngredientPurchases, getIngredients } from '@/lib/db';
+import { getTodayDate } from '@/utils/receipt-no';
 
 export default function EditIngredientPurchasePage() {
   const router = useRouter();
@@ -39,7 +40,7 @@ export default function EditIngredientPurchasePage() {
           const p = result.find((item: any) => Number(item.id) === purchaseId);
           if (!p) return;
 
-          setPurchaseDate(p.purchase_date || new Date().toISOString().split('T')[0]);
+          setPurchaseDate(p.purchase_date || getTodayDate());
           
           // Extract ingredient_id and map to mock ingredients or just use the id as string
           const ingId = p.ingredient_id ? String(p.ingredient_id) : '';

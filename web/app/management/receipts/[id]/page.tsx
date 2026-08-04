@@ -18,27 +18,8 @@ import type { Receipt, ReceiptItem, DiscountSnapshot, ProductOptionSnapshot } fr
 import type { OrderItem } from '@/contexts/OrderContext';
 import type { ChannelProduct } from '@/types/channel_product';
 import type { Product } from '@/types/product';
-
-const THAI_MONTHS_SHORT = [
-  'ม.ค.', 'ก.พ.', 'มี.ค.', 'เม.ย.', 'พ.ค.', 'มิ.ย.',
-  'ก.ค.', 'ส.ค.', 'ก.ย.', 'ต.ค.', 'พ.ย.', 'ธ.ค.',
-];
-
+import { formatThaiBuddhistDate, formatThaiBuddhistDateTime } from '@/lib/timezone';
 /** Thai date: "2026-07-14" -> "14 ก.ค. 2569" (Buddhist year). withTime appends HH:MM:SS. */
-function formatThaiDate(iso: string, withTime = false): string {
-  if (!iso) return '-';
-  const [datePart, timePart] = iso.split('T');
-  const [year, month, day] = datePart.split('-').map(Number);
-  if (!year || !month || !day) return iso;
-  const buddhistYear = year + 543;
-  const dd = String(day).padStart(2, '0');
-  let result = `${dd} ${THAI_MONTHS_SHORT[month - 1]} ${buddhistYear}`;
-  if (withTime && timePart) {
-    const time = timePart.split(/[.Z+-]/)[0];
-    if (time) result += ` ${time}`;
-  }
-  return result;
-}
 
 export default function ReceiptDetailPage({ params }: { params: Promise<{ id: string }> }) {
   const { id } = use(params);
@@ -295,7 +276,7 @@ export default function ReceiptDetailPage({ params }: { params: Promise<{ id: st
           </div>
           <div className="rounded-xl bg-surface/50 px-4 py-3">
             <p className="text-[11px] text-muted-foreground mb-1">วันที่</p>
-            <p className="text-sm font-semibold text-primary">{formatThaiDate(receipt.bill_date)}</p>
+            <p className="text-sm font-semibold text-primary">{ formatThaiBuddhistDate(receipt.bill_date)}</p>
           </div>
           <div className="rounded-xl bg-surface/50 px-4 py-3">
             <p className="text-[11px] text-muted-foreground mb-1">ลูกค้า</p>
@@ -307,7 +288,7 @@ export default function ReceiptDetailPage({ params }: { params: Promise<{ id: st
           </div>
           <div className="col-span-2 rounded-xl bg-surface/50 px-4 py-3">
             <p className="text-[11px] text-muted-foreground mb-1">สร้างบิลเมื่อ</p>
-            <p className="text-sm font-semibold text-primary">{formatThaiDate(receipt.created_at, true)}</p>
+            <p className="text-sm font-semibold text-primary">{formatThaiBuddhistDateTime(receipt.created_at, true)}</p>
           </div>
           {receipt.note && (
             <div className="col-span-2 rounded-xl bg-surface/50 px-4 py-3">

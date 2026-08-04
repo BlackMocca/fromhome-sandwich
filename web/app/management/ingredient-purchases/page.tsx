@@ -8,7 +8,7 @@ import { Input } from '@/components/ui/input';
 import { Button } from '@/components/ui/button';
 import { cn } from '@/lib/utils';
 import { toast } from '@/lib/toast';
-import { getIngredientPurchases, deleteIngredientPurchase } from '@/lib/db';
+import { getIngredientPurchases, deleteIngredientPurchase, getIngredients } from '@/lib/db';
 
 const PAGE_SIZE = 15;
 
@@ -26,6 +26,15 @@ export default function IngredientPurchasesPage() {
   const [dateFromFilter, setDateFromFilter] = useState('');
   const [dateToFilter, setDateToFilter] = useState('');
   const [page, setPage] = useState(1);
+
+  // Fetch all ingredients to build a name lookup map (no join at DB level yet)
+  const { data: _ingredients = [] } = useQuery({
+    queryKey: ['ingredient-purchase', 'ingredients'],
+    queryFn: getIngredients,
+  });
+  const ingredientMap = new Map<number, string>(
+    (_ingredients as any[]).map((ing) => [Number(ing.id), String(ing.name || '')]),
+  );
 
   // Fetch ingredient purchases with filters
   const { data: purchases = [], isLoading } = useQuery({
@@ -159,8 +168,7 @@ export default function IngredientPurchasesPage() {
           <div className="px-4 py-8 text-center text-muted-foreground">ไม่พบข้อมูล</div>
         ) : (
           paginatedPurchases.map((p: any, i: number) => {
-            // Extract ingredient name from the embedded data or fallback to placeholder
-            const ingredientName = p.ingredients?.name || `ID ${p.ingredient_id}`;
+            const ingredientName = ingredientMap.get(Number(p.ingredient_id)) ?? `ID ${p.ingredient_id}`;
             return (
               <div
                 key={p.id}
@@ -217,7 +225,7 @@ export default function IngredientPurchasesPage() {
           <div className="px-4 py-8 text-center text-muted-foreground bg-white rounded-xl border border-border/50">ไม่พบข้อมูล</div>
         ) : (
           paginatedPurchases.map((p: any) => {
-            const ingredientName = p.ingredients?.name || `ID ${p.ingredient_id}`;
+            const ingredientName = ingredientMap.get(Number(p.ingredient_id)) ?? `ID ${p.ingredient_id}`;
             return (
               <div
                 key={p.id}

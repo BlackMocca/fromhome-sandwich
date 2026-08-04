@@ -9,6 +9,7 @@ import { Input } from '@/components/ui/input';
 import { cn } from '@/lib/utils';
 import { toast } from '@/lib/toast';
 import { createIngredientPurchase, getIngredients } from '@/lib/db';
+import { getTodayDate } from '@/utils/receipt-no';
 
 export default function CreateIngredientPurchasePage() {
   const router = useRouter();
@@ -21,7 +22,7 @@ export default function CreateIngredientPurchasePage() {
   });
 
   const [ingredientId, setIngredientId] = useState('');
-  const [purchaseDate, setPurchaseDate] = useState(new Date().toISOString().split('T')[0]);
+  const [purchaseDate, setPurchaseDate] = useState(getTodayDate());
   const [quantity, setQuantity] = useState('1');
   const [unit, setUnit] = useState('ชิ้น');
   const [amount, setAmount] = useState('');

@@ -5,6 +5,8 @@
  * No WebSocket/Realtime due to IPv6 constraints on dev machine.
  */
 
+import { getTodayDate } from '@/utils/receipt-no';
+
 const SUPABASE_URL = process.env.NEXT_PUBLIC_SUPABASE_URL || '';
 const SUPABASE_ANON_KEY = process.env.NEXT_PUBLIC_SUPABASE_ANON_KEY
   || process.env.NEXT_PUBLIC_SUPABASE_PUBLISHABLE_KEY
@@ -521,12 +523,12 @@ export async function updateReceiptStatus(id: number, status: 'active' | 'cancel
 
 /**
  * Per-day, per-channel summary.
- * @param date single day as 'YYYY-MM-DD' (defaults to today, UTC)
+ * @param date single day as 'YYYY-MM-DD' (defaults to today, local time)
  */
 export async function getDailySummary(
   date?: string,
 ): Promise<import('@/types/dashboard').DailySummaryRow[]> {
-  const targetDate = date || new Date().toISOString().split('T')[0];
+  const targetDate = date || getTodayDate();
   return get<import('@/types/dashboard').DailySummaryRow[]>('view_daily_summary', {
     params: { bill_date: `eq.${targetDate}`, order: 'channel_code.asc' },
   });

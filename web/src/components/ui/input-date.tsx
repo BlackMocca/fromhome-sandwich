@@ -4,6 +4,7 @@ import * as React from "react"
 import { Calendar as CalendarIcon, ChevronDown } from "lucide-react"
 import { cn } from "@/lib/utils"
 import { Calendar } from "@/components/ui/calendar"
+import { getTodayDate } from "@/utils/receipt-no"
 
 const THAI_MONTHS = [
   'ม.ค.', 'ก.พ.', 'มี.ค.', 'เม.ย.', 'พ.ค.', 'มิ.ย.',
@@ -65,7 +66,7 @@ function InputDate({
           <Calendar
             selectedDate={value}
             onSelect={(date) => {
-              onValueChange?.(date || new Date().toISOString().split('T')[0])
+              onValueChange?.(date || getTodayDate())
               setOpen(false)
             }}
             showOutsideDays={false}

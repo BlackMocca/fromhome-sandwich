@@ -17,25 +17,7 @@ import {
   type DisbursementStatus,
 } from '@/types/disbursement';
 
-const THAI_MONTHS_SHORT = [
-  'ม.ค.', 'ก.พ.', 'มี.ค.', 'เม.ย.', 'พ.ค.', 'มิ.ย.',
-  'ก.ค.', 'ส.ค.', 'ก.ย.', 'ต.ค.', 'พ.ย.', 'ธ.ค.',
-];
-
-function formatThaiDate(iso: string, withTime = false): string {
-  if (!iso) return '-';
-  const [datePart, timePart] = iso.split('T');
-  const [year, month, day] = datePart.split('-').map(Number);
-  if (!year || !month || !day) return iso;
-  const buddhistYear = year + 543;
-  const dd = String(day).padStart(2, '0');
-  let result = `${dd} ${THAI_MONTHS_SHORT[month - 1]} ${buddhistYear}`;
-  if (withTime && timePart) {
-    const time = timePart.split(/[.Z+-]/)[0];
-    if (time) result += ` ${time}`;
-  }
-  return result;
-}
+import { formatThaiBuddhistDate, formatThaiBuddhistDateTime } from '@/lib/timezone';
 
 export default function DisbursementDetailPage({ params }: { params: Promise<{ id: string }> }) {
   const { id } = use(params);
@@ -159,7 +141,7 @@ export default function DisbursementDetailPage({ params }: { params: Promise<{ i
             </div>
             <div className="rounded-xl bg-surface/50 px-4 py-3">
               <p className="text-[11px] text-muted-foreground mb-1">วันที่เบิก</p>
-              <p className="text-sm font-semibold text-primary">{formatThaiDate(d.withdraw_date)}</p>
+              <p className="text-sm font-semibold text-primary">{ formatThaiBuddhistDate(d.withdraw_date)}</p>
             </div>
             <div className="col-span-2 rounded-xl bg-surface/50 px-4 py-3">
               <p className="text-[11px] text-muted-foreground mb-1">รายการ</p>
@@ -181,7 +163,7 @@ export default function DisbursementDetailPage({ params }: { params: Promise<{ i
             </div>
             <div className="rounded-xl bg-surface/50 px-4 py-3">
               <p className="text-[11px] text-muted-foreground mb-1">สร้างเมื่อ</p>
-              <p className="text-sm font-semibold text-primary">{formatThaiDate(d.created_at, true)}</p>
+              <p className="text-sm font-semibold text-primary">{formatThaiBuddhistDateTime(d.created_at, true)}</p>
             </div>
             {d.note && (
               <div className="col-span-2 rounded-xl bg-surface/50 px-4 py-3">

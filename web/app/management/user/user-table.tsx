@@ -179,6 +179,7 @@ function formatDateTime(iso: string): string {
   try {
     const d = new Date(iso);
     return new Intl.DateTimeFormat('th-TH', {
+      timeZone: 'Asia/Bangkok',
       year: 'numeric',
       month: 'short',
       day: '2-digit',
